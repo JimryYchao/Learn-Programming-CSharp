@@ -1270,3 +1270,154 @@ class Sample : IInstance<Sample>
 
 #### 可为 null 的引用类型
 
+- 由于在可为 null 的感知上下文选择加入了代码，可以使用可为 null 的引用类型.可为 null 的引用类型、null 静态分析警告和 null 包容运算符是可选的语言功能。在可为 null 的感知上下文中：
+  - 引用类型 `T` 的变量必须用非 `null` 值进行初始化，并且不能为其分配可能为 `null` 的值。
+  - 引用类型 `T?` 的变量可以用 `null` 进行初始化，也可以分配 `null`，但在取消引用之前必须对照 `null` 进行检查。
+  - 类型为 `T?` 的变量 `m` 在应用 `null` 包容运算符时被认为是非空的，如 `m!` 中所示。
+
+- 类型为 `T` 的变量和类型为 `T?` 的变量由相同的 .NET 类型表示。可为 null 的引用类型不是新的类类型，而是对现有引用类型的注释。编译器使用这些注释来帮助你查找代码中潜在的 null 引用错误。不可为 null 的引用类型和可为 null 的引用类型在运行时没有区别。
+- 可以通过两种方式控制可为 null 的上下文。在项目级别，可以添加 `<Nullable>enable</Nullable>` 项目设置。在单个 C# 源文件中，可以添加 `#nullable enable` 来启用可为 null 的上下文。在 .NET 6 之前，新项目使用默认值 `<Nullable>disable</Nullable>`。从 .NET 6 开始，新项目将在项目文件中包含 `<Nullable>enable</Nullable>` 元素。
+
+---
+### void 无返回类型
+
+- 可以将 `void` 用作方法（或本地函数）的返回类型来指定该方法不返回值。还可以将 `void` 用作引用类型来声明指向未知类型的指针。 
+
+```csharp
+// 本地函数无返回
+static unsafe void Func()
+{   // 指针类型
+    fixed (void* pt = &string.Empty)
+    {
+        UIntPtr n_pt = new UIntPtr(pt);
+        Console.WriteLine($"&string.Empty = {n_pt,20:x}");
+    }
+}
+```
+
+---
+### var 隐式类型
+
+- 声明局部变量时，可以让编译器从初始化表达式推断出变量的类型。使用 `var` 关键字声明隐式类型。`var` 的常见用途是用于构造函数调用表达式。
+
+```csharp
+var xs = new List<int>();
+```
+
+- 使用匿名类型时，必须使用隐式类型的局部变量。带 `var` 关键字的隐式类型只能应用于本地方法范围内的变量
+
+```csharp
+var Ps = new PointArray(PointArray.RandomPoints(50));
+Ps.AddPoints(PointArray.RandomPoints(50));
+var first_Ps = Ps.GetPointsInQuadrant(1);
+var Second_Ps = Ps.GetPointsInQuadrant(2);
+var Third_Ps = Ps.GetPointsInQuadrant(3);
+var Forth_Ps = Ps.GetPointsInQuadrant(4);
+
+Print(first_Ps);
+Print(Second_Ps);
+Print(Third_Ps);
+Print(Forth_Ps);
+// -----------------------------------------------
+static void Print<T>(in IEnumerable<T> arr)
+{
+    foreach (var item in arr)
+        Console.WriteLine(item.ToString());
+}
+
+record struct PointArray(params (int x, int y)[] points)
+{
+    public readonly int PointsCount => points.Length;
+    private bool PrintMembers(System.Text.StringBuilder sb)
+    {
+        if (points.Length > 0)
+        {
+            sb.Append(points[0]);
+            foreach (var p in points[1..])
+                sb.Append(" ," + p);
+            return true;
+        }
+        return false;
+    }
+    public static (int, int)[] RandomPoints(int count)
+    {
+        int seed = DateTime.Now.Microsecond;
+        Random r = new Random(seed);
+        var ps = new (int, int)[count];
+        for (int i = 0; i < count; i++)
+            ps[i] = (r.Next(-128, 128), r.Next(-128, 128));
+        return ps;
+    }
+
+    public void AddPoints(params (int x, int y)[] points)
+    {
+        (int x, int y)[] newPoints = new (int x, int y)[points.Length + this.points.Length];
+        Array.Copy(this.points, newPoints, this.points.Length);
+        Array.Copy(points, 0, newPoints, this.points.Length, points.Length);
+        this.points = newPoints;
+    }
+    public (int, int)[] GetPointsInQuadrant(uint order)
+    {
+        if (order < 0 || order > 4)
+            return default;
+        var state = static delegate (int x, int y, uint order)
+        {
+            return order switch
+            {
+                1 => x > 0 && y > 0,
+                2 => x > 0 && y < 0,
+                3 => x < 0 && y < 0,
+                4 => x < 0 && y > 0,
+            };
+        };
+        var ps = from (int x, int y) p in this.points
+                 where state(p.x, p.y, order)
+                 select p;
+        return ps.ToArray();
+    }
+}
+```
+
+---
+### 内置类型
+
+- 内置值类型：`bool`、`byte`、`sbyte`、`char`、`decimal`、`double`、`float`、`int`、`uint`、`nint`、`nuint`、`long`、`ulong`、`short`、`ushort`。
+- 内置引用类型：`object`、`string`、`dynamic`。
+- 无类型：`void`。
+
+---
+### 非托管类型
+
+- 如果某个类型是以下类型之一，则它是非托管类型：
+  - `sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`long`、`ulong`、`nint`、`nuint`、`char`、`float`、`double`、`decimal` 或 `bool`。
+  - 任何枚举类型，任何指针类型，任何仅包含非托管类型字段的用户定义的结构类型。
+
+- 非托管类型使用 `unmanaged` 约束指定：类型参数为 “非指针、不可为 null 的非托管类型”。
+
+```csharp
+public struct Coords<T> where T : unmanaged
+{
+    public T X;
+    public T Y;
+}
+```
+
+---
+### 类型默认值
+
+- 任何引用类型：`null`。
+- 任何内置数值类型：`0`。
+- `bool`：`false`。
+- `char`：`\0`。
+- `enum`：`(E)0`。
+- `struct`：成员各类型默认值。
+- 可为 null 的值类型：`HasValue` 属性为 `false` 且 `Value` 属性未定义的实例，即 `null`。
+
+> 默认值表达式
+
+```csharp
+int num = default(int);         // default 运算符
+string str = default;           // default 文本值
+```
+
+---
