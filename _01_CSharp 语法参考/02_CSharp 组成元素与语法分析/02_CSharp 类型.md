@@ -503,8 +503,7 @@ string message = $"The usage policy for {safetyScore} is {
         > 70 => "Issues must be addressed within 1 week",
         > 50 => "Issues must be addressed within 1 day",
         _ => "Issues must be addressed before continued use",
-    }
-    }";
+    }}";
 ```
 
 > 逐字字符串
@@ -562,31 +561,64 @@ ReadOnlySpan<byte> bytes = Encoding.UTF8.GetBytes(str);
 
 <br>
 
+#### 数组类型
+
+- 数组是一种数据结构，其中包含许多通过计算索引访问的变量。数组中的元素均为同一种类型。使用 `new` 运算创建数组的实例。
+
+```csharp
+int[] arr1 = new int[10];        // 元素均初始化为 0
+int[] arr2 = { 0, 1, 2, 3 };     // 初始化构造
+int[] arr3 = new int[] { 1, 2, 3 };
+int[] arr4 = new int[3] { 1, 2, 3 };
+int[] arr5 = new[] { 1, 2, 3 };
+int[] arr6 = [10, 20, 30];       // 集合表达式
+```
+
+> 多维数组
+
+```csharp
+int[] a1 = new int[10];             // 一维数组
+int[,] a2 = new int[10, 5];         // 二维数组
+int[,,] a3 = new int[10, 5, 2];     // 三维数组
+```
+
+> 交替数组
+
+- 包含数组类型元素的数组有时称为 “交错数组”，因为元素数组的长度不必全都一样。交错数组是一维数组。
+
+```csharp
+int[][] arrs = {
+    [1,2,3,4],
+    [10,20,30,40,50],
+    [100,1000]
+};
+```
+
+<br>
+
 #### delegate 委托类型
 
-- 委托类型的声明与方法签名相似，它有一个返回值和任意数目任意类型的参数。`delegate` 是一种可用于封装命名方法或匿名方法的引用类型，安全且可靠。可以使用 `event` 修饰委托类型将其转换为事件。必须使用具有兼容返回类型和输入参数的方法或 lambda 表达式实例化委托。
+- 委托类型的声明与方法签名相似，它有一个返回值和任意数目任意类型的参数。委托类型是一种可用于封装命名方法或匿名方法的引用类型，安全且可靠。
+- 使用 `delegate` 关键字声明委托类型。必须使用具有兼容返回类型和输入参数的方法或 Lambda 表达式实例化委托。
+- 在 .NET 中，`System.Action` 和 `System.Func` 类型为许多常见委托提供泛型定义。
 
 ```csharp
 public delegate void MessageDelegate(string message);
 public delegate int AnotherDelegate(MyType m, long num);
 
 MessageDelegate MessagePrint = message => Console.WriteLine(message);
-MessageDelegate Debug = delegate (string message) 
-
 MessagePrint.Invoke("Hello World!");
-
-// delegate 声明匿名方法
-var Debug = delegate (string message)
-{
-    MessagePrint?.Invoke(message);
-};
 ```
 
-- 在 .NET 中，`System.Action` 和 `System.Func` 类型为许多常见委托提供泛型定义。
+> delegate 匿名方法
+
+- `delegate` 运算符创建一个可以转换为委托类型的匿名方法。匿名方法可以转换为 `System.Action` 和 `System.Func<TResult>` 等类型，用作许多方法的参数。
 
 ```csharp
-Action<string> Debug = delegate (string mess) { Console.WriteLine(mess); };
-Func<int,int,int> Sum = delegate (int a, int b) { return a + b; };
+// delegate 匿名方法
+Func<int, int, int> sum = delegate (int a, int b) { return a + b; };
+// lambda 匿名方法
+var _Debug = (string message) => MessagePrint?.Invoke(message);
 ```
 
 <br>
@@ -1414,6 +1446,10 @@ public struct Coords<T> where T : unmanaged
 - 可为 null 的值类型：`HasValue` 属性为 `false` 且 `Value` 属性未定义的实例，即 `null`。
 
 > 默认值表达式
+
+- 默认值表达式生成类型的默认值。有两种类型的表达式：`default` 运算符调用和 `default` 文本：
+  - `default` 运算符的实参必须是类型或类型形参的名称。
+  - `default` 文本用于生成类型的默认值，可用于变量赋值、可选方法参数的默认值、`return` 语句、方法参数传递。
 
 ```csharp
 int num = default(int);         // default 运算符

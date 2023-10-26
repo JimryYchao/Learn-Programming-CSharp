@@ -40,7 +40,7 @@ namespace YourNamespace{
 ### 程序构建基块
 #### 成员
 
-` ` 的成员要么是静态成员，要么是实例成员。静态成员属于类，而实例成员则属于对象（类实例）。类可以包含的成员类型有：常量、字段、方法、属性、索引器、事件、运算符、构造函数、终结器、嵌套类型等。
+`class` 的成员要么是静态成员，要么是实例成员。静态成员属于类，而实例成员则属于对象（类实例）。类可以包含的成员类型有：常量、字段、方法、属性、索引器、事件、运算符、构造函数、终结器、嵌套类型等。
 
 > 成员访问修饰
 
@@ -187,16 +187,45 @@ class Point{
 
 #### 索引器
 
-借助索引器成员，可以将对象编入索引。类似于属性，索引器分为读写、只读和只写索引器，且索引器的访问器可以是虚的。
+索引器允许类或结构的实例就像数组一样进行索引。借助索引器成员，可以将对象编入索引。索引器类似于属性，索引器分为读写、只读和只写索引器，且索引器的访问器可以是 `virtual` 的。
 索引器可被重载。一个类可声明多个索引器，只要其参数的数量或类型不同即可。
 
 ```csharp
-abstract class Program
+class SampleCollection<T>
 {
-    public abstract int this[int uid] { get; }
-    public abstract int this[string name] { get; }
+   // Declare an array to store the data elements.
+   private T[] arr = new T[100];
+   // Define the indexer to allow client code to use [] notation.
+   public T this[int i]
+   {
+      get => arr[i];
+      set => arr[i] = value;
+   }
 }
 ```
+
+通过声明索引器，编译器会自动在对象上生成一个名为 `Item` 的属性，无法从实例成员访问表达式直接访问 `Item` 属性。如果在包含索引器的对象中添加自己的 `Item` 属性，则将收到 CS0102 编译器错误。要避免此错误，请使用 `IndexerNameAttribute` 来重命名索引器。
+
+```csharp
+struct SampleCollection<T>( T[] arr)
+{
+    [System.Runtime.CompilerServices.IndexerName("__Item")]
+    public ref T this[int i] =>  ref arr[i];
+    T Item { get; set; }
+}
+```
+
+> 接口中的索引器
+
+可以在接口上声明索引器。其访问器不使用修饰符，通常没有正文，用以指示索引器为读写、只读还是只写。
+
+```csharp
+interface ISampleDictionary
+{
+    string this[string key] { get ; set; }
+}
+```
+
 
 <br>
 

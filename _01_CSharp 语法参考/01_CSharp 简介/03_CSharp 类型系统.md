@@ -50,8 +50,8 @@ class MyClass{}
 struct MyStruct{}
 interface IMyInterface{}
 enum MyEnum{}
-record class MyClass_R{}
-record struct MyStruct_R{}
+record class MyClass_Record{}
+record struct MyStruct_Record{}
 ```
 
 ---
@@ -64,7 +64,7 @@ CTS 中的每种类型被定义为值类型或引用类型。这些类型包括 
 > 类、结构或记录声明类似于一张蓝图，用于在运行时创建实例或对象：
 - 类是引用类型，创建类型的对象后，向其分配对象的变量仅保留对相应内存的引用（将对象引用分配给新变量后，新变量会引用原始对象）。
 - 结构是值类型，创建结构时，向其分配结构的变量保留结构的实际数据（将结构分配给新变量时，会复制结构）。
-- 记录类型可以是引用类型（`record class`）或值类型（`record struct`）
+- 记录类型可以是引用类型（`record` 或 `record class`）或值类型（`record struct`）
 
 <br>
 
@@ -210,7 +210,7 @@ class AnotherSampleClass{
 ---
 ### 类
 
-- 使用 class 关键字声明类，使用 new 运算符显式创建类的实例。一个类中可包含：
+- 使用 class 关键字声明类，使用 `new` 运算符显式创建类的实例。一个类中可包含：
   - 构造函数：创建类或结构的实例时，会调用其构造函数。构造函数可重载。
   - 常量：使用 `const` 定义静态访问的不可变值，且仅支持 C# 内置类型，不包括 `object`、用户定义类型等。常量在声明时初始化。
   - 字段：字段是在类或结构中直接声明的任意类型的变量，字段是其包含类型的成员。可以声明静态或实例字段。
