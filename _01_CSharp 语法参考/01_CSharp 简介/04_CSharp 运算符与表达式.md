@@ -312,7 +312,6 @@ var rx_LeftHalf = rx[..halfIndex];
 var rx_RightHalf = rx[^(rx.Length - halfIndex)..];
 Console.WriteLine("Left Half : " + string.Join(",", rx_LeftHalf));
 Console.WriteLine("Right Half : " + string.Join(",", rx_RightHalf));
-
 ```
 
 <br>
@@ -379,7 +378,6 @@ record struct PointArray(params Point[] ps)
 {
     public Point this[int i] => ps[i];
     public int Length => ps.Length;
-
     public Point[] Slice(int start, int length)
     {
         var _ps = new Point[length];

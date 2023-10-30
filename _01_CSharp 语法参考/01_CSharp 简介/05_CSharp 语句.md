@@ -325,6 +325,56 @@ public class GotoInSwitchExample
 }
 ```
 
+<br>
+
+#### yield 语句
+
+- 在迭代器中使用 `yield` 语句提供下一个值的 `yield return` 或表示迭代结束的 `yield break`。迭代器的返回类型可以是 `IEnumerable<T>`、`IEnumerable`、`IAsyncEnumerable<T>` 异步迭代。
+- 当开始对迭代器的结果进行迭代时，迭代器会一直执行，直到到达第一个 `yield return` 语句为止。 然后，迭代器的执行会暂停，调用方会获得第一个迭代值并处理该值。在后续的每次迭代中，迭代器的执行都会在导致上一次挂起的 `yield return` 语句之后恢复，并继续执行，直到到达下一个 `yield return` 语句为止。当控件到达迭代器或 `yield break` 语句的末尾时，迭代完成。
+- Lambda 表达式中不允许使用 `yield return` 语句。
+
+```csharp
+foreach (var item in Square([1, 2, 3, 4, 5, 6, 99999/* 溢出位 */, 7, 8, 9]))
+    Console.Write(item + " ");  // output: 1 4 9 16 25 36
+IEnumerable<int> Square(int[] items)
+{
+    int rt;
+    for (int i = 0; i < items.Length; i++)
+    {
+        try { rt = checked(items[i] * items[i]); }
+        catch { yield break; }  // 在溢出时跳出迭代
+        yield return rt;
+    }
+}
+```
+
+> 异步迭代器
+
+```csharp
+await foreach (var item in SquareAsync([1, 2, 3, 4, 5, 99999, 6, 7, 8]))
+    Console.WriteLine(item);
+
+async IAsyncEnumerable<int> SquareAsync(int[] nums)
+{
+    int rt = 0;
+    for (int i = 0; i < nums.Length; i++)
+    {
+        try { rt = await Square(nums[i]); }
+        catch
+        {
+            Console.WriteLine("Overflow");
+            yield break;
+        }
+        yield return rt;
+    }
+}
+async Task<int> Square(int num)
+{
+    await Task.Run(() => Console.Write($"Input {num}*{num} = "));
+    return checked(num * num);
+};
+```
+
 ---
 ### 异常处理语句
 
@@ -444,7 +494,7 @@ finally
 ```
 
 ---
-### 溢出检查
+### checked 和 unchecked 语句
 
 - `checked` 和 `unchecked` 语句指定整型类型算术运算和转换的溢出检查上下文。当发生整数算术溢出时，溢出检查上下文将定义发生的情况。在已检查的上下文中，引发 `System.OverflowException`；如果在常数表达式中发生溢出，则会发生编译时错误。在未检查的上下文中，会通过丢弃任何不适应目标类型的高序位来将操作结果截断。 
 
@@ -664,54 +714,6 @@ ref struct Sample
     public ref int Value;
     public void Dispose() => Console.WriteLine("ref struct Disposed");
 }
-```
-
----
-### yield 语句
-
-- 在迭代器中使用 `yield` 语句提供下一个值的 `yield return` 或表示迭代结束的 `yield break`。迭代器的返回类型可以是 `IEnumerable<T>`、`IEnumerable`、`IAsyncEnumerable<T>` 异步迭代。
-- 当开始对迭代器的结果进行迭代时，迭代器会一直执行，直到到达第一个 `yield return` 语句为止。 然后，迭代器的执行会暂停，调用方会获得第一个迭代值并处理该值。在后续的每次迭代中，迭代器的执行都会在导致上一次挂起的 `yield return` 语句之后恢复，并继续执行，直到到达下一个 `yield return` 语句为止。当控件到达迭代器或 `yield break` 语句的末尾时，迭代完成。
-
-```csharp
-foreach (var item in Square([1, 2, 3, 4, 5, 6, 99999/* 溢出位 */, 7, 8, 9]))
-    Console.Write(item + " ");  // output: 1 4 9 16 25 36
-IEnumerable<int> Square(int[] items)
-{
-    int rt;
-    for (int i = 0; i < items.Length; i++)
-    {
-        try { rt = checked(items[i] * items[i]); }
-        catch { yield break; }  // 在溢出时跳出迭代
-        yield return rt;
-    }
-}
-```
-
-> 异步迭代器
-
-```csharp
-await foreach (var item in SquareAsync([1, 2, 3, 4, 5, 99999, 6, 7, 8]))
-    Console.WriteLine(item);
-
-async IAsyncEnumerable<int> SquareAsync(int[] nums)
-{
-    int rt = 0;
-    for (int i = 0; i < nums.Length; i++)
-    {
-        try { rt = await Square(nums[i]); }
-        catch
-        {
-            Console.WriteLine("Overflow");
-            yield break;
-        }
-        yield return rt;
-    }
-}
-async Task<int> Square(int num)
-{
-    await Task.Run(() => Console.Write($"Input {num}*{num} = "));
-    return checked(num * num);
-};
 ```
 
 ---

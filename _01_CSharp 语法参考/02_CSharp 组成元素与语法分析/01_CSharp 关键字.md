@@ -48,54 +48,10 @@ readonly    // 只读声明
 sealed      // 密封声明
 static      // 静态声明
 unsafe      // 不安全上下文
-virtual     // 虚方法声明
 volatile    // 异变类型声明
 ```
 
-<br>
 
-### 语句关键字
-
-```csharp
-// 选择语句
-if-else        
-switch case
-// 迭代语句
-do-while
-for
-foreach
-while
-// 跳转语句
-break
-continue
-goto
-return
-// 异常处理
-try
-catch
-finally
-throw
-// 溢出检查
-checked
-unchecked
-// 不安全上下文
-fixed
-// 锁定
-lock
-// yield 语句
-yield
-```
-
-<br>
-
-### 方法参数
-
-```csharp
-params          // 可变参数
-in              // 只读参数修饰
-ref             // 引用参数修饰
-out             // 导出参数修饰
-```
 
 <br>
 
@@ -130,44 +86,6 @@ new()           // 指定类型必须具有公共无参构造函数
 where T : U
 ```
 
-<br>
-
-### 访问关键字
-
-```csharp
-base            // 基类对象访问
-this            // 当前实例对象
-```
-
-<br>
-
-### 文字关键字
-
-```csharp
-// 空引用
-null            
-// 布尔值
-true        false
-// 默认值
-default
-```
-
-<br>
-
-### 上下文关键字
-
-```csharp
-// 访问器
-get         set         init        value
-add         remove
-// 分部声明
-partial
-// 条件筛选
-when
-
-```
-
-<br>
 
 ### 查询关键字
 
@@ -187,88 +105,6 @@ by	            // group 子句中的上下文关键字。
 ascending	    // orderby 子句中的上下文关键字。
 descending	    // orderby 子句中的上下文关键字。
 ```
-
-<br>
-
-### 运算符重载
-
-```csharp
-explicit        // 显示转换
-implicit        // 隐式转换
-operator        // 运算符重载
-```
-
-<br>
-
-### 运算符与表达式
-
-```csharp
-is
-as
-typeof
-nameof
-sizeof
-
-```
-
-
-
----
-### 修饰符
-
-- 类型访问修饰符：`public`、`internal`、`protected`、`private`、`file`。
-- 类型修饰符：`abstract`、`async`、`const`、`event`、`extern`、`in`、`new`、`out`、`override`、`readonly`、`sealed`、`static`、`unsafe`、`virtual`、`volatile`。
-
-<br>
-
-#### 访问修饰符
-
-访问修饰符关键字用于指定成员或类型已声明的可访问性，指定相应的访问性级别：
-- `public`：访问不受限制。
-- `internal`：访问限于当前程序集。
-- `protected`：访问限于包含类或派生自包含类的类型。
-- `protected internal`：访问限于当前程序集或派生自包含类的类别。
-- `private`：访问限于包含类。
-- `private protected`：访问限于包含类或当前程序集中派生自包含类的类型。
-- `file`：（C#11）已声明的类型仅在当前源文件中可见。文件范围的类型通常用于源生成器。
-
-> 可访问性级别
-
-使用访问修饰符 `public`、`protected`、`internal`、`private` 为顶级类型和成员类型指定可访问性级别。如果未在成员声明中指定访问修饰符，则将使用默认可访问性。
-
-命名空间没有任何访问限制。顶级类型只能具有 `internal` 或 `public` 可访问性，默认可访问性为 `internal`。它们的成员则默认具有：
-- `enum` 的成员默认为 `public`，其成员不允许添加访问修饰符。
-- `class` 的成员默认为 `private`，其成员可以声明 `public`、`internal`、`protected`、`protected internal`、`private`、`private protected`。
-- `interface` 的成员默认为 `public`，其成员可以声明为 `public`、`internal`、`protected`、`protected internal`、`private`、`private protected`，其中声明为 `private` 的接口成员必须具有默认的实现。
-- `struct` 的成员默认为 `private`，其成员可以声明为 `public`、`internal`、`private`。
-
-嵌套类型的可访问性依赖于它的可访问域，该域是由已声明的成员可访问性和直接包含类型的可访问域这二者共同确定的。嵌套类型的可访问域不能超出包含类型的可访问域。成员的可访问域可指定成员可以引用哪些程序分区。顶级类型的可访问域至少是在其中进行声明的项目的程序文本，该域包含此项目的所有源文件。
-
-> 文件本地类型（C#11）
-
-`file` 修饰符将顶级类型的范围和可见性限制为其所包含的文件范围。`file` 修饰符通常应用于源生成器编写的类型。**文件本地类型** 为源生成器提供了一种方便的方法，能够避免在生成的类型之间发生名称冲突。
-
-`file` 可用于修饰 `class`、`struct`、`enum`、`interface`、`record`、`delegate`、`record struct`、`Attribute class`。
-
-<br>
-
-#### abstract
-
-- `abstract` 修饰符指示被修改内容的实现已丢失或不完整。`abstract` 修饰符可用于类、方法、属性、索引和事件，且只能在抽象类中使用。标记为抽象的成员必须由派生自抽象类的非抽象类来实现（`override`）。
-
-```csharp
-public abstract class Father{
-    public abstract void Func();
-}
-public class Son : Father{
-    public override void Func(){  /* implementation  */  }
-}
-```
-
-> 抽象类
-
-- 抽象类无法被实例化，它可能包含有抽象方法或访问器。抽象方法需要由其非抽象派生类进行实现，因此抽象类要求类被继承，所以抽象类的抽象成员不能是 `static`。
-- 抽象方法是隐式的虚拟方法，且只能在抽象类中声明。
 
 <br>
 
@@ -422,48 +258,6 @@ class SampleClass : BaseClass
 }
 ```
 
-<br>
-
-#### readonly
-
-- `readonly` 可以在：
-  - 在字段声明中，`readonly` 指示只能在声明期间或在同一个类的构造函数中向字段赋值，可以在字段声明和构造函数中多次分配和重新分配只读字段。值类型直接包含数据，因此属于 `readonly` 值类型的字段不可变；引用类型包含对其数据的引用，因此属于 `readonly` 引用类型的字段必须始终引用同一对象，但是该对象的数据是可变的。
-  - 在 `readonly struct` 类型定义中，`readonly` 指示结构类型是不可变的。 
-  - 在结构类型内的实例成员声明中，`readonly` 指示实例成员不修改结构的状态。
-  - 在 `ref readonly` 方法返回中，`readonly` 修饰符指示该方法返回一个引用，且不允许向该引用写入内容。
-
-```csharp
-class SampleClass
-{
-    private int GUI;
-    // 只读字段
-    private static readonly SampleClass s_default = new SampleClass(0);
-    // ref readonly 返回
-    public static ref readonly SampleClass Origin => ref s_default;
-
-    public Data data { get; }
-    public SampleClass(int gui)
-    {
-        GUI = gui;
-        data = new Data(GetHashCode());
-    }
-    // 只读结构
-    public readonly struct Data
-    {
-        // 只读结构中的只读属性
-        public readonly int HashCode { get; init; }
-        public Data(int hashCode) { HashCode = hashCode; }
-        // 使用 readonly 修饰符来声明实例成员不会修改结构的状态
-        public readonly void RefreshGUI(SampleClass sample)
-        {
-            sample.GUI = unchecked((sample.GUI + this.GetHashCode()) * 32253);
-        }
-    }
-}
-```
-
-<br>
-
 #### sealed
 
 - 应用于某个类时，`sealed` 修饰符可阻止其他类继承自该类，表示该类已密封。应用于重写方法、属性、索引器时，`sealed` 阻止其派生类重写该成员，表示该成员已密封。
@@ -483,36 +277,6 @@ class Derived : Father{
     public sealed override void Func(){}
 }
 ```
-
-<br>
-
-#### static
-
-- 使用 `static` 修饰符可声明属于类型本身而不是属于特定对象的静态成员，每个静态成员有且只有一个副本。
-- `static` 修饰符可用于声明 `static` 类。在类、接口和结构中，可以将 `static` 修饰符添加到字段、方法、属性、运算符、事件和构造函数。`static` 修饰符不能用于索引器或终结器。
-- 从 C#9.0 开始，可将 `static` 修饰符添加到 Lambda 表达式或匿名方法。静态 Lambda 表达式或匿名方法无法捕获局部变量或实例状态。
-
-```csharp
-// 静态类，静态类中只能包含静态成员
-static class StaticSample{
-    public static int GetHashCode(object obj) => obj.GetHashCode();
-}
-// 静态初始化，使用尚未声明的 static 字段来初始化另一个 static 字段，在向 static 字段显式赋值之后才会定义结果。
-class Test
-{
-    static int x = y;
-    static int y = 5;
-    static void Main()
-    {
-        Console.WriteLine(Test.x);  // 0
-        Console.WriteLine(Test.y);  // 5
-        Test.x = 99;
-        Console.WriteLine(Test.x);  // 99
-    }
-}
-```
-
-<br>
 
 #### unsafe
 
@@ -542,57 +306,5 @@ class Test
     }
 }
 ```
-
 <br>
 
-#### virtual
-
-- `virtual` 关键字用于修改方法、属性、索引器或事件声明，并使它们可以在派生类中被重写。
-
-```csharp
-class Father{
-    public virtual void Func() { }
-}
-class Derived:Father{
-    public override void Func(){
-        //base.Func();
-    }
-}
-```
-
-<br>
-
-#### volatile
-
-- `volatile` 关键字指示一个字段可以由多个同时执行的线程修改。可修饰：引用类型、指针类型、简单类型（`sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`char`、`float` 和 `bool`）、枚举类型、已知为引用类型的泛型类型参数、`IntPtr` 和 `UIntPtr`。其他类型（包括 `double` 和 `long`）无法标记为 `volatile`，因为对这些类型的字段的读取和写入不能保证是原子的，若要保护对这些类型字段的多线程访问，请使用 `Interlocked` 类成员或使用 `lock` 语句保护访问权限。
-
-- `volatile` 关键字只能应用于 `class` 或 `struct` 的字段。 不能将局部变量声明为 `volatile`。
-
-- 出于性能原因，编译器，运行时系统甚至硬件都可能重新排列对存储器位置的读取和写入。声明为 `volatile` 的字段将从某些类型的优化中排除。在多处理器系统上，易失性读取操作不保证获取由任何处理器写入该内存位置的最新值；同样，易失性写入操作不保证写入的值会立即对其他处理器可见。
-
-```csharp
-class VolatileTest<T> where T : class
-{
-    // volatile 字段
-    public volatile int sharedStorage;
-    // volatile 引用类型的泛型类型参数
-    volatile T shared_data;
-}
-```
-
----
-### 语句关键字
-
-- 选择语句：`if`、`else`、`case`、`switch`。
-- 迭代语句：`do`、`while`、`for`、`foreach`。
-- 跳转语句：`break`、`continue`、`goto`、`return`。
-- 异常处理：`throw`、`try`、`catch`、`finally`。
-- 溢出检查：`checked`、`unchecked`。
-- 不安全上下文：`fixed`。
-- 锁定：`lock`。
-- 迭代器：`yield`。
-
----
-### 方法参数
-
-#### params

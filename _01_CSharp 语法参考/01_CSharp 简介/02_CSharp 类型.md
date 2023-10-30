@@ -1,11 +1,10 @@
 ## CSharp 类型
 
-值类型和引用类型是 C# 类型的两个主要类别：
+<!-- 值类型和引用类型是 C# 类型的两个主要类别：
 值类型的变量包含类型的实例。对于值类型变量，会复制相应的类型实例。
-引用类型的变量存储对其数据（对象）的引用。对于引用类型，两种变量可引用同一对象，对一个变量执行的操作会影响另一个变量所引用的对象。
+引用类型的变量存储对其数据（对象）的引用。对于引用类型，两种变量可引用同一对象，对一个变量执行的操作会影响另一个变量所引用的对象。 -->
 
 ---
-
 ### 值类型
 
 #### 整型数值类型
@@ -35,8 +34,9 @@ var binaryLiteral = 0b_0010_1010;   // 二进制 0b, 0B
 > 整数文本后缀
 
 ```csharp
-long _long_64 = 0xffffL             // long, ulong 长整数后缀 L, l
-uint _uint_32 = 32u                 // 无符号整数后缀 U, u
+long _long_64 = 0xffffL;            // long, ulong 长整数后缀 L, l
+uint _uint_32 = 32u;                // 无符号整数后缀 U, u
+ulong _ulong_64 = 0xffffuL;         // 无符号长整数后缀 ul, lu, Ul, lU, UL, LU 
 ```
 
 > 本机大小的整数
@@ -98,7 +98,6 @@ double f_d = float.MaxValue;
 - 浮点数转换为整数时，值先向零舍入到最接近的整数值，然后再按照整数类型之间的转换规则进行数值转换。
 - `double` 转换为 `float` 时，将值舍入到最接近的 `float` 值。若过大或过小，则结果将为无穷大或零。
 - `float` 和 `double` 转换为 `decimal` 时，源值转换为 `decimal` 表示形式，并四舍五入到 `decimal` 的精度。源值过小时转换为零，源值为非数字、无穷或无法表示为 `decimal` 时将引发 `OverflowException`。相反，`decimal` 转换为其他浮点类型时，分别舍入到最接近的目标类型。
-- 
 
 ```csharp
 int L_i = (int)LongMax;
@@ -205,12 +204,31 @@ public record struct Data<T> where T : class
 
 > readonly 结构类型和 readonly 实例成员
 
-- 可以使用 `readonly` 修饰符来声明结构类型为不可变，其所有数据成员都必须是只读的。
-- 还可以使用 `readonly` 修饰符来声明结构的实例成员不会被修改，因此只限定当前成员而不用将整个结构类型声明为 `readonly`。
+- 可以使用 `readonly` 修饰符来声明结构类型为不可变，编译器会强制所有的实例字段都是只读的。
+
+```csharp
+readonly struct Sample
+{
+    public readonly string FirstName;
+    public readonly string LastName;
+}
+```
+
+- 还可以使用 `readonly` 修饰符来结构的实例成员不会被修改，因此只限定当前成员而不用将整个结构类型声明为 `readonly`。
+
+```csharp
+struct Sample
+{
+    public string FirstName;
+    public readonly string LastName;
+}
+```
+
 - 通常，将 `readonly` 修饰符应用于以下类型的实例成员：
   - 方法：该方法不能修改结构中的其他实例成员，因为它们在函数域内是只读的。
-  - 属性和索引器：`get` 访问器是默认的 `readonly get`；若修饰整个属性，则 `set` 无法声明，可以声明为 `init` 访问器。
+  - 属性和索引器：指定访问器不会修改实例成员，可以修饰整个属性或索引器，或修饰单个访问器。
   - 只读字段或属性可以在构造函数中重新初始化。
+  - 事件：具有访问器的事件，不能应用于单个事件访问器和事件字段。
 
 ```csharp
 public struct Sample
@@ -220,6 +238,7 @@ public struct Sample
     public readonly int Sum() => x + y;
     public int Data { readonly get; set; }
     public readonly int ReadonlyData { get; init; }
+    public readonly event Action Func { add { /*..*/ } remove { /*..*/ } }
 }
 ```
 
@@ -421,10 +440,10 @@ bool IsNullable(Type type) => Nullable.GetUnderlyingType(type) != null;
 
 > 装箱与拆箱
 
+- 装箱用于在垃圾回收堆中存储值类型。装箱是值类型到 `object` 类型或到此值类型所实现的任何接口类型的隐式转换。对值类型装箱会在堆中分配一个对象实例，并将该值复制到新的对象中。
+- 取消装箱（拆箱）是从 `object` 类型到值类型、或从接口类型到实现该接口的值类型的显式转换。首先要先检查对象实例，以确保它是给定值类型的装箱值，然后再将该值从实例复制到值类型变量中。被取消装箱的项必须是对一个对象的引用，该对象是先前通过装箱该值类型的实例创建的。尝试取消装箱 `null` 会导致 `NullReferenceException`， 尝试取消装箱对不兼容值类型的引用会导致 `InvalidCastException`。
 - 如果值类型必须被频繁装箱，那么在这些情况下最好避免使用值类型。可通过使用泛型集合（例如 `System.Collections.Generic.List<T>`）来避免装箱值类型。
 - 装箱和取消装箱过程需要进行大量的计算。对值类型进行装箱时，必须创建一个全新的对象，这可能比简单的引用赋值用时最多长 20 倍。取消装箱的过程所需时间可达赋值操作的四倍。
-- 装箱用于在垃圾回收堆中存储值类型。装箱是值类型到 `object` 类型或到此值类型所实现的任何接口类型的隐式转换。对值类型装箱会在堆中分配一个对象实例，并将该值复制到新的对象中。
-- 取消装箱（拆箱）是从 `object` 类型到值类型或从接口类型到实现该接口的值类型的显式转换。首先要先检查对象实例，以确保它是给定值类型的装箱值，然后再将该值从实例复制到值类型变量中。被取消装箱的项必须是对一个对象的引用，该对象是先前通过装箱该值类型的实例创建的。尝试取消装箱 `null` 会导致 `NullReferenceException`， 尝试取消装箱对不兼容值类型的引用会导致 `InvalidCastException`。
 
 ```csharp
 int i = 123;
@@ -561,7 +580,7 @@ ReadOnlySpan<byte> bytes = Encoding.UTF8.GetBytes(str);
 
 <br>
 
-#### 数组类型
+#### Array 数组类型
 
 - 数组是一种数据结构，其中包含许多通过计算索引访问的变量。数组中的元素均为同一种类型。使用 `new` 运算创建数组的实例。
 
@@ -598,16 +617,39 @@ int[][] arrs = {
 
 #### delegate 委托类型
 
-- 委托类型的声明与方法签名相似，它有一个返回值和任意数目任意类型的参数。委托类型是一种可用于封装命名方法或匿名方法的引用类型，安全且可靠。
-- 使用 `delegate` 关键字声明委托类型。必须使用具有兼容返回类型和输入参数的方法或 Lambda 表达式实例化委托。
-- 在 .NET 中，`System.Action` 和 `System.Func` 类型为许多常见委托提供泛型定义。
+- 委托类型的定义与方法签名相似，它有一个返回值和任意数目任意类型的参数。委托类型是一种可用于封装命名方法或匿名方法的引用类型，是面向对象的、类型安全的和可靠的。
+- 使用 `delegate` 关键字声明委托类型，编译器将委托相关的操作代码的调用映射到 `System.Delegate` 和 `System.MulticastDelegate` 类成员的方法调用。必须使用具有兼容返回类型和输入参数的方法或 Lambda 表达式实例化委托。在实例化委托时，可以将委托的实例与任何兼容的方法相关联，并可以通过委托实例调用方法。
+- 将方法作为参数进行引用的能力使委托成为定义回调方法的理想选择。委托类似于 C++ 函数指针，但委托面向对象，会同时封装对象实例和方法，因此委托允许将方法作为参数进行传递。
 
 ```csharp
-public delegate void MessageDelegate(string message);
-public delegate int AnotherDelegate(MyType m, long num);
+MessageDelegate debug = Console.WriteLine;
+if (debug is MulticastDelegate or Delegate)
+    debug("Hello World >>> " + debug.Method.Name);
 
-MessageDelegate MessagePrint = message => Console.WriteLine(message);
-MessagePrint.Invoke("Hello World!");
+public delegate void MessageDelegate(string message);
+public delegate int AnotherDelegate(int num1, int num2);
+```
+
+- 委托对象可以由方法名称、Lambda 表达式或匿名方法进行构造。作为委托参数传递的方法必须具有与委托声明相同的签名，委托实例可以封装静态方法或实例方法。
+- 在 .NET 中，`System.Action`、`System.Func`、`System.Predicate` 类型为许多常见委托提供泛型定义。
+
+```csharp
+Action<string> MessagePrint = null;
+// 方法
+void Print(string mess) => Console.WriteLine("Function : " + mess);
+MessagePrint += Print; 
+// delegate 匿名方法
+MessagePrint += 
+delegate (string mess)
+{
+    Console.WriteLine("Delegate : " + mess);
+};
+// Lambda 表达式
+MessagePrint += message => Console.WriteLine("Lambda : " + message);
+
+// 委托调用
+MessagePrint("Hello World!"); 
+MessagePrint?.Invoke("Hello World!"); // 等效写法
 ```
 
 > delegate 匿名方法
@@ -619,6 +661,41 @@ MessagePrint.Invoke("Hello World!");
 Func<int, int, int> sum = delegate (int a, int b) { return a + b; };
 // lambda 匿名方法
 var _Debug = (string message) => MessagePrint?.Invoke(message);
+```
+
+> 多播委托
+
+- 可以通过使用 `+` 组合多个委托对象分配到一个委托实例中。多播委托中包含已分配委托列表，此多播委托被调用时会按照添加的先后顺序依次调用列表中的委托。`-` 用于从多播委托中删除组件委托。`+=` 可以将方法或匿名方法构造为委托对象并分配到多播委托中，`-=` 则表示从多播委托中移除该方法的委托实例。`+`、`-` 运算符支持委托对象和方法组之间的运算。
+- 删除委托对象时，若右操作数是 Lambda 表达式或匿名方法（非匿名类型）时，此操作无效。
+
+```csharp
+class Sample
+{
+    delegate void SampleDelegate();
+    private static void Function_1() => Console.WriteLine("Function_1");
+    private static void Function_2() => Console.WriteLine("Function_2");
+
+    static SampleDelegate Action_1 = delegate { Console.WriteLine("Action_1"); };
+    static SampleDelegate Action_2 = delegate { Console.WriteLine("Action_2"); };
+
+    static SampleDelegate Lambda_1 = () => Console.WriteLine("Lambda_1");
+    static SampleDelegate Lambda_2 = () => Console.WriteLine("Lambda_2");
+
+    static void Main(string[] args)
+    {
+        SampleDelegate MultoDel_1 = Function_1;
+        MultoDel_1 += Action_1;
+        MultoDel_1 += Lambda_1;
+        MultoDel_1?.Invoke();
+        // Function_1   Action_1    Lambda_1
+        var MultoDel_2 = Action_2 + Function_2 + Lambda_2;
+        MultoDel_2?.Invoke();
+        // Action_2     Function_2  Lambda_2
+        MultoDel_1 = MultoDel_1 + MultoDel_2 - Function_1 - Lambda_2;
+        MultoDel_1?.Invoke();
+        // Action_1     Lambda_1    Action_2    Function_2
+    }
+}
 ```
 
 <br>
@@ -1311,32 +1388,60 @@ class Sample : IInstance<Sample>
 - 可以通过两种方式控制可为 null 的上下文。在项目级别，可以添加 `<Nullable>enable</Nullable>` 项目设置。在单个 C# 源文件中，可以添加 `#nullable enable` 来启用可为 null 的上下文。在 .NET 6 之前，新项目使用默认值 `<Nullable>disable</Nullable>`。从 .NET 6 开始，新项目将在项目文件中包含 `<Nullable>enable</Nullable>` 元素。
 
 ---
-### void 无返回类型
+### 匿名类型
 
-- 可以将 `void` 用作方法（或本地函数）的返回类型来指定该方法不返回值。还可以将 `void` 用作引用类型来声明指向未知类型的指针。 
+- 匿名类型提供了一种方便的方法，可用来将一组只读属性封装到单个对象中，而无需首先显式定义一个类型，每个属性的类型由编译器推断。类型名由编译器生成，并且不能在源代码级使用，可结合使用 `new` 运算符和对象初始值设定项创建匿名类型。
+- 匿名类型包含一个或多个公共只读属性。无法包含其他种类的类成员（如方法或事件）。用来初始化属性的表达式不能为 null、匿名函数或指针类型。
 
 ```csharp
-// 本地函数无返回
-static unsafe void Func()
-{   // 指针类型
-    fixed (void* pt = &string.Empty)
-    {
-        UIntPtr n_pt = new UIntPtr(pt);
-        Console.WriteLine($"&string.Empty = {n_pt,20:x}");
-    }
-}
+var v = new { Amount = 108, Message = "Hello" };
+Console.WriteLine(v.Amount + v.Message);
+```
+
+- 匿名类型是 `class` 类型，它们直接派生自 `object`，并且无法强制转换为除 `object` 外的任何类型。如果程序集中的两个或多个匿名对象初始值指定了属性序列，这些属性采用相同顺序且具有相同的名称和类型，则编译器将对象视为相同类型的实例，它们共享同一编译器生成的类型信息。
+- 无法将字段、属性、时间或方法的返回类型声明为具有匿名类型。同样，也不能将方法、属性、构造函数或索引器的形参声明为具有匿名类型。要将匿名类型或包含匿名类型的集合作为参数传递给某一方法，可将参数作为类型 `object` 进行声明。
+
+> 应用
+
+- 匿名类型通常用在查询表达式的 `select` 子句中，以便返回源序列中每个对象的属性子集。
+
+```csharp
+var productQuery =
+    from prod in products
+    select new { prod.Color, prod.Price };
+
+foreach (var v in productQuery)
+    Console.WriteLine("Color={0}, Price={1}", v.Color, v.Price);
+```
+
+- 还可以按另一种类型（类、结构或另一个匿名类型）的对象定义字段。它通过使用保存此对象的变量来完成。
+
+```csharp
+var product = new Product();
+var bonus = new { note = "You won!" };
+var shipment = new { address = "Nowhere St.", product };
+var shipmentWithBonus = new { address = "Somewhere St.", product, bonus };
+```
+
+- 可通过将隐式键入的本地变量与隐式键入的数组相结合创建匿名键入的元素的数组。
+
+```csharp
+var anonArray = new[] { new { name = "apple", diam = 4 }, new { name = "grape", diam = 1 }};
+```
+
+- 匿名类型支持采用 `with` 表达式形式的非破坏性修改。
+
+```csharp
+var apple = new { Item = "apples", Price = 1.35 };
+var onSale = apple with { Price = 0.79 };
+Console.WriteLine(apple);
+Console.WriteLine(onSale);
 ```
 
 ---
-### var 隐式类型
+### 隐式类型
 
-- 声明局部变量时，可以让编译器从初始化表达式推断出变量的类型。使用 `var` 关键字声明隐式类型。`var` 的常见用途是用于构造函数调用表达式。
-
-```csharp
-var xs = new List<int>();
-```
-
-- 使用匿名类型时，必须使用隐式类型的局部变量。带 `var` 关键字的隐式类型只能应用于本地方法范围内的变量
+- 声明局部变量时，可以让编译器从初始化表达式推断出变量的类型。使用 `var` 关键字声明隐式类型，隐式类型只能应用于本地方法范围内的变量。`var` 的常见用途是用于构造函数调用表达式，例如 `var xs = new List<int>();`。
 
 ```csharp
 var Ps = new PointArray(PointArray.RandomPoints(50));
@@ -1411,28 +1516,18 @@ record struct PointArray(params (int x, int y)[] points)
 ```
 
 ---
-### 内置类型
+### 指针类型
 
-- 内置值类型：`bool`、`byte`、`sbyte`、`char`、`decimal`、`double`、`float`、`int`、`uint`、`nint`、`nuint`、`long`、`ulong`、`short`、`ushort`。
-- 内置引用类型：`object`、`string`、`dynamic`。
-- 无类型：`void`。
+#### 不安全上下文
 
----
-### 非托管类型
+#### void *
 
-- 如果某个类型是以下类型之一，则它是非托管类型：
-  - `sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`long`、`ulong`、`nint`、`nuint`、`char`、`float`、`double`、`decimal` 或 `bool`。
-  - 任何枚举类型，任何指针类型，任何仅包含非托管类型字段的用户定义的结构类型。
+#### nint、unint
 
-- 非托管类型使用 `unmanaged` 约束指定：类型参数为 “非指针、不可为 null 的非托管类型”。
 
-```csharp
-public struct Coords<T> where T : unmanaged
-{
-    public T X;
-    public T Y;
-}
-```
+#### 函数指针
+
+
 
 ---
 ### 类型默认值
