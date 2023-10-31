@@ -1547,12 +1547,214 @@ record struct PointArray(params (int x, int y)[] points)
 
 #### 不安全上下文
 
-#### void *
+- C# 支持 `unsafe` 上下文，用户可在其中编写不可验证的代码。在 `unsafe` 上下文中，代码可使用指针、分配和释放内存块，以及使用函数指针调用方法。可以将方法、类型和代码块定义为不安全。调用需要指针的本机函数时，需使用不安全代码，因此可能会引发安全风险和稳定性风险。在某些情况下，通过移除数组绑定检查，不安全代码可提高应用程序的性能。
+- 指针不能指向引用（`ref`）或包含引用的结构，因为无法对对象引用进行垃圾回收，即使有指针指向它也是如此。垃圾回收器并不跟踪是否有任何类型的指针指向对象。
 
-#### nint、unint
+```csharp
+int* p;         // p 是指向整数的指针。
+int** p;        // p 是指向整数的指针的指针。
+int*[] p;       // p 是指向整数的指针的一维数组。
+char* p;        // p 是指向字符的指针。
+void* p;        // p 是指向未知类型的指针。
 
+int* p1, p2, p3;    // Ok
+int *p1, *p2, *p3;  // Invalid in C#
+```
+
+- 无法对 `void*` 类型的指针应用间接寻址运算符，但是可以使用强制转换将 `void` 指针转换为任何其他指针类型，反之亦然。
+- 指针可以为 null。将间接寻址运算符应用于 null 指针将导致空引用异常。
+- 在方法之间传递指针可能会导致未定义的行为。
+
+```csharp
+unsafe
+{
+    fixed (void* PEmptyString = &string.Empty)
+        Console.WriteLine(Convert.ToString((long)(nuint)PEmptyString, 16));  // 输出指针地址值
+
+    int* p = null;
+    int a = *p;   // ERROR: System.NullReferenceException: “Object reference not set to an instance of an object.”
+}
+```
+
+> 获取对象的地址
+
+```csharp
+int[] arr = [10, 20, 30, 40, 50];
+
+unsafe
+{
+    // 必须将对象固定在堆上，这样它在使用时，垃圾回收器不会移动它
+    fixed (int* p = arr) // 或 &arr[0]. &arr[index]
+    {
+        // 固定指针无法移动, 无法赋值
+        //  p++;  // CS1656
+        // 所以创建另一个指针来显示它的递增。
+        int* p2 = p;
+        Console.WriteLine(*p2);  // 10
+        // 由于指针的类型，增加 p2 会使指针增加其基础类型大小的字节：4
+        p2 += 1;
+        Console.WriteLine(*p2);  // 20
+        p2 += 1;
+        Console.WriteLine(*p2);  // 30
+
+        Console.WriteLine("--------");
+        // 对 p 解引用并递增会改变 arr[0] 的值
+        Console.WriteLine(*p);   // 10
+        *p += 1;
+        Console.WriteLine(*p);   // 11
+        *p += 1;
+        Console.WriteLine(*p);   // 12
+    }
+    Console.WriteLine(arr[0]);  // 12
+}
+```
+
+<br>
+
+#### 指针相关的运算符和语句
+
+- `*`：执行指针间接寻址。
+- `->`：通过指针访问结构或类对象的成员。
+- `[]`：为指针建立索引。
+- `&`：获取变量的地址。
+- `++` 和 `--`：递增和递减指针。
+- `+` 和 `-`：执行指针算法。
+- `==`、`!=`、`<`、`>`、`<=` 和 `>=`：比较指针。
+- `stackalloc`：在堆栈上分配内存。
+- `fixed` 语句：临时固定变量以便找到其地址。
+
+<br>
+
+#### nint、nuint
+
+
+
+<br>
+
+#### 固定大小的缓冲区
+
+- 可以使用 `fixed` 关键字来创建在数据结构中具有固定大小的数组的缓冲区。当编写与其他语言或平台的数据源进行互操作的方法时，固定大小的缓冲区很有用。固定大小的缓冲区可以采用允许用于常规结构成员的任何属性或修饰符。唯一的限制是数组类型必须为 `bool`、`byte`、`char`、`short`、`int`、`long`、`sbyte`、`ushort`、`uint`、`ulong`、`float` 或 `double`。
+  
+```csharp
+internal unsafe struct Buffer
+{
+    public fixed char fixedBuffer[128];
+}
+```
+
+- 在安全代码中，包含数组的 C# 结构不包含该数组的元素，而是包含对该数组的引用。当在不安全的代码块中使用数组时，可以在结构中嵌入固定大小的数组。使用 `fixed` 语句获取指向数组第一个元素的指针，通过此指针访问数组的元素。`fixed` 语句将 `fixedBuffer` 实例字段固定到内存中的特定位置。
+
+```csharp
+internal unsafe struct Buffer
+{
+    public fixed char fixedBuffer[128];
+}
+internal unsafe class Example
+{
+    public Buffer buffer = default;
+}
+private static void AccessEmbeddedArray()
+{
+    var example = new Example();
+    unsafe
+    {
+        // Pin the buffer to a fixed location in memory.
+        fixed (char* charPtr = example.buffer.fixedBuffer)
+        {
+            *charPtr = 'A';
+        }
+        // Access safely through the index:
+        char c = example.buffer.fixedBuffer[0];
+        Console.WriteLine(c);
+
+        // Modify through the index:
+        example.buffer.fixedBuffer[0] = 'B';
+        Console.WriteLine(example.buffer.fixedBuffer[0]);
+    }
+}
+```
+
+- 固定大小的缓冲区使用 `System.Runtime.CompilerServices.UnsafeValueTypeAttribute` 进行编译，它指示公共语言运行时 CLR 某个类型包含可能溢出的非托管数组。
+
+```csharp
+internal unsafe struct Buffer
+{
+    public fixed char fixedBuffer[128];
+}
+// 为 Buffer 生成 C# 的编译器的特性如下
+internal struct Buffer
+{
+    [StructLayout(LayoutKind.Sequential, Size = 256)]
+    [CompilerGenerated]
+    [UnsafeValueType]
+    public struct <fixedBuffer>e__FixedBuffer
+    {
+        public char FixedElementField;
+    }
+
+    [FixedBuffer(typeof(char), 128)]
+    public <fixedBuffer>e__FixedBuffer fixedBuffer;
+}
+```
+
+- 使用 `stackalloc` 分配的内存还会在 CLR 中自动启用缓冲区溢出检测功能
+
+```csharp
+unsafe
+{
+    int* pSafe = stackalloc int[10];
+    for (int i = 0; i < 100; i++)
+        *(pSafe + i) = i;
+    // 进行缓冲区溢出检查，溢出时引发异常 System.AccessViolationException
+
+    Example ex = new Example();
+    fixed (int* pUnsafe = ex.buffer.fixedBuffer)
+    {
+        for (int i = 0; i < 100; i++)
+            *(pUnsafe + i) = i;   // 不进行缓冲区溢出检查
+    }
+}
+internal unsafe struct Buffer
+{
+    public fixed int fixedBuffer[10];
+}
+internal unsafe class Example
+{
+    public Buffer buffer = default;
+}
+```
+
+<br>
 
 #### 函数指针
+
+- C# 提供 `delegate` 类型来定义安全函数指针对象。可以使用 `delegate*` 语法定义函数指针，编译器将使用 `calli` IL 指令来调用函数，而不是实例化委托对象并调用 `Invoke` 方法。
+- 只可在 `static` 函数上使用 `&` 运算符获取函数的地址。可以使用关键字 `managed`（默认）和 `unmanaged` 为 `delegate*` 指定调用约定。
+
+```csharp
+unsafe class Sample
+{
+    // 委托与函数指针语法比较
+    public static T Combine<T>(Func<T, T, T> combinator, T left, T right) 
+        => combinator?.Invoke(left, right);
+    public static T UnsafeCombine<T>(delegate*<T, T, T> combinator, T left, T right) 
+        => combinator(left, right);
+
+    public static T ManagedCombine<T>(delegate* managed<T, T, T> combinator, T left, T right) =>
+        combinator(left, right);
+    public static T CDeclCombine<T>(delegate* unmanaged[Cdecl]<T, T, T> combinator, T left, T right) =>
+        combinator(left, right);
+    public static T StdcallCombine<T>(delegate* unmanaged[Stdcall]<T, T, T> combinator, T left, T right) =>
+        combinator(left, right);
+    public static T FastcallCombine<T>(delegate* unmanaged[Fastcall]<T, T, T> combinator, T left, T right) =>
+        combinator(left, right);
+    public static T ThiscallCombine<T>(delegate* unmanaged[Thiscall]<T, T, T> combinator, T left, T right) =>
+        combinator(left, right);
+    public static T UnmanagedCombine<T>(delegate* unmanaged<T, T, T> combinator, T left, T right) =>
+        combinator(left, right);
+}
+```
+
 
 
 

@@ -44,7 +44,7 @@ C# 的值类型进一步分为：简单类型、枚举类型、结构类型、�
 
 - 简单类型：
   - 有符号整型：`sbyte`、`short`、`int`、`long`、`nint`。
-  - 无符号整型：`byte`、`ushort`、`uint`、`ulong`、`unint`。
+  - 无符号整型：`byte`、`ushort`、`uint`、`ulong`、`nuint`。
   - Unicode 字符：`char`，表示 UTF-16 代码单元。
   - IEEE 二进制浮点：`float`、`double`。
   - 高精度十进制浮点：`decimal`。

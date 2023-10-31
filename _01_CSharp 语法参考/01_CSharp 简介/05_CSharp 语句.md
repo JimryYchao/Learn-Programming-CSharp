@@ -589,12 +589,20 @@ unsafe static void ToUpper(string str)
 > 使用固定大小的缓冲区
 
 ```csharp
+internal unsafe struct Buffer
+{
+    public fixed byte fixedBuffer[1024];
+}
+internal unsafe class Example
+{
+    public Buffer buffer = default;
+}
 class Sample
 {
-    static byte[] fixedBuffer = new byte[1024];
-    unsafe void Handle (byte[] data)
+    unsafe void Handle(byte[] data)
     {
-        fixed (byte* buff = fixedBuffer)
+        var ex = new Example();
+        fixed (byte* buff = ex.buffer.fixedBuffer)
         {
             // handle data in fixedBuffer
         }

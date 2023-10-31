@@ -324,7 +324,7 @@ struct Person(string FirstName, string LastName)
 - `volatile` 字段表示变量的易变的，可以由多个同时执行的线程修改。只能在类、结构、记录中声明易变字段，不能将局部变量声明为 `volatile`。
   
 * 可定义以下类型的易变字段：
-  - 引用类型、指针类型、简单类型（`sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`char`、`float` 和 `bool`）、枚举类型、已知为引用类型的泛型类型参数、`nint` 和 `unint`（即 `IntPtr` 和 `UIntPtr`）。
+  - 引用类型、指针类型、简单类型（`sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`char`、`float` 和 `bool`）、枚举类型、已知为引用类型的泛型类型参数、`nint` 和 `nuint`（即 `IntPtr` 和 `UIntPtr`）。
   - 其他类型（包括 `double` 和 `long`）无法标记为 `volatile`，因为对这些类型的字段的读取和写入不能保证是原子的，若要保护对这些类型字段的多线程访问，请使用 `Interlocked` 类成员或使用 `lock` 语句保护访问权限。
 
 - 出于性能原因，编译器，运行时系统甚至硬件都可能重新排列对存储器位置的读取和写入。声明为 `volatile` 的字段将从某些类型的优化中排除。在多处理器系统上，易失性读取操作不保证获取由任何处理器写入该内存位置的最新值；同样，易失性写入操作不保证写入的值会立即对其他处理器可见。
