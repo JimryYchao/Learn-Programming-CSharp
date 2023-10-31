@@ -10,13 +10,15 @@
 #### 整型数值类型
 
 ```csharp
+// 有符号整数
 sbyte   _int8 = -8;         // -2^7 ~ 2^7-1
-byte    _uint8 = 8;         // 0 ~ 2^8-1
 short   _int16 = -16;       // -2^15 ~ 2^15-1
-ushort  _uint16 = 16;       // 0 ~ 2^16
 int     _int32 = -32;       // -2^31 ~ 2^31-1
-uint    _uint32 = 32;       // 0 ~ 2^32
 long    _int64 = -64L;      // -2^63 ~ 2^63-1
+// 无符号整数
+byte    _uint8 = 8;         // 0 ~ 2^8-1
+ushort  _uint16 = 16;       // 0 ~ 2^16
+uint    _uint32 = 32;       // 0 ~ 2^32
 ulong   _uint64 = 64l;      // 0 ~ 2^64
 // 本机大小的整数
 nint    _IntPtr = new IntPtr();     // 有符号本机 32 位或 64 位整数
@@ -249,8 +251,8 @@ public struct Sample
 ```csharp
 Point p1 = new(1, 1);
 Point p2 = p1 with { X = 0 };
-Console.WriteLine("Point(p1) = ({0},{1})", p1.X, p1.Y);
-Console.WriteLine("Point(p2) = ({0},{1})", p2.X, p2.Y);
+Console.WriteLine("Point(p1) = ({0},{1})", p1.X, p1.Y);     // (1, 1)
+Console.WriteLine("Point(p2) = ({0},{1})", p2.X, p2.Y);     // (0, 1)
 
 public struct Point(double x, double y)
 {
@@ -582,23 +584,48 @@ ReadOnlySpan<byte> bytes = Encoding.UTF8.GetBytes(str);
 
 #### Array 数组类型
 
-- 数组是一种数据结构，其中包含许多通过计算索引访问的变量。数组中的元素均为同一种类型。使用 `new` 运算创建数组的实例。
+- 数组是一种数据结构，类型 `System.Array` 是所有数组类型的抽象基类型，它包含多个通过计算索引访问的变量。数组中的元素均为同一种类型。使用 `new` 运算创建数组的实例。
+- 数组具有确定与每个数组元素关联的索引数的排名，其中数组的秩被称为数组的维数。秩为一的数组成为 “单维数组”，大于 1 的数组称为 “多维数组”。数组的每个维度都有一个关联的长度，维度长度决定了该维度的有效索引范围。数组的元素总数为数组的秩和每个维度长度的乘积。
+  
+> 数组的声明
 
 ```csharp
+// 几种声明数组的形式
 int[] arr1 = new int[10];        // 元素均初始化为 0
 int[] arr2 = { 0, 1, 2, 3 };     // 初始化构造
 int[] arr3 = new int[] { 1, 2, 3 };
 int[] arr4 = new int[3] { 1, 2, 3 };
 int[] arr5 = new[] { 1, 2, 3 };
 int[] arr6 = [10, 20, 30];       // 集合表达式
-```
 
-> 多维数组
-
-```csharp
+// 多维数组的声明
 int[] a1 = new int[10];             // 一维数组
 int[,] a2 = new int[10, 5];         // 二维数组
 int[,,] a3 = new int[10, 5, 2];     // 三维数组
+```
+
+> 数组的访问
+
+```csharp
+// 一维数组
+int[] arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+for (int i = 0; i < arr.Length; i++)
+    arr[i] *= arr[i];
+Console.WriteLine(arr.Rank); // 数组的秩
+Console.WriteLine(string.Join(",", arr));
+
+// 多维数组
+int[,] Matrix3_4 = new int[3, 4] {
+    { 31, 32, 33, 34 },
+    { 24, 25, 26, 27 },
+    { 19, 18, 17, 16 }
+};
+Console.WriteLine(Matrix3_4.Rank);
+for (int L = 0, r = 0, i = 0; L < Matrix3_4.Length; L++)
+{
+    (r, i) = Math.DivRem(L, Matrix3_4.GetLength(0) + 1);
+    Console.WriteLine($"Matrix3_4[{r},{i}] = {Matrix3_4[r, i]}");
+}
 ```
 
 > 交替数组
@@ -1549,6 +1576,354 @@ record struct PointArray(params (int x, int y)[] points)
 ```csharp
 int num = default(int);         // default 运算符
 string str = default;           // default 文本值
+```
+
+---
+
+### 泛型类型
+
+- 借助泛型，可以根据要处理的精确数据类型设计方法、委托、类、结构或接口，以提高代码的可重用性和类型安全性。泛型是为所存储或使用的一个或多个类型具有占位符（类型形参）的类、结构、接口、方法和委托。例如泛型集合类可以将类型形参用作其存储的对象类型的占位符，泛型方法可将其类型形参用作其返回值的类型或用作其形参之一的类型。
+
+```csharp
+abstract class GenericSample
+{
+    // 泛型方法
+    public abstract T GetGenericValue<T>();
+    // 泛型类
+    class GenericClass<T>;
+    // 泛型结构
+    struct GenericStruct<T>;
+    // 泛型接口
+    interface IGenericInterface<T>;
+    // 泛型委托
+    delegate void GenericDelegate<T>();
+    // 泛型记录
+    record GenericRecordClass<T>;
+    record struct GenericRecordStruct<T>;
+}
+```
+
+- 创建泛型类型的实例时或使用泛型方法时，需要指定用于替代类型形参的实际类型。在类型形参出现的每一处位置用选定的类型进行替代，这会创建一个新的构造泛型类型或方法。
+
+```csharp
+Generic<string> g_string = new Generic<string>();
+g_string.Field = "A string";
+Console.WriteLine("Generic.Field           = \"{0}\"", g_string.Field);
+Console.WriteLine("g_string.GetType() = {0}", g_string.GetType().FullName);
+/*
+Generic.Field           = "A string"
+g_string.GetType() = Generic`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]
+*/
+
+record struct Generic<T>(string Field);   // 泛型记录
+```
+
+<br>
+
+#### 泛型约束
+
+- 约束告知编译器类型参数必须具备的功能。在没有任何约束的情况下，类型参数可以是任何类型。可以在泛型的定义中使用 `where` 子句指定对类型参数的参数类型约束。
+- 约束指定类型参数的功能和预期，声明这些约束意味着可以使用约束类型的操作和方法调用。
+
+```csharp
+interface ISample<T> where T : class;
+// 指定类型参数必须是引用类型
+```
+
+- 可以对类型参数指定的约束有：
+  - `struct`、`class`、`unmanaged`、`notnull`、`default` 约束不能组合或重复，且必须先在约束列表中指定。
+  - `new()` 不能和 `unmanaged` 和 `struct` 一起使用，且只能是约束列表中的最后一个。
+
+```csharp
+interface ISample1<T> where T : struct;     // 不可为 null 的值类型
+interface ISample2<T> where T : class;      // 不可为 null 的引用类型
+interface ISample3<T> where T : class?;     // 可为 null 的引用类型
+interface ISample4<T> where T : notnull;    // 不可为 null 的类型
+interface ISample5<T> where T : unmanaged;  // 不可为 null 的非托管类型
+interface ISample6<T> where T : new();      // 具有公共无参构造函数的类型
+interface ISample7<T> where T : Base;       // 指定的基类或其派生类型
+interface ISample8<T> where T : Base?;      // 可为 null 的指定基类或其派生类型
+interface ISample9<T> where T : IBase;      // 指定的接口或实现接口的类型
+interface ISample10<T> where T : IBase?;    // 可为 null 的指定接口或实现接口的类型
+interface ISample11<T, U> where T : U;      // 指定 T 是 U 或 U 的派生类型
+
+class Base;
+interface IBase;
+```
+
+<br>
+
+#### 不受约束的类型参数批注 `?` 和 default 约束
+
+- 在 C# 8 中，`?` 批注仅适用于显式约束为值类型或引用类型的类型参数。在 C#9 中，`?` 批注可应用于任何类型参数，而不考虑约束。
+
+```csharp
+static T? FirstOrDefault<T>(this IEnumerable<T> collection) { ... };   // 不受约束的类型参数批注
+```
+
+- 如果类型参数 `T` 替换为引用类型，则 `T?` 表示该引用类型的可以为 null 的实例。
+
+```csharp
+var s1 = new string[0].FirstOrDefault();  // string? s1
+var s2 = new string?[0].FirstOrDefault(); // string? s2
+```
+
+- 如果 `T` 用值类型替换，则 `T?` 表示的实例 `T`。 
+
+```csharp
+var i1 = new int[0].FirstOrDefault();   // int i1
+var i2 = new int?[0].FirstOrDefault();  // int? i2
+```
+
+- 如果 `T` 使用批注类型替换 `U?`，则 `T?` 表示批注的类型 `U?` 而不是 `U??`。如果 `T` 将替换为类型 `U`，则 `T?` 表示 `U?`，即使在上下文中也是如此 `#nullable disable`。 
+
+```csharp
+var u1 = new U[0].FirstOrDefault();  // U? u1
+var u2 = new U?[0].FirstOrDefault(); // U? u2
+#nullable disable
+var u3 = new U[0].FirstOrDefault();  // U? u3
+```
+
+> default 约束
+
+- 为了与现有代码兼容，重写和显式接口实现的泛型方法不能包含显式约束子句，而 `T?` 在重写或显式接口实现的方法中被视为 `Nullable<T>`，其中 `T` 是值类型。
+  
+```csharp
+class Base
+{
+    public virtual void Func<T>(T? t) { }
+}
+interface ISample
+{
+    void Func<T>(T? t); // T? 被认为是 Nullable<T>
+}
+class Derived : Base, ISample
+{
+    // 找不到合适的方法重写
+    public override void Func<T>(T? t) { } // CS0453
+    void ISample.Func<T>(T? t) { }   // CS0453
+}
+```  
+  
+- 为了允许对约束为引用类型的类型参数进行注释 `?`，C#8 允许在泛型方法上显式地约束 `where T: class` 和 `where T: struct`。
+
+```csharp
+class Base
+{
+    public virtual void Func<T>(T? t) where T : struct { }
+    public virtual void Func<T>(T? t) where T : class { }
+}
+interface ISample
+{
+    void IFunc<T>(T? t) where T : struct; // T? 被认为是 Nullable<T>
+}
+class Derived : Base, ISample
+{
+    public override void Func<T>(T? t) /* where T: struct */{ }  // 重写 struct 约束方法
+    public override void Func<T>(T? t) where T : class { }
+    void ISample.IFunc<T>(T? t) { }
+}
+```
+
+- 为了允许对不受引用类型或值类型约束的类型参数进行注释，C#9 允许一个新的 `where T: default` 约束。重写或显式接口实现的方法使用 `default` 约束以外的约束是错误的。
+
+```csharp
+class Base
+{
+    public virtual void Func<T>(T? t) where T : struct { }
+    public virtual void Func<T>(T? t) { }
+}
+interface ISample
+{
+    void IFunc<T>(T? t);
+}
+class Derived : Base, ISample
+{
+    public override void Func<T>(T? t) /* where T: struct */{ }
+    public override void Func<T>(T? t) where T : default { }
+    void ISample.IFunc<T>(T? t) where T : default { }
+}
+```
+
+- 当重写方法或接口方法中的相应类型参数被约束为引用类型或值类型时，使用 `default` 约束是错误的。
+
+```csharp
+class Base
+{
+    public virtual void Func<T>(T? t) where T : struct { }
+    public virtual void Func<T>(T? t) where T : class { }
+}
+class Derived : Base
+{
+    public override void Func<T>(T? t) /* where T: struct */{ }
+    //public override void Func<T>(T? t) where T : class{ }
+    public override void Func<T>(T? t) where T : default { } // CS8822
+}
+```
+
+<br>
+
+#### 泛型类型中的静态成员
+
+- 使用泛型类型时指定类型参数时，运行时将创建该类型参数的构造泛型类型。从同一泛型类型的构建的不同构造泛型类型之间，各构造泛型类型的静态成员（包括静态构造函数、字段、方法、属性等）独立存在。在首次调用该类型时，会首先调用它的静态构造函数。对于泛型接口类型的不能构造类型之间，静态成员（非抽象）也是相互独立的。
+
+```csharp
+var I1 = ISample<int>.Default;
+Console.WriteLine("-------------");
+var I2 = ISample<string>.Default;
+Console.WriteLine("-------------");
+var s1 = Sample<float>.Default;
+Console.WriteLine("-------------");
+var s2 = Sample<object>.Default;
+
+/*
+Static ISample() >> Int32
+-------------
+Static ISample() >> String
+-------------
+Static Sample() >> Single
+-------------
+Static Sample() >> Object
+*/
+
+interface ISample<T> 
+{
+    static ISample() =>Console.WriteLine($"Static ISample() >> {typeof(T).Name}");
+    public static T? Default { get; set; } = default;
+}
+class Sample<T>
+{
+    static Sample() => Console.WriteLine($"Static Sample() >> {typeof(T).Name}");
+    public static T? Default { get; set; } = default;
+}
+```
+
+<br>
+
+#### 协变与逆变
+
+- 借助泛型类型参数的协变和逆变，可以使用类型自变量的派生程度比目标构造类型更高（协变）或更低（逆变）的构造泛型类型。协变和逆变统称为 “变体”，未标记为协变或逆变的泛型类型参数称为 “固定参数” 。协变和逆变类型参数仅限于泛型接口和泛型委托类型，变体仅适用于与引用类型。当类型参数指定为值类型时，该类型参数对于生成的构造类型是不可变的。
+- 使用 `in` 关键字指定类型参数是逆变的，逆变的类型参数可以用作泛型接口的方法或泛型委托的参数类型。`out` 关键字指定类型参数是协变的，协变的类型参数可用作接口方法的返回类型。
+
+```csharp
+delegate TResult GenericDelegate<in T, out TResult>(T arg);
+interface IGeneric<in T, out TResult>
+{
+    TResult GetResult(T arg);
+}
+```
+
+- 协变和逆变能够实现委托类型、泛型接口类型和泛型类型参数的隐式引用转换。
+
+```csharp
+class VariantSample
+{
+    delegate A DCovariant<out A>();             // 协变泛型委托
+    delegate void DContravariant<in A>(A a);    // 逆变泛型委托
+
+    interface ICovariant<out A> { }         // 协变泛型接口
+    interface IContravariant<in A> { }      // 逆变泛型接口
+
+    class Base;
+    class Derived : Base;
+    class Sample<T> : ICovariant<T>, IContravariant<T>;
+    static T SampleFunc<T>() => default;
+    static void SampleFunc<T>(T t) { }
+
+    static void Main(string[] args)
+    {
+        // 泛型接口中的协变
+        ICovariant<Base> I_B = new Sample<Base>();
+        ICovariant<Derived> I_D = new Sample<Derived>();
+        I_B = I_D;  // 协变
+
+        // 泛型接口中的逆变
+        IContravariant<Base> I_B2 = new Sample<Base>();
+        IContravariant<Derived> I_D2 = new Sample<Derived>();
+        I_D2 = I_B2;  // 逆变
+
+        // 泛型委托中的协变
+        DCovariant<Base> D_B = SampleFunc<Base>;
+        DCovariant<Derived> D_D = SampleFunc<Derived>;
+        D_B = D_D;  // 协变
+
+        // 泛型委托中的逆变
+        DContravariant<Base> D_B2 = SampleFunc<Base>;
+        DContravariant<Derived> D_D2 = SampleFunc<Derived>;
+        D_D2 = D_B2;  // 逆变
+    }
+}
+```
+
+> 扩展变体泛型接口
+
+- 扩展变体泛型接口时，必须使用 `in` 和 `out` 关键字来显式指定派生接口是否支持变体。编译器不会根据正在扩展的接口来推断变体。
+
+```csharp
+interface ICovariant<out T> { }
+interface IInvariant<T> : ICovariant<T> { }
+interface IExtCovariant<out T> : ICovariant<T> { }
+
+```
+
+- 如果泛型类型参数 `T` 在一个接口中声明为协变，则无法在扩展接口中将其声明为逆变。
+
+```csharp
+interface ICovariant<out T> { }
+interface IContravariant<in T> { }
+interface IInvariant<T> : ICovariant<T>, IContravariant<T> { }  // 无法声明逆变或协变
+```
+
+> 避免多义性 
+
+- 实现变体泛型接口时，变体有时可能会导致多义性。应避免这样的多义性。如果在一个类中使用不同的泛型类型参数来显式实现同一变体泛型接口，便会产生多义性。在这种情况下，编译器不会产生错误，但未指定将在运行时选择哪个接口实现。这种多义性可能导致代码中出现小 bug。
+
+```csharp
+// Simple class hierarchy.
+class Animal;
+class Cat : Animal;
+class Dog : Animal;
+
+// This class introduces ambiguity
+// because IEnumerable<out T> is covariant.
+class Pets : IEnumerable<Cat>, IEnumerable<Dog>
+{
+    IEnumerator<Cat> IEnumerable<Cat>.GetEnumerator()
+    {
+        Console.WriteLine("Cat");
+        // Some code.
+        return null;
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        // Some code.
+        return null;
+    }
+    IEnumerator<Dog> IEnumerable<Dog>.GetEnumerator()
+    {
+        Console.WriteLine("Dog");
+        // Some code.
+        return null;
+    }
+}
+class Program
+{
+    public static void Test()
+    {
+        IEnumerable<Animal> pets = new Pets();
+        pets.GetEnumerator();  // Cat ? Dog ? 
+    }
+}
+```
+
+> 数组的协变
+
+- 数组的协变使派生程度更大的类型的数组能够隐式转换为派生程度更小的类型的数组。
+
+```csharp
+IEnumerable<object> e = new List<string>();
+IEnumerable<object> e2 = new List<int>();  // CS0266，值类型不支持协变
+IEnumerable<object>[] enumerables = new List<string>[] { }; // 数组的协变
 ```
 
 ---

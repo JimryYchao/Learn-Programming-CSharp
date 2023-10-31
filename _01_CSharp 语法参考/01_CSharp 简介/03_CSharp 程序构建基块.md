@@ -1,6 +1,175 @@
 ## CSharp 程序构建基块
 
-C# 中的类型主要由成员、表达式、语句等构建基块生成的。构成成员的类型一般为：常量、字段、方法、属性、索引器、事件、运算符、构造函数、终结器、嵌套类型等。表达式是在操作数和运算符的基础之上构造而成。程序操作使用语句进行表示。
+C# 中的类型主要由成员、表达式、语句等构建基块生成的。构成成员的类型一般为：常量、字段、方法、属性、索引器、事件、运算符、构造函数、终结器、嵌套类型等。表达式是在操作数和运算符的基础之上构造而成。程序操作使用语句进行表示。.NET 声明命名空间来整理类型。
+
+---
+### 命名空间
+
+- C# 程序使用命名空间进行组织。命名空间既用作组织 “内部” 系统为一个程序，同时又向 “外部” 其他程序公开程序元素。使用 `namespace` 关键字声明命名空间，命名空间是隐式的 `public`，并且命名空间的声明不能包含任何访问修饰符。
+
+```csharp
+namespace SampleNameSpace
+{
+    namespace NestedNameSpace{}
+}
+
+// 等价于
+namespace SampleNameSpace.NestedNameSpace { }
+{
+    // 顶级类型声明
+}
+```
+
+- 声明的命名空间定义了包含一组相关对象的作用域，可以使用命名空间来组织代码元素并创建全局唯一类型。在命名空间内，可以声明 `class`、`interface`、`record`、`struct`、`enum`、`delegate`、嵌套命名空间。
+
+```csharp
+SampleNamespace.Nested.SampleClass2 sc2 = new();
+
+namespace SampleNamespace
+{
+    class SampleClass { }
+    interface ISampleInterface { }
+    struct SampleStruct { }
+    enum SampleEnum { a, b }
+    delegate void SampleDelegate(int i);
+
+    namespace Nested
+    {
+        class SampleClass2 { }
+    }
+}
+```
+
+<br>
+
+#### 全局命名空间
+
+- 编辑器会添加一个默认未命名的命名空间，被称为全局命名空间，并存在于每个文件中。全局命名空间中的任何标识符都属于该空间，`global` 被定义为全局命名空间的别名，因此可以使用 `global::` 用于显式调用全局命名空间。
+
+```csharp
+namespace SampleSpace
+{
+    public static class Console
+    {
+        public static void Debug(object? message)
+        {
+            global::System.Console.WriteLine(message);
+        }
+    }
+}
+```
+
+<br>
+
+#### 文件范围的命名空间
+
+- 文件范围的命名空间声明能够作出以下声明：一个文件中的所有类型都在一个命名空间中。文件范围的命名空间不能包含其他命名空间声明。从 C#10 开始可使用文件范围的命名空间声明。
+
+```csharp
+namespace SampleNamespace;
+
+class AnotherSampleClass
+{
+    public void AnotherSampleMethod()
+    {
+        System.Console.WriteLine(
+            "SampleMethod inside SampleNamespace");
+    }
+}
+
+namespace AnotherNamespace; // Not allowed!
+
+namespace ANestedNamespace // Not allowed!
+{
+   // declarations...
+}
+```
+
+<br>
+
+#### using 指令
+
+- `using` 指令允许使用在命名空间中定义的类型，而无需指定该类型的完全限定命名空间。声明 `using` 引用命名空间时将导入隶属于该空间中的所有类型。
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+List<int> arrList = [0, 2, 4, 6, 8];
+Console.WriteLine(string.Join(",", arrList));
+```
+
+- 也可以使用 `using` 创建命名空间的别名或类型的别名。可以使用 `.` 或 `::` 使用别名空间的类型。
+- 命名空间别名限定符 `::` 可以保证类型名称查找不受新类型和成员引入的影响，例如名称歧义。命名空间别名限定符始终出现在两个标识符（称为左侧和右侧标识符）之间。与常规 `.` 限定符不同，限定符的左侧标识符 `::` 仅作为 `extern` 或 `using` 别名进行查找。
+
+
+```csharp
+using Generic = System.Collections.Generic;
+using Debug = System.Console;
+
+Generic.List<int> arr = [0, 2, 4, 6, 8];
+Debug.WriteLine(string.Join(",", arr));
+// 命名空间别名限定符
+Generic::List<int> arr2 = [0, 2, 4, 6, 8];
+```
+
+- 使用 `using static` 指定一个类型，可以在当前文件范围内无需指定该类型名称即可访问其静态成员和嵌套类型。`using static` 将直接包含在类型声明中的嵌套类型和静态成员导入到立即封闭的编译单元或命名空间体中，从而在无限制的情况下使用每个成员和类型的标识符。扩展方法不能直接导入为静态方法，但是可用于扩展方法调用。
+
+```csharp
+using System;
+using System.Collections.Generic;
+using static System.Math;
+using static System.Linq.Enumerable;
+
+(int Quotient, int Remainder) ar = DivRem(58, 10);   // Math.DivRem
+Console.WriteLine(ar);   // (5,8)
+
+List<char> chars = "Hello, World".ToList();   // Linq.Enumerable 扩展方法
+```
+
+<br>
+
+#### 全局 using 指令
+
+- 从 C#10 开始使用 `global using` 创建全局引用，`global` 这意味着 `using` 指令的作用范围从当前声明作用域扩大到所有文件，这包括全局命名空间引用、全局 `using` 别名、全局 `using static` 类型。
+
+```csharp
+global using System;
+global using System.Collections.Generic;
+global using Sample = Sample.Sample.Sample.Sample.SampleSpace;
+global using static System.Linq.Enumerable;
+
+Sample::SampleClass Sc = new("Hello World".ToList());
+Console.WriteLine(Sc.Greeting);  // HELLO WORLD
+
+namespace Sample.Sample.Sample.Sample.SampleSpace
+{
+    public class SampleClass(List<char> chars)
+    {
+        public string Greeting { get; } = new string(chars.Select(char.ToUpper).ToArray());
+    }
+}
+```
+
+<br>
+
+#### 程序集外部别名
+
+- 有时可能不得不引用具有相同的完全限定类型名称的程序集的两个版本或多个版本。通过使用外部程序集别名，可在别名命名的根级别命名空间内包装每个程序集的命名空间，使其能够在同一文件中使用。
+
+* 例如在 Visual Studio 中向项目添加 `grid.dll` 和 `grid20.dll` 的引用。在依赖项程序集的 “属性” 选项卡，并将别名从 “全局” 分别更改为 “GridV1” 和 “GridV2”。使用 `extern` 导入这些别名：
+
+```csharp
+extern alias GridV1;  
+extern alias GridV2;
+```
+
+- 然后就可以通过使用 `using` 别名指令为命名空间或类型创建别名。
+
+```csharp
+using Class1V1 = GridV1::Namespace.Class1;
+using Class1V2 = GridV2::Namespace.Class1;
+```
 
 ---
 ### 类型和成员的可访问性
@@ -618,11 +787,6 @@ int M()
     void LocalFunction() => y = 0;
 }
 ```
-
-<br>
-
-#### 泛型方法
-
 
 <br>
 
