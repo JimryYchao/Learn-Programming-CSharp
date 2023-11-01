@@ -1625,12 +1625,6 @@ unsafe
 
 <br>
 
-#### nint、nuint
-
-
-
-<br>
-
 #### 固定大小的缓冲区
 
 - 可以使用 `fixed` 关键字来创建在数据结构中具有固定大小的数组的缓冲区。当编写与其他语言或平台的数据源进行互操作的方法时，固定大小的缓冲区很有用。固定大小的缓冲区可以采用允许用于常规结构成员的任何属性或修饰符。唯一的限制是数组类型必须为 `bool`、`byte`、`char`、`short`、`int`、`long`、`sbyte`、`ushort`、`uint`、`ulong`、`float` 或 `double`。
@@ -1724,39 +1718,75 @@ internal unsafe class Example
 }
 ```
 
-<br>
+<br> 
 
 #### 函数指针
 
-- C# 提供 `delegate` 类型来定义安全函数指针对象。可以使用 `delegate*` 语法定义函数指针，编译器将使用 `calli` IL 指令来调用函数，而不是实例化委托对象并调用 `Invoke` 方法。
-- 只可在 `static` 函数上使用 `&` 运算符获取函数的地址。可以使用关键字 `managed`（默认）和 `unmanaged` 为 `delegate*` 指定调用约定。
+- C# 提供 `delegate` 类型来定义安全函数指针对象。 调用委托时，需要实例化从 `System.Delegate` 派生的类型并对其 `Invoke` 方法进行虚拟方法调用，该虚拟调用使用 IL 指令 `callvirt`
+- 可以使用 `delegate*` 语法定义函数指针。编译器将使用 IL 指令 `calli` 指令来调用函数，而不是实例化为委托对象并调用 `Invoke`。在性能关键的代码路径中，使用 IL 指令 `calli` 效率更高。
+
+```csharp
+// 委托定义参数
+public static T Combine<T>(Func<T, T, T> combinator, T left, T right) => combinator(left, right);
+// 函数指针定义参数
+public static T UnsafeCombine<T>(delegate*<T, T, T> combinator, T left, T right) => combinator(left, right);
+```
+
+- 函数指针只能在 `unsafe` 上下文中声明，只能在静态成员方法或静态本地方法使用地址运算符 `&`。
+
+```csharp
+unsafe
+{
+    // 函数指针声明和调用
+    delegate*<int, int> pAbs = &Abs;
+    Console.WriteLine(pAbs(-999));  // 999
+    // 本地静态方法
+    static int Abs(int val) => Math.Abs(val);
+}
+```
+
+> 函数指针声明语法
+
+```csharp
+delegate * calling_convention_specifier? <parameter_list, return_type> 
+
+calling_convention_specifier? : 可选的调用约定说明符, 默认为 managed
+    - managed : 默认调用约定
+    - unmanaged : 非托管调用约定, 未显式指定调用约定类别, 则使用运行时平台默认语法
+    - unmanaged [Calling_convertion|,Calling_convertion...] : 指定特定的非托管调用约定, 一到若干个
+        - Calling_convertion : 调用约定
+                - Cdecl : 调用方清理堆栈
+                - stdcall : 被调用方清理堆栈, 这是从托管代码调用非托管函数的默认约定
+                - Thiscall : 指定方法调用的第一个参数是 this 指针, 该指针存储在寄存器 ECX 中
+                - Fastcall : 调用约定指定在寄存器中传递函数的参数 (如果可能), NET 可能不支持 
+                - MemberFunction : 指示使用的调用约定是成员函数变体
+                - SuppressGCTransition : 指示方法应禁止 GC 转换作为调用约定的一部分
+```
+
+- 可以对函数指针显式使用调用约定说明符 `unmanaged`、`managed`，默认使用 `managed` 调用约定（使用托管方法）。
+- 使用 `unmanaged` 调用约定时，可以显式指定一个或多个 ECMA-335 调用约定（`Cdecl`、`Stdcall`、`Fastcall`、`Thiscall`）或 `MemberFunction`、`SuppressGCTransition`。未显式指定的 `unmanaged` 调用约定，则指示 CLR 选择平台的默认调用约定（在运行时基于平台选择调用约定）。
 
 ```csharp
 unsafe class Sample
 {
-    // 委托与函数指针语法比较
-    public static T Combine<T>(Func<T, T, T> combinator, T left, T right) 
-        => combinator?.Invoke(left, right);
-    public static T UnsafeCombine<T>(delegate*<T, T, T> combinator, T left, T right) 
-        => combinator(left, right);
+    // 委托
+    public static T Combine<T>(Func<T, T, T> combinator, T left, T right) => combinator?.Invoke(left, right);
+    // 函数指针
+    public static T UnsafeCombine<T>(delegate*<T, T, T> combinator, T left, T right) => combinator(left, right);
 
-    public static T ManagedCombine<T>(delegate* managed<T, T, T> combinator, T left, T right) =>
-        combinator(left, right);
-    public static T CDeclCombine<T>(delegate* unmanaged[Cdecl]<T, T, T> combinator, T left, T right) =>
-        combinator(left, right);
-    public static T StdcallCombine<T>(delegate* unmanaged[Stdcall]<T, T, T> combinator, T left, T right) =>
-        combinator(left, right);
-    public static T FastcallCombine<T>(delegate* unmanaged[Fastcall]<T, T, T> combinator, T left, T right) =>
-        combinator(left, right);
-    public static T ThiscallCombine<T>(delegate* unmanaged[Thiscall]<T, T, T> combinator, T left, T right) =>
-        combinator(left, right);
-    public static T UnmanagedCombine<T>(delegate* unmanaged<T, T, T> combinator, T left, T right) =>
-        combinator(left, right);
+    public static T ManagedCombine<T>(delegate* managed<T, T, T> combinator, T left, T right) => combinator(left, right);
+
+    public static T CDeclCombine<T>(delegate* unmanaged[Cdecl]<T, T, T> combinator, T left, T right) => combinator(left, right);
+    
+    public static T StdcallCombine<T>(delegate* unmanaged[Stdcall]<T, T, T> combinator, T left, T right) => combinator(left, right);
+    
+    public static T FastcallCombine<T>(delegate* unmanaged[Fastcall]<T, T, T> combinator, T left, T right) => combinator(left, right);
+    
+    public static T ThiscallCombine<T>(delegate* unmanaged[Thiscall]<T, T, T> combinator, T left, T right) => combinator(left, right);
+    
+    public static T UnmanagedCombine<T>(delegate* unmanaged<T, T, T> combinator, T left, T right) => combinator(left, right);
 }
 ```
-
-
-
 
 ---
 ### 类型默认值
