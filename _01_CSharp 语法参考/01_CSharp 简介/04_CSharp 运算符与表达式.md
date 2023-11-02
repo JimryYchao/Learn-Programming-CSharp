@@ -717,6 +717,111 @@ public static class VariableScopeWithLambdas
 ```
 
 ---
+### 弃元
+
+- 弃元（`_`）是一种在应用程序代码中人为取消使用的占位符变量，相当于未赋值的变量，但是它们没有值。弃元将意图传达给编译器和其他读取代码的文件：用户打算忽略表达式的结果。可以使用弃元用来忽略表达式的结果、元组表达式的一个或多个成员、方法的 `out` 参数或模式匹配表达式的目标。
+
+> 弃元的常见应用
+
+- 析构元组和用户类型对象解构：析构元组或解构用户类型对象时，可以使用弃元用以忽略不需要的位置返回值。
+
+```csharp
+var (_, _, _, pop1, _, pop2) = QueryCityDataForYears("New York City", 1960, 2010);
+Console.WriteLine($"Population change, 1960 to 2010: {pop2 - pop1:N0}");
+// The example displays the following output:
+//      Population change, 1960 to 2010: 393,149
+
+static (string, double, int, int, int, int) QueryCityDataForYears(string name, int year1, int year2)
+{
+    int population1 = 0, population2 = 0;
+    double area = 0;
+    if (name == "New York City")
+    {
+        area = 468.48;
+        if (year1 == 1960)
+            population1 = 7781984;
+        if (year2 == 2010)
+            population2 = 8175133;
+        return (name, area, year1, population1, year2, population2);
+    }
+    return ("", 0, 0, 0, 0, 0);
+}
+```
+
+- 从 C#9 开始，可以使用弃元指定 Lambda 表达式中不使用的两个或更多输入参数。
+
+```csharp
+Func<int, int, int, int> Func = (_, _, val) => val * val;
+```
+
+- 对具有 `out` 参数的方法的调用。
+
+```csharp
+string[] dateStrings = {"05/01/2018 14:57:32.8", "2018-05-01 14:57:32.8",
+                      "2018-05-01T14:57:32.8375298-04:00", "5/01/2018",
+                      "5/01/2018 14:57:32.80 -07:00",
+                      "1 May 2018 2:57:32.8 PM", "16-05-2018 1:00:32 PM",
+                      "Fri, 15 May 2018 20:10:57 GMT" };
+
+foreach (string dateString in dateStrings)
+{
+    if (DateTime.TryParse(dateString, out _))
+        Console.WriteLine($"'{dateString}': valid");
+    else
+        Console.WriteLine($"'{dateString}': invalid");
+}
+```
+
+- `switch` 表达式中使用弃元匹配任意的表达式，包括 `null` 在内。
+
+```csharp
+static Point Transform(Point point) => point switch
+{
+    { X: 0, Y: 0 } => new Point(0, 0),
+    { X: var x, Y: var y } when x < y => new Point(x + y, y),
+    { X: var x, Y: var y } when x > y => new Point(x - y, y),
+    _ => new Point(2 * point.X, 2 * point.Y),  // 弃元模式
+};
+public readonly record struct Point(int X, int Y);
+```
+
+- 可使用独立弃元来指示要忽略的任何变量。例如使用弃元来忽略异步操作返回的 `Task` 对象，并忽略该异步操作生成的任何错误。
+
+```csharp
+static async Task ExecuteAsyncMethods()
+{
+    Console.WriteLine("About to launch a task...");
+    _ = Task.Run(() =>
+    {
+        var iterations = 0;
+        for (int ctr = 0; ctr < int.MaxValue; ctr++)
+            iterations++;
+        Console.WriteLine("Completed looping operation...");
+        throw new InvalidOperationException();
+    });
+    await Task.Delay(5000);
+    Console.WriteLine("Exiting after 5 second delay");
+}
+// The example displays output like the following:
+//       About to launch a task...
+//       Completed looping operation...
+//       Exiting after 5 second delay
+```
+
+- `_` 也是有效的标识符，因此在支持弃元的上下文之外，若已有名为 `_` 的标识符已在范围内，则无法使用弃元。
+
+```csharp
+private static bool RoundTrips(int _)
+{
+    string value = _.ToString();
+    int newValue = 0;
+    _ = Int32.TryParse(value, out newValue);
+  // error CS0029: Cannot implicitly convert type 'bool' to 'int'
+    return _ == newValue;
+}
+```
+
+---
 ### 模式匹配
 
 - 可以使用 `is` 表达式、`switch` 语句和 `switch` 表达式将输入表达式与任意数量的特征匹配。C# 支持多种模式，包括声明、类型、常量、关系、属性、列表、var 和弃元。可以使用布尔逻辑关键字 `and`、`or` 和 `not` 组合模式。
@@ -998,19 +1103,15 @@ static string Classify(double measurement) => measurement switch
 - 可以使用属性模式将表达式的属性或字段与嵌套模式进行匹配。
 
 ```csharp
-Console.WriteLine(TakeFive("Hello, world!"));  // output: Hello
-Console.WriteLine(TakeFive("Hi!"));  // output: Hi!
-Console.WriteLine(TakeFive(new[] { '1', '2', '3', '4', '5', '6', '7' }));  // output: 12345
-Console.WriteLine(TakeFive(new[] { 'a', 'b', 'c' }));  // output: abc
+public record Order(int Items, decimal Cost);
 
-static string TakeFive(object input) => input switch
+public decimal CalculateDiscount(Order order) => order switch
 {
-    string { Length: >= 5 } s => s.Substring(0, 5),
-    string s => s,
-    ICollection<char> { Count: >= 5 } symbols => new string(symbols.Take(5).ToArray()),
-    ICollection<char> symbols => new string(symbols.ToArray()),
-    null => throw new ArgumentNullException(nameof(input)),
-    _ => throw new ArgumentException("Not supported input type."),
+    { Items: > 10, Cost: > 1000.00m } => 0.10m,
+    { Items: > 5, Cost: > 500.00m } => 0.05m,
+    { Cost: > 250.00m } => 0.02m,
+    null => throw new ArgumentNullException(nameof(order), "Can't calculate discount on null order"),
+    var someObject => 0m,
 };
 ```
 

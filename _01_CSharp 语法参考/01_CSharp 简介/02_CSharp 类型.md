@@ -1765,6 +1765,7 @@ calling_convention_specifier? : 可选的调用约定说明符, 默认为 manage
 
 - 可以对函数指针显式使用调用约定说明符 `unmanaged`、`managed`，默认使用 `managed` 调用约定（使用托管方法）。
 - 使用 `unmanaged` 调用约定时，可以显式指定一个或多个 ECMA-335 调用约定（`Cdecl`、`Stdcall`、`Fastcall`、`Thiscall`）或 `MemberFunction`、`SuppressGCTransition`。未显式指定的 `unmanaged` 调用约定，则指示 CLR 选择平台的默认调用约定（在运行时基于平台选择调用约定）。
+- 函数调用约定，是指当一个函数被调用时，函数的参数会被传递给被调用的函数，返回值会被返回给调用函数。函数的调用约定就是描述参数是怎么传递和由谁平衡堆栈的，当然还有返回值。
 
 ```csharp
 unsafe class Sample

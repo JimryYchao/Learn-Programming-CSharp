@@ -2146,3 +2146,99 @@ public class Destroyer
   - `using` 语句用于获取资源，执行语句，然后释放资源。
 
 ---
+### 分部声明
+
+- 分布声明用于拆分一个类、一个接口、一个结构或一个方法的定义到两个或更多的文件中。每个源文件包含类型或方法定义的一部分，编译应用程序时将所有的部分组合起来。若要拆分定义，则使用 `partial` 关键字修饰类型或方法。所有部分都必须使用 `partial` 关键字，各个部分都具有相同的访问修饰符。
+
+```csharp
+[Attr1, Attr2("hello")]
+partial class A {}
+
+[Attr3, Attr2("goodbye")]
+partial class A {}
+
+// 等效于
+[Attr1, Attr2("hello"), Attr3, Attr2("goodbye")]
+class A {}
+```
+
+  
+<br>  
+
+#### 分布类
+
+- 常在以下几种情况下需要拆分类定义：
+  - 处理大型项目时，使一个类分布于多个独立文件中可以让多位程序员同时对该类进行处理。
+  - 当使用自动生成的源文件时，用户可以添加代码而不需要重新创建源文件。Visual Studio 在创建 Windows 窗体、Web 服务包装器代码等时会使用这种方法。用户可以创建使用这些类的代码，这样就不需要修改由 Visual Studio 生成的文件。
+  - 使用源生成器在类中生成附加功能时。
+
+* 可以为声明的分布类型的各个部分指定不同的基接口，声明不同的成员，应用不同的特性。在编译时，各个部分都合并起来形成最终的类型。在某一分部定义中声明的任何类、结构、接口和成员可供所有其他部分使用。最终类型是所有部分在编译时的组合。
+* 要成为同一类型的各个部分的所有分部类型定义都必须在同一程序集和同一模块（`.exe` 或 `.dll` 文件）中进行定义。分部定义不能跨越多个模块。
+* 泛型类型可以是分部的，每个分部声明都必须以相同的顺序使用相同的参数名。
+
+```csharp
+public partial class PartClass
+{
+    void FuncInline() { }
+}
+
+public partial class PartClass
+{
+    public void Func() => FuncInline();
+}
+```
+
+<br>
+
+#### 分部方法
+
+- 分部类或结构可以包含分部方法。类的一个部分包含方法的签名，可以在同一部分或另一部分中定义实现。根据方法的签名，可能需要实现。对于无访问修饰符、无返回类型、不使用 `out` 参数的分部方法（可以包含 `static` 和 `unsafe` 修饰），不需要提供实现即可定义。如果未提供该实现，则会在编译时删除分部方法以及对该方法的所有调用。声明分部方法的实现前需要先声明其定义。
+
+```csharp
+public partial class PartClass
+{
+   partial void PartFunc1();
+   partial void PartFunc2();
+}
+```
+
+- 任何分部方法使用访问修饰符、有返回值、使用 `out` 参数或是 `sealed`、`abstract`、`virtual`、`new` 修饰的方法，都必须提供实现。分部方法允许类型的某个部分的实现者定义方法，类型另一部分的实现者提供这些方法的具体实现。此方法很有用：生成样板代码的模板和源生成器。
+  - 模板代码：模板保留方法名称和签名，以便生成的代码可以调用方法。调用但不实现该方法不会导致编译时错误或运行时错误。
+  - 源生成器：源生成器提供方法的实现。开发人员可以添加方法声明（通常由源生成器读取属性）和编写调用这些方法的代码。源生成器在编译过程中运行并提供实现。
+
+* 分部类型的两个部分中的分部方法签名必须匹配。实现分部方法声明可以与相应的定义分部方法声明出现在同一部分中。
+* 分部方法可以是泛型的。约束将放在定义分部方法声明上，但也可以选择重复放在实现声明上，不能声明不同的约束组合。参数和类型参数名称在实现声明和定义声明中不必相同。
+
+```csharp
+public partial class PartClass
+{
+    private partial void PartFunc1(out int a);
+    static partial void PartFunc2<T>() where T: notnull;
+}
+
+public partial class PartClass
+{
+    private partial void PartFunc1(out int b) => b = default;
+    static partial void PartFunc2<U>() { }
+}
+```
+
+- 可以为已定义并实现的分部方法生成委托，但不能为已经定义但未实现的分部方法生成委托。
+
+```csharp
+public partial class PartClass
+{
+    static partial void PartFunc1();
+    static partial void PartFunc2();
+}
+
+public partial class PartClass
+{
+    static partial void PartFunc1() { }
+
+    Action Ac1 = PartFunc1;
+ //   Action Ac2 = PartFunc2;  // ERROR : CS0762
+}
+```
+
+---
