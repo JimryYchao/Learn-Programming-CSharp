@@ -171,6 +171,23 @@ using Class1V1 = GridV1::Namespace.Class1;
 using Class1V2 = GridV2::Namespace.Class1;
 ```
 
+<br>
+
+#### 任何类型的别名
+
+- 从 C#12 开始，可以使用 `using` 别名指令创建任何类型的别名，包括有元组类型、指针类型、数组类型、可为 null 的值类型等。类型不能是可为 null 的引用类型。
+
+```csharp
+<global> using <unsafe> Identifier = type;
+
+global using Point = (int, int);
+global using unsafe pFunVoid = delegate*<void>;
+global using Number = int[];
+using str = string?; // err
+using StrList = System.Collections.Generic.List<string?>;
+using NullableInt = int?;
+```
+
 ---
 ### 类型和成员的可访问性
 
@@ -1264,7 +1281,7 @@ class SubscriberB
 
 > 匿名方法的订阅和取消
 
-- 取消定于 `-=` 的右侧是匿名方法或 Lambda 表达式时，它会成为不同的委托实例，并静默地不执行任何操作。
+- 取消定于 `-=` 的右侧是匿名方法或 Lambda 表达式时，它会成为不同的委托实例，并静默地不执行任何操作。请务必为表示事件处理程序的表达式声明局部变量，以确保取消订阅删除该处理程序。
 
 ```csharp
 class EventHandlerSample
@@ -2244,3 +2261,129 @@ public partial class PartClass
 ---
 ### 异常和错误
 
+- C# 语言的异常处理功能有助于处理在程序运行期间发生的任何意外或异常情况。异常处理功能使用 `try` 语句块来尝试执行可能失败的操作，并在捕获异常时在 `catch` 中处理故障，以及在操作结束后在 `finally` 中清除资源。异常是使用 `throw` 关键字创建而成的。
+- 公共语言运行时 CLR、.NET、第三方库和应用程序代码都可产生异常。.NET 中的托管异常在 Win32 结构化异常处理机制的基础之上实现。
+- 一般情况下，异常并不是由代码直接调用的方法抛出，而是由调用堆栈中再往下的另一个方法抛出。发生异常时，CLR 会展开堆栈，同时针对特定异常类型查找包含 `catch` 代码块的方法，并执行它找到的首个此类 `catch` 代码块。如果在调用堆栈中找不到相应的 `catch` 代码块，将会终止进程并向用户显示消息。
+
+```csharp
+public class ExceptionTest
+{
+    static double SafeDivision(double x, double y)
+    {
+        if (y == 0)
+            throw new DivideByZeroException();
+        return x / y;
+    }
+    public static void Main()
+    {
+        double a = 98, b = 0;
+        double result;
+        try
+        {
+            result = SafeDivision(a, b);
+            Console.WriteLine("{0} divided by {1} = {2}", a, b, result);
+        }
+        catch (DivideByZeroException)
+        {
+            Console.WriteLine("Attempted divide by zero.");  
+        }
+    }
+}
+```
+
+<br>
+
+#### 异常简介
+
+- 异常是最终全都派生自 `System.Exception` 的类型：
+  - 调用堆栈状态：每个 `Exception` 对象都包含一个 `StackTrace` 字符串属性，包含当前调用堆栈上的方法的名称和引发异常的位置。
+  - 错误文本说明：每个 `Exception` 对象都包含一个名为 `Message` 的属性，此字符串用来设置为解释发生异常的原因。
+  - 可以在 `catch` 块中定义异常变量，用它来详细了解所发生的异常类型。
+
+```csharp
+try
+{
+    ExceptionTest();
+}
+catch (NotImplementedException ex)
+{
+    Console.WriteLine($"EROOR : {ex.Message}\n" + ex.StackTrace);
+}
+
+void ExceptionTest() => throw new NotImplementedException();
+```
+
+- 在 `try` 中执行可能抛出异常的语句。程序使用 `throw` 关键字，用以显式生成异常。
+- 在 `try` 中出现异常后，控制流会跳转到调用堆栈中任意位置上的首个相关异常处理程序（`catch`）。可以使用 `catch` 代码块末尾的 `throw` 关键字重新抛出异常
+- 若未找到给定异常对应的异常处理程序，那么程序会停止执行，并显示错误消息。
+- 无论是否引发异常，`finally` 代码块中的代码仍会执行。使用 `finally` 代码块可释放资源。例如，关闭在 `try` 代码块中打开的任何流或文件。
+
+```csharp
+try
+{
+    // ..... do 
+    string str = null;
+    Console.WriteLine(str.ToLower());
+}
+catch (NullReferenceException ex1) 
+{
+    Console.WriteLine($"Arguement err : {ex1.Message}\n{ex1.StackTrace}");
+}
+catch
+{
+    throw;  // 重新抛出时，将异常传递给被调用方而不调用 finally
+}
+finally
+{
+    Console.WriteLine("Do Finally work...");
+}
+/*
+    Arguement err : Object reference not set to an instance of an object.
+        at Program.<Main>$(String[] args) in Program.cs:line 7
+    Do Finally work...
+*/
+```
+
+> 若发生异常后没有在调用堆栈上找到兼容的 `catch` 块，则会发生以下三种情况之一：
+
+- 如果异常存在于终结器内，将中止终结器，并调用基类终结器（如果有）。
+- 如果调用堆栈包含静态构造函数或静态字段初始值设定项，将引发 `TypeInitializationException`，同时将原始异常分配给新异常的 `InnerException` 属性。
+- 如果到达线程的开头，则终止线程。
+
+<br>
+
+#### 定义异常的类别
+
+- 程序可以引发 `System` 命名空间中的预定义异常类（前面提到的情况除外），或通过从 `Exception` 派生来创建其自己的异常类。
+- 派生类应该至少定义三个构造函数：一个无参数构造函数、一个用于设置消息属性，一个用于设置 `Message` 和 `InnerException` 属性。
+
+```csharp
+[Serializable]
+public class InvalidDepartmentException : Exception
+{
+    public InvalidDepartmentException() : base() { }
+    public InvalidDepartmentException(string message) : base(message) { }
+    public InvalidDepartmentException(string message, Exception inner) : base(message, inner) { }
+}
+```
+
+<br>
+
+#### 编译器生成的异常
+
+- 当基本操作失败时，.NET 运行时会自动引发一些异常。 
+
+```csharp
+ArithmeticException         // 算术运算期间出现的异常的基类，例如 DivideByZeroException 和 OverflowException。
+ArrayTypeMismatchException	// 由于元素的实际类型与数组的实际类型不兼容而导致数组无法存储给定元素时引发。
+DivideByZeroException	    // 尝试将整数值除以零时引发。
+IndexOutOfRangeException	// 索引小于零或超出数组边界时，尝试对数组编制索引时引发。
+InvalidCastException	    // 从基类型显式转换为接口或派生类型在运行时失败时引发。
+NullReferenceException	    // 尝试引用值为 null 的对象时引发。
+OutOfMemoryException	    // 尝试使用新运算符分配内存失败时引发。 此异常表示可用于公共语言运行时的内存已用尽。
+OverflowException	        // checked 上下文中的算术运算溢出时引发。
+StackOverflowException	    // 执行堆栈由于有过多挂起的方法调用而用尽时引发；通常表示非常深的递归或无限递归。
+TypeInitializationException	// 静态构造函数引发异常并且没有兼容的 catch 子句来捕获异常时引发。
+```
+
+---

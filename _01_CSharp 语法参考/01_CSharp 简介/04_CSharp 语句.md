@@ -135,6 +135,42 @@ async Task<int> ProduceNumberAsync(int seed)
 }
 ```
 
+> `foreach` 语句解析
+
+- `foreach` 语句可扩展为使用 `IEnumerable` 和 `IEnumerator` 接口的标准用语，以便循环访问集合中的所有元素。
+
+```csharp
+// 原始 foreach 结构
+IEnumerable collection = new int[] { 10, 20, 30, 40, 50 };
+foreach (var item in collection)
+    Console.WriteLine(item.ToString());
+
+// 编译器转化类似于
+IEnumerator? _enumerator = collection.GetEnumerator();
+while (_enumerator.MoveNext())
+{
+    var item = _enumerator.Current;
+    Console.WriteLine(item.ToString());
+}
+
+// 编译器完整编译
+var enumerator = collection.GetEnumerator();
+try
+{
+    while (enumerator.MoveNext())
+    {
+        var item = enumerator.Current;
+        // do with item
+        Console.WriteLine(item.ToString());
+    }
+}
+finally
+{
+    // dispose of enumerator.
+    (enumerator as IDisposable)?.Dispose();
+}
+```
+
 <br>
 
 #### do 语句

@@ -325,6 +325,38 @@ ref struct Ref_Data
 }
 ```
 
+> 内联数组
+
+- 从 C#12 开始，可以将内联数组声明为 `struct` 类型。内联数组是包含相同类型的 N 个元素的连续块的结构，它是一个安全代码，等效于仅在不安全代码中可用的固定缓冲区声明，编译器可以利用有关内联数组的已知信息。内联数组是包含单个字段、且未指定其他任何的显式布局的 `struct`。
+- 使用 `System.Runtime.CompilerServices.InlineArrayAttribute` 特性修饰 `struct` 类型，并指定一个大于零的值。
+
+```csharp
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct InlineArray<T>
+{
+    private T Elem;
+}
+```
+
+- 可以像访问数组一样访问内联数组，以读取和写入值，还可以使用范围和索引运算符。
+- 对单个字段的类型有最低限制：它不能是指针类型，但可以是任何引用类型或任何值类型。几乎可以将内联数组与任何 C# 数据结构一起使用。
+- 内联数组是一种高级语言功能。它们适用于高性能方案，在这些方案中，内联的连续元素块比其他替代数据结构速度更快。
+- 运行时团队和其他库作者使用内联数组来提高应用的性能。内联数组使开发人员能够创建固定大小的 `struct` 类型数组。具有内联缓冲区的结构应提供类似于不安全的固定大小缓冲区的性能特征。
+
+```csharp
+var buffer = new Buffer();
+for (int i = 0; i < 10; i++)
+    buffer[i] = i;
+foreach (var i in buffer)
+    Console.WriteLine(i);
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+public struct Buffer
+{
+    private int _element0;
+}
+```
+
 <br>
 
 #### 元组类型
@@ -2183,3 +2215,4 @@ IEnumerable<object>[] enumerables = new List<string>[] { }; // 数组的协变
 ```
 
 ---
+### 内联数组

@@ -246,17 +246,22 @@ record Sample(string name)
 ---
 ### 集合表达式
 
-- 可以使用集合表达式来创建常见的集合值。集合表达式在 `[` 和 `]` 括号之间包含元素的序列。
+- 可以使用集合表达式来创建常见的集合值。集合表达式在 `[` 和 `]` 括号之间包含元素的序列。可以为一维数组类型、`System.Span<T>` 和 `System.ReadOnlySpan<T>`、支持集合初始化设定项的类型（例如 `System.Collections.Generic.List<T>` 等）使用集合表达式语法。
 
 ```csharp
 Span<string> weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 foreach (var day in weekDays)
     Console.WriteLine(day);
+
+int[] arr = [10, 20, 30];
+List<int> list = [1, 2, 3, 4, 5];
 ```
 
-> .. 分布元素
+<br>
 
-- 使用分布元素 `..` 在集合表达式中使用内联集合值。
+#### 内联集合值
+
+- 可以使用展开运算符 `..` 在集合表达式中使用内联集合值。
 
 ```csharp
 int[] left = [1, 2, 3, 4];
@@ -266,12 +271,158 @@ Console.WriteLine(string.Join(",", all));
 // output: 1,2,3,4,5,6,7,8,9,0
 ```
 
-<!-- > 集合生成器
+<br> 
 
-- 从 Net8 起，类型通过编写 `Create()` 方法和对集合类型应用 `System.Runtime.CompilerServices.CollectionBuilderAttribute` 来指示生成器方法来选择加入集合表达式支持。 
-- url=https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/operators/collection-expressions
--->
+#### 集合表达式转换
+
+- 集合表达式可转换为单维数组类型 `T[]`。
+
+```csharp
+int[] arr = [1, 2, 3, 4, 5];
+int[][] arr2 = [[10, 20, 30], [0], arr];      // 交错数组
+```
+
+- 集合表达式可转换为 `Span<T>` 或 `ReadOnlySpan<T>` 类型。
+
+```csharp
+Span<int> arr = [1, 2, 3, 4, 5];
+ReadOnlySpan<int> arr2 = [.. arr, 6, 7, 8, 9];
+Span<int> arr3 = [.. arr2, 0];
+Console.WriteLine(string.Join(",", arr3.ToArray()));
+// output: 1,2,3,4,5,6,7,8,9,0
+```
+
+- 集合表达式可转换为实现 `IEnumerable<T>` 接口并拥有一个公共或扩展定义的 `Add` 方法。
+
+```csharp
+ReadOnlyArray<int> arr = [1, 2, 3, 4, 5, 6];
+foreach (int i in arr)
+    Console.WriteLine(i);
+
+struct ReadOnlyArray<T>() : IEnumerable<T>
+{
+    private readonly T[] values = new T[100];
+    private int Length = 0;
+    public void Add(T value)
+    {
+        if (Length > values.Length - 1)
+            throw new ArgumentOutOfRangeException("Capacity");
+        values[Length++] = value;
+    }
+    public IEnumerator<T> GetEnumerator() => values[..^(values.Length - Length)].AsEnumerable().GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => values[..^(values.Length - Length)].GetEnumerator();
+}
+```
+
+- 集合表达式可转换为实现 `IEnumerable` 接口并拥有一个公共或扩展定义的 `Add` 方法。
+
+```csharp
+InlineBuffer arr = [1, 2, "Hello", 4, 3.1415, 6];
+foreach (int i in arr)
+    Console.WriteLine(i);
+
+class InlineBuffer : IEnumerable
+{
+    public readonly List<object> buffer = new List<object>(80);
+    public void Add(object value) => buffer.Add(value);
+    public IEnumerator GetEnumerator() => buffer.GetEnumerator();
+}
+```
+
+- 集合表达式可转换为实现任何继承 `System.Collections.IEnumerable` 或 `System.Collections.Generic.IEnumerable<T>` 接口的接口的类型。
+
+```csharp
+MyList<int> arr = [1, 2, 3, 4, 5];
+
+class MyList<T> : IReadOnlyList<T>  // IReadOnlyList<T> : IEnumerable<T>
+{
+    public T this[int index] => throw new NotImplementedException();
+    public int Count => throw new NotImplementedException();
+    public IEnumerator<T> GetEnumerator() => throw new NotImplementedException();
+    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+    public void Add(T t) { }
+}
+```
+
+<br>
+
+#### 集合生成器
  
+- 集合表达式还可转换具有集合生成器的类型。类型通过编写 `Create()` 方法和对集合类型应用 `System.Runtime.CompilerServices.CollectionBuilderAttribute` 来指示生成器方法来选择加入集合表达式支持。集合类型必须具有迭代器 `GetEnumerator`。
+
+> 设计一个可使用集合表达式的集合类型
+
+- 首先必须将 `CollectionBuilderAttribute` 属性添加到需要使用集合表达式构造的集合类型上，并指定集合生成器类和构造器方法的名称。生成器必须是非泛型类或结构，生成器方法必须是 `static` 并使用 `ReadOnlySpan<T>` 为唯一参数，以集合类型为范围类型。
+
+```csharp
+[CollectionBuilder(typeof(MyCollectionBuilder), "Build")]
+public class MyCollection
+{
+    public readonly int[] Values;
+    public MyCollection(int[] arr) => Values = arr;
+
+    internal class MyCollectionBuilder
+    {
+        internal static MyCollection Build(ReadOnlySpan<int> arr) => new MyCollection(arr.ToArray());
+    }
+}
+```
+
+- 集合类型需要一个 `IEnumerator<T> GetEnumerator()` 方法为其集合元素提供迭代功能。也可以继承 `IEnumerable` 或 `IEnumerable<T>`。
+
+```csharp
+public class MyCollection
+{
+    //....
+    public IEnumerator<int> GetEnumerator() => Values.AsEnumerable().GetEnumerator();
+    //....
+}
+```
+
+- 使用集合表达式初始化该集合类型。
+
+```csharp
+MyCollection arr = [1,2,3,4];
+```
+
+<br>
+
+#### 泛型集合生成器
+
+- `CollectionBuilderAttribute` 特性指定的集合生成器必须是非泛型类或结构，生成器方法是可以使用类型参数的。声明集合生成器的类不能嵌套在泛型类型中。
+
+```csharp
+using System.Runtime.CompilerServices;
+
+MyCollection<int> arr = [1, 2, 3, 4, 5];
+
+[CollectionBuilder(typeof(MyCollectionBuilder), "Build")]
+public record MyCollection<T>(params T[] Values)
+{
+    public IEnumerator<T> GetEnumerator() => Values.AsEnumerable().GetEnumerator();
+}
+internal class MyCollectionBuilder
+{
+    internal static MyCollection<T> Build<T>(ReadOnlySpan<T> arr) => new MyCollection<T>(arr.ToArray());
+}
+```
+
+<br>
+
+#### 为 IDictionary 类型扩展集合表达式构造
+
+```csharp
+Dictionary<int, int> ArrDic = [(1, 1), (2, 2), (3, 3)];
+public static class KYExt
+{
+    public static void Add<TK, TV>(this IDictionary<TK, TV> Dic, (TK key, TV value) KV)
+    {
+        if (Dic.ContainsKey(KV.key))
+            return;
+        Dic.Add(KV.key, KV.value);
+    }
+}
+```
 
 ---
 ### 成员访问与 null 条件运算
@@ -605,9 +756,6 @@ Console.WriteLine(string.Join(" ", largeArray));
 // 10 20 0 40 50
 ```
 
-
-
-
 ---
 ### Lambda 表达式
 
@@ -630,6 +778,8 @@ var Choose = object (bool b) =>  b? 1:"two";
 Func<int, int, int> Constant = (_, _) => 99;
 // 添加特性到参数中
 var concat = ([DisallowNull] string a, [DisallowNull] string b) => a + b;
+// 使用默认参数
+var fun = (string? mess = "") => Console.WriteLine(mess);
 // 使用 params
 var Iterator = (params IEnumerable[] arr) =>
 {
