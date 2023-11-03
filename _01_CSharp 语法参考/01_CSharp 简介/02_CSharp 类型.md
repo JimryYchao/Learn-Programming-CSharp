@@ -373,6 +373,29 @@ var (fname, lname) = new Person("Hello", "World");
 record Person(string firstName, string lastName);
 ```
 
+- 解构函数也可以是扩展方法，可以为指定类型提供额外的 `Deconstruct` 扩展方法。
+
+```csharp
+public static void Deconstruct(this <Type> destTypeObj, out <Type1> val, out <Type2> val2[, out < Type3 > val3...]0) { }
+
+var (<Type1> rt1, <Type2> rt2[, ...]) = destTypeObj;
+```
+
+- 系统类型的扩展方法：为了方便起见，某些系统类型提供 `Deconstruct` 方法。例如 `System.Collections.Generic.KeyValuePair<TKey,TValue>` 类型提供此功能，循环访问 `Dictionary` 时，每个元素都是 `KeyValuePair<TKey,TValue>`。
+
+```csharp
+Dictionary<string, int> snapshotCommitMap = new(StringComparer.OrdinalIgnoreCase)
+{
+    ["https://github.com/dotnet/docs"] = 16_465,
+    ["https://github.com/dotnet/runtime"] = 114_223,
+    ["https://github.com/dotnet/installer"] = 22_436,
+    ["https://github.com/dotnet/roslyn"] = 79_484,
+    ["https://github.com/dotnet/aspnetcore"] = 48_386
+};
+foreach (var (repo, commitCount) in snapshotCommitMap)
+    Console.WriteLine($"The {repo} repository had {commitCount:N0} commits as of November 10th, 2021.");
+```
+
 <br>
 
 #### 可为 null 的值类型
