@@ -2215,4 +2215,3 @@ IEnumerable<object>[] enumerables = new List<string>[] { }; // 数组的协变
 ```
 
 ---
-### 内联数组

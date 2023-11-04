@@ -1594,3 +1594,297 @@ Span<byte> buffer = inputLength <= MaxStackLimit ? stackalloc byte[MaxStackLimit
 ```
 
 ---
+### 相等性比较
+
+- 有时需要比较两个值是否相等。相等性可以测试 “值相等性” 或 “引用相等性”：
+  - 值相等性也称为 “等效性”，指两个对象包含相同的一个或多个值。
+  - 引用相等性指两个对象引用均引用同一基础对象。
+
+<br>
+
+#### 引用相等性
+
+-  使用 `Object.ReferenceEquals` 方法确定两个引用是否引用同一对象。引用相等性的概念仅适用于引用类型，传递值类型只会传递值的副本给 `ReferenceEquals` 的参数，因此使用该方法比较两个值类型，结果始终返回 `false`。
+
+```csharp
+using System;
+class Test
+{
+    public int Num { get; set; }
+    public string Str { get; set; }
+    static void Main()
+    {
+        Test a = new Test() { Num = 1, Str = "Hi" };
+        Test b = new Test() { Num = 1, Str = "Hi" };
+
+        bool areEqual = System.Object.ReferenceEquals(a, b);
+        // False:
+        System.Console.WriteLine("ReferenceEquals(a, b) = {0}", areEqual);
+
+        // Assign b to a.
+        b = a;
+
+        // Repeat calls with different results.
+        areEqual = System.Object.ReferenceEquals(a, b);
+        // True:
+        System.Console.WriteLine("ReferenceEquals(a, b) = {0}", areEqual);
+
+        // Keep the console open in debug mode.
+        Console.WriteLine("Press any key to exit.");
+        Console.ReadKey();
+    }
+}
+```
+
+<br>
+
+#### 值相等性
+
+- 针对值相等性的测试，可以使用 `==` 运算符。对记录来说，值相等性是指如果记录类型的两个变量类型相匹配，且所有属性和字段值（或引用对象）都一致，那么记录类型的两个变量是相等的。字符串按值相等性比较。
+- 可以使用 `Object.Equals` 比较两个结构对象的值相等性，对于引用类型则比较引用相等性。 
+
+```csharp
+int num1 = 0;
+Console.WriteLine(num1 == 0);  // true
+
+Sample s = new() { name = "Hello", num = 1 };
+Sample s2 = new() { name = "Hello", num = 1 };
+Console.WriteLine(s.Equals(s2));  // true
+
+rSample rs = new("Hi", 1001);
+rSample rs1 = new("Hi", 1001);
+Console.WriteLine(rs == rs1); // true
+
+string str1 = "Hello";
+string str2 = "Hell";
+Console.WriteLine(str1 == str2);  // false
+str2 += "o";
+Console.WriteLine(str1 == str2);  // true
+
+struct Sample
+{
+    public required int num;
+    public required string name;
+}
+record rSample(string name, int num);
+```
+
+<br>
+
+#### 用户定义类型相等性
+
+- 定义类或结构时，需确定为类型创建值相等性（或等效性）的自定义定义是否有意义。通常，预期将类型的对象添加到集合时，或者这些对象主要用于存储一组字段或属性时，需实现值相等性。可以基于类型中所有字段和属性的比较结果来定义值相等性，也可以基于子集进行定义。
+
+* 类和结构中的等效性实现均应遵循：
+  - 自反属性：`x.Equals(x)` 将返回 `true`。
+  - 对称属性：`x.Equals(y)` 返回与 `y.Equals(x)` 相同的值。
+  - 可传递属性：如果 `(x.Equals(y) && y.Equals(z))` 返回 `true`，则 `x.Equals(z)` 将返回 `true`。
+  - 只要未修改 `x` 和 `y` 引用的对象，`x.Equals(y)` 的连续调用就将返回相同的值。
+  - 任何非 `null` 值均不等于 `null`。 然而，当 `x` 为 `null` 时，`x.Equals(y)` 将引发异常。
+
+- 定义的任何结构都已具有其从 `Object.Equals(Object)` 方法的 `System.ValueType` 替代中继承的值相等性的默认实现。此实现使用反射来检查类型中的所有字段和属性。尽管此实现可生成正确的结果，但与专门为类型编写的自定义实现相比，它的速度相对较慢。
+
+> 如何设计相等性
+
+- 重写替代 `object.Equals(object)` 方法，大多数情况下，该方法应只调入使用 `System.IEquatable<T>` 接口实现类型的特定 `Equals` 方法。实际的等效性比较将在此接口中执行。
+- 对于方法 `System.IEquatable<T>.Equals(T? other)` 应仅检查类中声明的字段。仅当要比较的变量的运行时类型相同时，才应将两个变量视为相等。
+- 可选的重载 `==` 和 `!=` 运算符。
+- 替代 `Object.GetHashCode`，以便具有值相等性的两个对象生成相同的哈希代码。
+- 若要支持 “大于” 或 “小于” 定义，请为类型实现 `IComparable<T>` 接口，并同时重载 `<` 和 `>` 运算符
+
+> 类用户定义相等性
+
+```csharp
+Point2D p1 = new Point2D(0, 100);
+Point2D p2 = new Point2D(0, 200);
+Console.WriteLine(p1 == p2);  // false
+p2.Y = 100;
+Console.WriteLine(p1 == p2);  // true
+
+class Point2D(int x, int y) : IEquatable<Point2D>
+{
+    public int X { get; set; } = x;
+    public int Y { get; set; } = y;
+    public override bool Equals(object? obj) => this.Equals(obj as Point2D);
+
+    public bool Equals(Point2D? other)
+    {
+        return
+            object.ReferenceEquals(other, this)  // 比较引用相等性
+            // 比较值相等性
+            || other is not null   // 不和 null 比较
+            && this.GetType() == other.GetType()  // 运行时类型相等
+            && this.X == other.X     // 属性相等性 
+            && this.Y == other.Y;
+    }
+    public override int GetHashCode() => (X, Y).GetHashCode();
+    public static bool operator ==(Point2D lhs, Point2D rhs) => lhs?.Equals(rhs) ?? rhs is null;
+    public static bool operator !=(Point2D lhs, Point2D rhs) => !(lhs == rhs);
+}
+```
+
+> 结构用户定义相等性
+
+```csharp
+struct Point2D(int x, int y) : IEquatable<Point2D>
+{
+    public int X { get; private set; } = x;
+    public int Y { get; private set; } = y;
+    public override bool Equals(object? obj) => obj is Point2D other && this.Equals(other);
+    public bool Equals(Point2D p) => X == p.X && Y == p.Y;
+    public override int GetHashCode() => (X, Y).GetHashCode();
+    public static bool operator ==(Point2D lhs, Point2D rhs) => lhs.Equals(rhs);
+    public static bool operator !=(Point2D lhs, Point2D rhs) => !(lhs == rhs);
+}
+```
+
+<br>
+
+#### 浮点值的相等性
+
+- 由于二进制计算机上的浮点算法不精确，因此浮点值（`double` 和 `float`）的相等比较会出现问题。若要被视为相等，两个 `double` 值必须表示相同的值。
+- 由于值之间的精度差异，或者由于一个或两个值丢失精度，预期相同的浮点值通常不相等，因为它们的最小有效位数存在差异。调用 `Equals` 方法以确定两个值是否相等，或调用 `CompareTo` 方法以确定两个 `double` 值之间的关系，通常会产生意外的结果。
+
+```csharp
+double value1 = .333333333333333;
+double value2 = 1.0/3;
+Console.WriteLine("{0:R} = {1:R}: {2}", value1, value2, value1.Equals(value2));
+// The example displays the following output:
+//        0.333333333333333 = 0.33333333333333331: False
+```
+
+- 比较浮点值相等性，可以使用 `Math.Round` 方法是两个浮点值具有相同的精度。
+
+```csharp
+double value1 = .333333333333333;
+double value2 = 1.0 / 3;
+int precision = 7;
+value1 = Math.Round(value1, precision);
+value2 = Math.Round(value2, precision);
+Console.WriteLine("{0:R} = {1:R}: {2}", value1, value2, value1.Equals(value2));
+
+// The example displays the following output:
+//        0.3333333 = 0.3333333: True
+```
+
+- 另一种方式是测试近似相等性而不是相等性。这要求定义两个值可以相差但仍相等的绝对量，或者定义较小的值与较大值相差的相对量。
+
+```csharp
+using System;
+public class Example
+{
+    public static void Main()
+    {
+        double one1 = .1 * 10;
+        double one2 = 0;
+        for (int ctr = 1; ctr <= 10; ctr++)
+            one2 += .1;
+
+        Console.WriteLine("{0:R} = {1:R}: {2}", one1, one2, one1.Equals(one2));
+        Console.WriteLine("{0:R} is approximately equal to {1:R}: {2}",
+                          one1, one2,
+                          IsApproximatelyEqual(one1, one2, .000000001));
+    }
+    static bool IsApproximatelyEqual(double value1, double value2, double epsilon)
+    {
+        if (value1.Equals(value2))
+            return true;
+        if (Double.IsInfinity(value1) | Double.IsNaN(value1))
+            return value1.Equals(value2);
+        else if (Double.IsInfinity(value2) | Double.IsNaN(value2))
+            return value1.Equals(value2);
+        
+        // Handle zero to avoid division by zero
+        double divisor = Math.Max(value1, value2);
+        if (divisor.Equals(0))
+            divisor = Math.Min(value1, value2);
+
+        return Math.Abs((value1 - value2) / divisor) <= epsilon;
+    }
+}
+// The example displays the following output:
+//       1 = 0.99999999999999989: False
+//       1 is approximately equal to 0.99999999999999989: True
+```
+
+- 可以利用浮点格式的设计功能：两个浮点值的整数表示形式之间的差异指示分隔它们的可能浮点值的数量。例如，`0.0` 和 `double.Epsilon` 的二进制格式表示的整数之间的差值为 1。
+
+```csharp
+public class Example
+{
+    public static void Main()
+    {
+        Console.WriteLine($"{Convert.ToString(BitConverter.DoubleToInt64Bits(double.Epsilon), 2)}".PadLeft(64, '0'));
+        // '0'*63 + '1' = 1L, Epsilon 与 0.0 的二进制表示的整数仅相差 1
+
+        double value1 = .1 * 10;
+        double value2 = 0;
+        for (int ctr = 0; ctr < 10; ctr++)
+            value2 += .1;
+
+        Console.WriteLine("{0:R} = {1:R}: {2}", value1, value2,
+                          HasMinimalDifference(value1, value2, 1));
+    }
+    public static bool HasMinimalDifference(double value1, double value2, int units = 1)
+    {
+        long lValue1 = BitConverter.DoubleToInt64Bits(value1);
+        long lValue2 = BitConverter.DoubleToInt64Bits(value2);
+
+        // 非零时符号位不同则返回 false, 此时要比较 +0 and -0.
+        if ((lValue1 >> 63) != (lValue2 >> 63))
+            return value1 == value2;  // 比较 +0.0 与 -0.0, true
+
+        long diff = Math.Abs(lValue1 - lValue2);
+        // 比较浮点二进制代表的整数的差值
+        return diff <= (long)units;
+    }
+}
+// The example displays the following output:
+//     1 = 0.9999999999999999: True   
+```
+
+> Double.Epsilon
+
+- `Double.Epsilon` 在测试相等性时，有时用作两 `Double` 个值之间距离的绝对度量值。但是，`Double.Epsilon` 测量的是值为零的 `Double` 对象可以加或减的最小可能值。对于大多数正值和负 `Double` 值，`Double.Epsilon` 的值太小，无法被检测到。因此，除零值外，不建议在相等性测试中使用它。
+
+```csharp
+static bool ZeroEquals(double val)
+{
+    return Math.Abs(val - 0.0) < double.Epsilon;
+}
+```
+
+#### 为 ref 变量创建引用相等性比较 
+
+- 对两个 `ref` 变量使用 `==` 或 `!=`，对于值类型则比较值相等性，对于引用类型则比较引用相等性。若要检查两个 `ref` 值类型是否引用同一个对象，则比较它们的地址值。
+
+```csharp
+int number = 0;
+int number2 = number;
+
+ref int n1 = ref number;
+ref int n2 = ref number2;
+
+Console.WriteLine(n1 == n2);  // true
+Console.WriteLine(n1.refsEquals(ref n2));  // false
+n2 = ref number;
+Console.WriteLine(n1.refsEquals(ref n2));  // true
+n2 = ref n1;
+Console.WriteLine(n1.refsEquals(ref n2));  // true
+
+public static class ObjectExt
+{
+    public unsafe static bool refsEquals<T>(this scoped ref T obj, scoped ref T other) where T : struct
+    {
+        fixed (T* reft1 = &obj, reft2 = &other)
+            return reft1 == reft2;
+    }
+    public unsafe static bool refsEquals<T>(this scoped ref T? obj, scoped ref T? other) where T : struct
+    {
+        fixed (T?* reft1 = &obj, reft2 = &other)
+            return reft1 == reft2;
+    }
+}
+```
+
+---

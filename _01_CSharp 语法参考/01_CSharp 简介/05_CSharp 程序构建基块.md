@@ -556,6 +556,17 @@ public static class Ext
 }
 ```
 
+<!-- <br>
+
+#### scoped 参数和局部变量
+
+- 可以使用作用域修饰符 `scoped` 限制引用传递的（`ref`、`out`、`in`）参数或 `ref struct` 的参数或局部变量的作用域限制在当前方法，确保代码不会延长变量的生存期。
+
+```csharp
+
+``` -->
+
+
 <br>
 
 #### 命名参数与可选参数
@@ -2151,16 +2162,18 @@ public class Destroyer
 ### 语句
 
 - 程序操作使用语句进行表示。C# 支持几种不同的语句，其中许多语句是从嵌入语句的角度来定义的：
-  - 声明语句用于声明局部变量和常量。
-  - 表达式语句用于计算表达式。可用作语句的表达式包括方法调用、使用 `new` 运算符的对象分配、使用 `=` 和复合赋值运算符的赋值、使用 `++` 和 `--` 的递增和递减运算和 `await` 表达式。
-  - 选择语句用于根据一些表达式的值从多个可能的语句中选择一个以供执行，例如 `if` 和 `switch` 语句。
-  - 迭代语句用于重复执行嵌入语句，例如 `while`、`do`、`for` 和 `foreach` 语句。
-  - 跳转语句用于转移控制权，例如 `break`、`continue`、`goto`、`throw`、`return` 和 `yield` 语句。
-  - 异常处理语句 `try...catch` 用于捕获在代码块执行期间发生的异常，`try...finally` 语句用于指定始终执行的最终代码，无论异常发生与否。
-  - `checked` 和 `unchecked` 语句用于控制整型类型算术运算和转换的溢出检查上下文。
-  - `fixed` 语句可防止垃圾回收器重新定位可移动变量，并声明指向该变量的指针
-  - `lock` 语句用于获取给定对象的相互排斥锁定，执行语句，然后解除锁定。
-  - `using` 语句用于获取资源，执行语句，然后释放资源。
+  - 声明语句：声明引入新的变量或常量，变量声明可以选择为变量赋值，在常量声明中必须赋值。
+  - 表达式语句：用于计算表达式，计算值的表达式语句必须在变量中存储该值。可用作语句的表达式包括方法调用、使用 `new` 运算符的对象分配、使用 `=` 和复合赋值运算符的赋值、使用 `++` 和 `--` 的递增和递减运算和 `await` 表达式。
+  - 选择语句：用于根据一个或多个指定条件分支到不同的代码段。例如 `if` 和 `switch` 语句。
+  - 迭代语句：用于遍历集合（如数组），或重复执行同一组语句直到满足指定的条件。例如 `while`、`do`、`for` 和 `foreach` 语句。
+  - 跳转语句：将控制转移给另一代码段。例如 `break`、`continue`、`goto`、`return` 和 `yield` 语句。
+  - 异常处理语句：异常处理语句用于从运行时发生的异常情况正常恢复。例如 `throw`、`try-catch`、`try-finally`、`try-catch-finally`。
+  - `checked` 和 `unchecked` 语句：用于指定将结果存储在变量中、但该变量过小而不能容纳结果值时，是否允许整型数值运算导致溢出。
+  - `fixed` 语句：禁止垃圾回收器重定位可移动的变量，并声明指向该变量的指针
+  - `lock` 语句：用于限制一次仅允许一个线程访问代码块。`lock` 获取给定对象的相互排斥锁定，执行语句，然后解除锁定。
+  - `using` 语句：可确保正确使用 `IDisposable` 实例。当控件离开 `using` 语句块时，将调用 `IDisposable.Dispose` 并释放获取的 `IDisposable` 实例。
+  - 标签语句：可以为语句指定一个标签，然后使用 `goto` 关键字跳转到该带标签的语句。 
+  - 空语句 `;`：不执行任何操作，可以在需要语句但不需要执行任何操作的地方使用。
 
 ---
 ### 分部声明
@@ -2386,4 +2399,35 @@ StackOverflowException	    // 执行堆栈由于有过多挂起的方法调用�
 TypeInitializationException	// 静态构造函数引发异常并且没有兼容的 catch 子句来捕获异常时引发。
 ```
 
+<br>
+
+#### 捕捉非 CLS 异常
+
+- 包括 C++/CLI 在内的某些 .NET 语言允许对象引发并非派生自 `Exception` 的异常，这类异常被称为非 CLS 异常或非异常。无法在 C# 中引发非 CLS 异常。可以在 `catch (RuntimeWrappedException ex)` 内捕获，通过 `RuntimeWrappedException.WrappedException` 属性访问原始异常。
+- 如果为了响应非 CLS 异常需要执行某些操作（如写入日志文件），且无需访问异常信息时，请使用此方法。
+
+```csharp
+// Class library written in C++/CLI.
+var myClass = new ThrowNonCLS.Class1();
+
+try
+{
+    // throws gcnew System::String("I do not derive from System.Exception!");  
+    myClass.TestThrow();
+}
+catch (System.Runtime.CompilerServices.RuntimeWrappedException e)
+{
+    String s = e.WrappedException as String;
+    if (s != null)
+        Console.WriteLine(s);
+}
+```
+
+-  默认情况下，公共语言运行时包装所有异常。要禁用此行为，请将此程序集级别属性添加到代码中，通常位于 `AssemblyInfo.cs` 文件：
+
+```csharp
+[assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)];
+```
+
 ---
+

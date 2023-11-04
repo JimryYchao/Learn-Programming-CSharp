@@ -1,6 +1,8 @@
-Net8.0，[集合生成器](https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/operators/collection-expressions) vs 2022 17. pre 5
 
 https://learn.microsoft.com/zh-cn/dotnet/navigate/advanced-programming/ 
 
 
 
+C# 12 拦截器
+
+scoped 和逃逸分析
