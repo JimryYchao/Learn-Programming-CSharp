@@ -853,8 +853,30 @@ public static class Ext
 }
 ```
 
----
+<br>
 
+#### 外部方法
+
+- `extern` 修饰符用于声明在外部实现的方法。常见用法是在使用 `Interop` 服务调入非托管代码时与 `DllImport` 特性一起使用。必须将方法声明为 `static`。
+
+```csharp
+//using System.Runtime.InteropServices;
+class ExternTest
+{
+    [DllImport("User32.dll", CharSet=CharSet.Unicode)]
+    public static extern int MessageBox(IntPtr h, string m, string c, int type);
+
+    static int Main()
+    {
+        string myString;
+        Console.Write("Enter your message: ");
+        myString = Console.ReadLine();
+        return MessageBox((IntPtr)0, myString, "My Message Box", 0);
+    }
+}
+```
+
+---
 ### 属性
 
 - 属性是类、结构或记录中可以像字段一样访问的方法。属性可以为字段提供保护，以避免字段在对象不知道的情况下被更改。在属性中可以组合实现 `get` 读访问器、`set` 写访问器或 `init` 构造访问器，这些访问器可以具有不同的访问级别。`value` 用于定义由 `set` 或 `init` 访问器分配的值。

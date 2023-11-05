@@ -1299,6 +1299,20 @@ sealed record PointArray(params (int, int)[] points)
 }
 ```
 
+- 使用 `new` 修饰符显式隐藏从基类继承的成员。
+
+```csharp
+public class BaseC
+{
+    public int x;
+    public void Invoke() { }
+}
+public class DerivedC : BaseC
+{
+    new public void Invoke() { }
+}
+```
+
 > 静态类和静态类成员
 
 - 静态类基本上与非静态类相同，但是静态类无法实例化，因此静态类仅能声明静态成员。加载引用静态类的程序时，.NET 运行时会加载该静态类的类型信息，并在程序中首次引用类之前初始化其字段并调用其静态构造函数。静态构造函数只调用一次，在程序所驻留的应用程序域的生存期内，静态类会保留在内存中。

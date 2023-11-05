@@ -225,6 +225,111 @@ var exam = new { Greet = "Hello", Name = "World" };
 ```
 
 ---
+### 对象初始值设定项
+
+- 使用对象初始值设定项，可以在创建对象时向对象的任何可访问字段或属性分配值，而无需调用后跟赋值语句行的构造函数。利用对象初始值设定项语法，可以为构造函数指定参数或忽略参数（以及括号语法）。
+
+```csharp
+Person p1 = new Person { Name = "Tom", Age = 13 };
+Person p2 = new Person("Jerry") { Age = 10 };
+
+class Person
+{
+    public string? Name { get; set; }
+    public int Age { get; set; }
+    public Person() { }
+    public Person(string name) => this.Name = name;
+}
+```
+
+- 对象初始值设定项也可以用来设置索引器。
+
+```csharp
+Dictionary<string, int> Persons = new Dictionary<string, int>
+{
+    ["Tom"] = 10,
+    ["Mary"] = 13,
+    ["Hello"] = 5,
+    ["World"] = 12
+};
+```
+
+- 使用对象初始值设定项进行初始化的匿名类型。
+
+```csharp
+// 匿名类型声明
+var person = new { Age = 10, Name = "Fluffy" };
+// 查询表达式
+var productInfos =
+    from p in products
+    select new { p.ProductName, p.UnitPrice };
+```
+
+- `required` 修饰的字段或属性，强制调用方在创建对象时使用对象初始值设定项设置这些 `required` 的值。
+
+```csharp
+var person = new Person { FirstName = "Joe", LastName = "Doe" };
+public class Person
+{
+    public required string FirstName { get; set; }
+    public required string LastName;
+}
+```
+
+- 具有 `init` 访问器的属性，可以在构造函数或对象初始值设定项中设置它们的值。
+
+```csharp
+var person = new Person { FirstName = "Joe", LastName = "Doe" };
+public class Person
+{
+    public string? FirstName { get; init; }
+    public string? LastName { get; init; }
+}
+```
+
+---
+### 集合初始值设定项
+
+- 在初始化实现 `IEnumerable` 接口和一个可访问的 `Add` 方法或扩展方法的集合类型时，集合初始值设定项允许指定一个或多个元素初始值设定项。元素初始值设定项可以是简单的值、表达式或对象初始值设定项。
+
+```csharp
+List<int> digits = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };  
+Dictionary<string, int> person = new Dictionary<string, int>
+{
+    { "Tom",10 },
+    {"Mary", 13 },
+    {"Hello", 5 },
+    {"World", 12 }
+};
+
+// 用户定义集合类型
+SampleList<int> arr = new SampleList<int> { 1, 2, 3, 4, 5 };
+class SampleList<T> : IEnumerable<T>
+{
+    List<T> list = new List<T>(80);
+    public void Add(T val) => list.Add(val);
+    public IEnumerator<T> GetEnumerator() => list.AsEnumerable().GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => list.GetEnumerator();
+}
+```
+
+- 具有集合只读属性初始化的对象初始值设定项，由于无法为属性分配新列表，但是可以使用省略列表创建。
+
+```csharp
+Persons owner = new Persons
+{
+    Names = // new List<string> 省略创建
+    {
+        "Tom", "Jerry", "Hello", "World"
+    }
+};
+public class Persons
+{
+    public IList<string> Names { get; } = new List<string>();
+}
+```
+
+---
 ### with 表达式
 
 - 使用 `with` 表达式创建左侧操作数的副本，附加需要修改的特性属性和字段。在 C#9 中，`with` 表达式的左侧操作数必须为记录类型。从 C#10 开始，`with` 表达式的左侧操作数可以为结构类型或匿名类型。对于引用类型成员，在复制操作数时仅复制对成员实例的引用，副本和原始操作数都具有对同一引用类型实例的访问权限。
@@ -242,6 +347,7 @@ record Sample(string name)
     public int ID { get; set; }
 }
 ``` 
+
 
 ---
 ### 集合表达式
@@ -637,9 +743,37 @@ class Giraffe : Animal;
 
 <br>
 
+#### 隐式转换
+
+- 对于内置数值类型，如果要存储的值无需截断或四舍五入即可适应变量，则可以进行隐式转换：
+  - 任何整型数值类型都可以隐式转换为任何浮点数值类型。
+  - `float` 可以隐式转换为 `double`。 
+  - 整数字面值或整数源类型的范围如果在目标类型的范围内，则可隐式转换为 `sbyte`、`byte`、`short`、`ushort`、`uint`、`ulong`、`nint` 或 `nuint`。
+
+```csharp
+int number = 10010;     
+decimal dc = number;    // int -> decimal
+float f = number;       // int -> float
+long ln = number;       // int -> long
+double d = 3.1415f;     // float -> double
+```
+  
+* 对于引用类型，隐式转换始终存在于从一个类转换为该类的任何一个直接或间接的基类或接口的情况。
+
+```csharp
+object str = "Hello";
+IEnumerable<int> arr = new List<int> { 1, 2, 3, 4, 5, 6 };
+```
+
+<br>
+
 #### 强制转换
 
-- 形式为 `(T)E` 的强制转换表达式将表达式 `E` 的结果显式转换为类型 `T`。如果不存在从类型 `E` 到类型 `T` 的显式转换，则发生编译时错误。在运行时，显式转换可能不会成功，强制转换表达式可能会引发异常。
+- 在转换中可能丢失信息时或在出于其他原因转换可能不成功时，必须进行强制转换：
+  - 形式为 `(T)E` 的强制转换表达式将表达式 `E` 的结果显式转换为类型 `T`。
+  - 如果不存在从类型 `E` 到类型 `T` 的显式转换，则发生编译时错误。
+- 在运行时，显式转换可能不会成功，强制转换表达式可能会引发异常。典型的示例包括从数值到精度较低或范围较小的类型的转换和从基类实例到派生类的转换。
+- 引用类型之间的强制转换操作不会更改基础对象的运行时类型；它只更改用作对该对象引用的值的类型。
 
 ```csharp
 double x = 1234.7;
@@ -650,6 +784,27 @@ IEnumerable<int> numbers = new int[] { 10, 20, 30 };
 IList<int> list = (IList<int>)numbers;
 Console.WriteLine(list.Count);  // output: 3
 Console.WriteLine(list[1]);  // output: 20
+```
+
+> 运行时的类型转换异常
+
+- 在某些引用类型转换中，编译器无法确定强制转换是否会有效。安全的做法是在强制转换之前使用类型测试，利用模式匹配以及 `as` 和 `is` 运算符安全地进行强制转换。
+
+```csharp
+// is
+if(a is typaB){
+    typeB obj = (typeB)a;
+    // do with obj...
+}
+// pattern match
+if(a is typeB b){
+    // do with b ...
+}
+// as
+typeB? obj = a as typeB;
+if(obj is not null){
+    // do with abj...
+}
 ```
 
 <br>
@@ -673,6 +828,51 @@ class Point(double x, double y)
     public static explicit operator Point((double x, double y) p) => new Point(p.x, p.y);
 }
 ```
+
+<br>
+
+#### 装箱与取消装箱
+
+- 装箱是将值类型转换为 `object` 类型或由此值类型实现的任何接口类型的过程。运行时 CLR 对值类型进行装箱时，会将值包装在 `System.object` 实例中并将其存储在托管堆中。装箱是隐式的。
+- 取消装箱将从对象中提取值类型，取消装箱是显式的。尝试取消装箱 `null` 会导致 `NullReferenceException`。尝试取消装箱对不兼容值类型的引用会导致 `InvalidCastException`。
+
+```csharp
+// 装箱
+int num = 123;
+object o = i;
+// 取消装箱
+object o = 123;
+int i = (int)o;
+```
+
+> 性能
+
+- 相对于简单的赋值而言，装箱和取消装箱过程需要进行大量的计算。对值类型进行装箱时，必须分配并构造一个新对象。取消装箱所需的强制转换也需要进行大量的计算，只是程度较轻。如果值类型必须被频繁装箱，那么在这些情况下最好避免使用值类型。应使用泛型集合来避免装箱值类型。
+- 装箱和取消装箱过程需要进行大量的计算。对值类型进行装箱时，必须创建一个全新的对象，这可能比简单的引用赋值用时最多长 20 倍。取消装箱的过程所需时间可达赋值操作的四倍。
+
+<br>
+
+#### 帮助程序类转换
+
+- 若要在非兼容类型（如整数和 `System.DateTime` 对象，或十六进制字符串和字节数组）之间转换，可使用 `System.BitConverter` 类、`System.Convert` 类和内置数值类型的 `Parse` 方法（如 `Int32.Parse`）。
+
+> 字节数组和内置数据类型的互相转换（`BitConverter`）
+
+```csharp
+// ----- ToInt32 -----
+byte[] bytes = { 0, 0, 0, 25 };
+// If the system architecture is little-endian (that is, little end first),
+// reverse the byte array.
+if (BitConverter.IsLittleEndian)
+    Array.Reverse(bytes);
+int i = BitConverter.ToInt32(bytes, 0);
+Console.WriteLine("int: {0}", i);  // 25
+
+// ----- GetBytes -----
+byte[] bytes = BitConverter.GetBytes(201805978);
+Console.WriteLine("byte array: " + BitConverter.ToString(bytes)); // 9A-50-07-0C
+```
+
 
 ---
 ### 指针相关的运算符
