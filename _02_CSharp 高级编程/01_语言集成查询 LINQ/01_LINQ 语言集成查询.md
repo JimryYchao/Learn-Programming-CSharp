@@ -143,6 +143,11 @@ int[] numQuery3 =
   - 在第一个 `from` 子句与最后一个 `select` 或 `group` 子句之间，可以包含以下可选子句中的一个或多个：`where`、`orderby`、`join`、`let`，或者是其他 `from` 子句。
   - 可以使用 `into` 关键字，使 `join` 或 `group` 子句的结果充当相同查询表达式中的其他查询子句的数据源。
 
+> 查询表达式示意图
+
+![](./.img/LINQ%20查询表达式.png)
+
+
 <br>
 
 #### from-in 子句：获取数据源
@@ -150,7 +155,7 @@ int[] numQuery3 =
 - 查询表达式以 `from` 子句开头，用以指定将在其上运行查询或子查询的数据源序列（source sequence），并表示源序列中每个元素的本地范围变量（local range variable）。
 
 ```csharp
-from <range-variable> in <source-sequence>
+from [type-name] <identifier> in <enumerable-expr>
 ```
 
 - `from` 数据源必须是 `IEnumerable` 或 `IEnumerable<T>`、`IQueryable<T>` 类型之一。范围变量和数据源已强类型化。
@@ -234,7 +239,7 @@ foreach (var pair in joinQuery)
 - `where` 子句用在查询表达式中，用于指定将在查询表达式中返回数据源中的哪些元素。它使用一个布尔条件（谓词，predicate）应用于每个源元素并返回满足条件的元素。
 
 ```csharp
-where <boolean-condition> 
+where <boolean-expr> 
 ```
 
 - `where` 子句是一种筛选极值，可以在查询表达式中的任何位置，除了不能是第一个或最后一个子句。
@@ -256,7 +261,7 @@ var queryLowNums =
 - 在查询表达式中，`select` 子句指定在执行查询时产生的值的类型。根据计算所有以前的子句以及根据 `select` 子句本身的所有表达式得出结果。查询表达式必须以 `select` 子句或 `group` 子句结尾。
 
 ```csharp
-select <value>
+select <expr>
 ```
 
 - `select` 子句常用于直接返回源数据，也可以用于将源数据转换（或投影）为新类型。
@@ -277,7 +282,7 @@ foreach (var i in Numbers)
 - `group` 子句返回一个 `IGrouping<TKey,TElement>` 对象序列，这些对象包含零个或更多与该组的键值匹配的项。`by` 用于指定应返回项的分组方式。
 
 ```csharp
-group <TElem> by <TKey> [into <temp-identifier> ... select/group]
+group <TElem> by <TKey> [into <identifier>]
 ```
 
 - 以 `group` 结尾的查询。
@@ -351,6 +356,10 @@ record Student
 #### into 子句：附加查询
 
 - 可使用 `into` 创建一个临时的标识符，并将 `group`、`join`、`select` 子句的结果存储到新的组中，该标识符成为附加查询命令的生成器。
+
+```csharp
+{select|join|group} into <identifier> {...}
+```
 
 > `into` 附加 `group`
 
@@ -460,7 +469,7 @@ Console.WriteLine(string.Join(", ", query));
 - `join` 子句可用于将两个没有直接关系元素的源序列相关联（同等联接），要求每个序列中的元素具有能够与其他序列的相应属性进行比较的属性，或者包含一个这样的属性。`join` 子句使用 `equals` 关键字比较指定的键是否相等（值相等性）。
 
 ```csharp
-join <range-variable:one> in <source-sequence> on <one-property> equals <other-property> [into <temp-group>]
+join <inner-identifier> in <inner-sequence> on <outer-key> equals <inner-key> [into <identifier>]
 ```
 
 - `join` 子句的输出形式取决于执行的联接的具体类型：内部联接、分组联接、左外部联接。
@@ -519,7 +528,13 @@ foreach (var product in leftOuterJoinQuery)
 
 #### let 子句：引入范围变量
 
-- 在查询表达式中，可以通过 `let` 子句创建一个新的范围变量并通过提供的表达式结果初始化该变量。使用值进行初始化后，范围变量不能用于存储另一个值。但是，如果范围变量持有可查询类型（`IEnumerable`），则可以查询该变量。
+- 在查询表达式中，可以通过 `let` 子句创建一个新的范围变量并通过提供的表达式结果初始化该变量。
+  
+```csharp
+let <identifier> = <expr>
+```
+  
+- 使用值进行初始化后，范围变量不能用于存储另一个值。但是，如果范围变量持有可查询类型（`IEnumerable`），则可以查询该变量。
 
 ```csharp
 string[] strings =
@@ -745,7 +760,7 @@ var Reverse = words.Reverse();
 
 - 限定符运算返回一个 `bool` 值，该值指示序列中是否有一些元素满足条件或是否所有元素都满足条件：
   - `All`：确定是否序列中的所有元素都满足条件。
-  - `Any`：确定序列中是否有元素满足条件。
+  - `Any`：确定序列中是否存在元素，或有元素满足条件。
   - `Contains`：确定序列是否包含指定的元素。
 
 ```csharp
