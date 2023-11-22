@@ -1,22 +1,25 @@
-## CSharp 语句
+# CSharp 语句
 
 ---
-### 声明语句
+## 声明语句
 
 - 声明语句声明新的局部变量、局部常量或 `ref` 局部变量。 
 
 ```csharp
-int a, b;        // 仅声明
-int c = 1;       // 声明并初始化
-var arr = new[] { 1, 2, 3, 4, 5 };    // 隐式类型声明
-const string greeting = "Hello";      // 常量声明
-ref int r_num = ref c;
+void Sample()
+{
+    int a, b;        // 仅声明
+    int c = 1;       // 声明并初始化
+    var arr = new[] { 1, 2, 3, 4, 5 };    // 隐式类型声明
+    const string greeting = "Hello";      // 常量声明
+    ref int r_num = ref c;
+}
 ```
 
 ---
-### 选择语句
+## 选择语句
 
-#### if 语句
+### if 语句
 
 - `if`、`if-else`、`if-else if` 语句根据布尔表达式的结果选择要遵循的若干代码路径的哪一个。
 
@@ -32,9 +35,9 @@ else Console.WriteLine(scan);
 
 <br>
 
-#### switch 语句
+### switch 语句
 
-- `switch` 语句根据与匹配表达式匹配的模式来选择要执行的语句列表。可以为 `switch` 语句的一部分指定多个 `case` 模式；`default` 模式始终匹配成功。在 `switch` 语句中，控制不能从一个 `case` 部分贯穿到下一个 `case` 部分。可以使用跳转语句将控制从 `switch` 传递出去。可以在 `case` 模式中使用 `when` 筛选。
+- `switch` 语句根据与匹配表达式匹配的模式来选择要执行的语句列表。可以为 `switch` 语句的一部分指定多个 `case` 模式；`default` 模式始终匹配成功，最多只有一个 `default` 子句。在 `switch` 语句中，控制不能从一个 `case` 部分贯穿到下一个 `case` 部分。可以使用跳转语句将控制从 `switch` 传递出去。可以在 `case` 模式中使用 `when` 筛选。
 
 ```csharp
 DisplayMeasurements(3, 4);  // Output: First measurement is 3, second measurement is 4.
@@ -59,9 +62,9 @@ void DisplayMeasurements(int a, int b)
 ```
 
 ---
-### 迭代语句
+## 迭代语句
 
-#### for 语句
+### for 语句
 
 - `for( 初始化表达式; 条件; 迭代器){ 循环体 }` 在指定条件的布尔表达式的计算结果为 `true` 时，`for` 语句会执行一条语句或一个语句块。“初始化表达式” 部分仅在进入循环前执行一次，并根据条件的值确定是否进入循环体。“条件” 部分在返回 `true` 或不存在时执行循环中的下一个迭代。“迭代器” 部分定义循环主体的每次执行后将执行的操作。`for` 语句的每部分都是可选的：`for(;;);`。
 
@@ -72,7 +75,7 @@ for (int i = 0; i < 10; i++)
 
 <br>
 
-#### foreach 语句
+### foreach 语句
 
 - `foreach(var t in ts)` 语句为类型实例中实现 `System.Collections.IEnumerable` 或 `System.Collections.Generic.IEnumerable<T>` 接口的每个元素执行语句或语句块。
 
@@ -86,7 +89,7 @@ foreach (int element in fibNumbers)
 // 0 1 1 2 3 5 8 13
 ```
 
-- 除了这些类型，迭代对象可以是其类型具有公共无参数 `GetEnumerator` 方法（从 C# 9 开始，`GetEnumerator` 方法可以是类型的扩展方法），`GetEnumerator` 方法的返回类型具有公共 `Current` 属性和公共无参数 `bool MoveNext` 方法。
+- 除了这些类型，迭代对象可以是其类型具有公共无参数 `GetEnumerator` 方法（从 C# 9 开始，`GetEnumerator` 方法可以是类型的扩展方法），`GetEnumerator` 方法的返回类型具有公共 `Current` 属性（可以有 `ref` 修饰，返回迭代变量）和公共无参数 `bool MoveNext` 方法。
 
 ```csharp
 NumArray arr = new NumArray(1, 2, 3, 4, 5, 6, 7, 8, 9);
@@ -112,7 +115,27 @@ foreach (ref readonly var item in storage)
 // 0 1 2 3 4 5 6 7 8 9
 ```
 
-> await foreach
+- 定义一个集合类型 `C`、枚举器类型 `E` 和迭代类型 `T`、`ref T` 或 `ref readonly T`，组成一个 `foreach` 语句的形式 `foreach (V v in x) { embedded_statement }`，迭代器的行为类似于：
+
+```csharp
+{
+    E e = ((C)(x)).GetEnumerator();
+    try
+    {
+        while(e.MoveNext())
+        {
+            V v = (V)(T)e.Current;
+            embedded_statement; 
+        }
+    }finally
+    {
+        if(e is IDisposable d)
+            d.Dispose();
+    }
+}
+```
+
+#### await foreach
 
 - 可以使用 `await foreach` 语句来使用异步数据流，即对实现 `IAsyncEnumerable<T>` 接口的集合类型进行迭代。异步检索下一个元素时，可能会挂起循环的每次迭代。可以将 `await foreach` 语句与类型具有公共无参 `GetAsyncEnumerator` 方法且该方法的返回类型具有公共 `Current` 属性和公共无参数 `ValueTask<bool> MoveNextAsync` 方法的实例一起使用。
 
@@ -173,9 +196,9 @@ finally
 
 <br>
 
-#### do 语句
+### do 语句
 
-- `do{ .. }while(e)` 在指定的布尔表达式 `e` 的计算结果为 `true` 时，`do` 语句会执行一条语句或一个语句块。在每次执行循环之后都会计算此表达式，因此 `do` 循环会执行一次或多次。
+- `do{ .. } while(e)` 在指定的布尔表达式 `e` 的计算结果为 `true` 时，`do` 语句会执行一条语句或一个语句块。在每次执行循环之后都会计算此表达式，因此 `do` 循环会执行一次或多次。
 
 ```csharp
 int n = 0;
@@ -190,9 +213,9 @@ do
 
 <br>
 
-#### while 语句
+### while 语句
 
-- `while(e){ .. }` 在指定的布尔表达式 `e` 的计算结果为 `true` 时，`while` 语句会执行一条语句或一个语句块。由于在每次执行循环之前都会计算此表达式，所以 `while` 循环会执行零次或多次。
+- `while(e) { .. }` 在指定的布尔表达式 `e` 的计算结果为 `true` 时，`while` 语句会执行一条语句或一个语句块。由于在每次执行循环之前都会计算此表达式，所以 `while` 循环会执行零次或多次。
 
 ```csharp
 int n = 0;
@@ -206,9 +229,9 @@ while (n < 5)
 ```
 
 ---
-### 跳转语句
+## 跳转语句
 
-#### break 语句
+### break 语句
 
 - `break` 语句将终止最接近的封闭迭代语句（即 `for`、`foreach`、`while` 或 `do` 循环）或 `switch` 语句。`break` 语句将控制权转交给已终止语句后面的语句。在嵌套循环中，`break` 语句仅终止包含它的最内部循环。在循环内使用 `switch` 语句时，`switch` 节末尾的 `break` 语句仅从 `switch` 语句中转移控制权。
 
@@ -241,7 +264,7 @@ foreach (double measurement in measurements)
 
 <br>
 
-#### continue 语句
+### continue 语句
 
 - `continue` 语句启动最接近的封闭迭代语句（即 `for`、`foreach`、`while` 或 `do` 循环）的新迭代。
 
@@ -266,7 +289,7 @@ for (int i = 0; i < 5; i++)
 
 <br>
 
-#### return 语句
+### return 语句
 
 - `return` 语句终止它所在的函数的执行，并将控制权和函数结果（若有）返回给调用方。
 
@@ -284,7 +307,7 @@ double CalculateCylinderSurfaceArea(double baseRadius, double height)
 
 <br>
 
-#### goto 语句
+### goto 语句
 
 - `goto` 语句将控制权转交给带有标签的语句
 
@@ -363,7 +386,7 @@ public class GotoInSwitchExample
 
 <br>
 
-#### yield 语句
+### yield 语句
 
 - 在迭代器中使用 `yield` 语句提供下一个值的 `yield return` 或表示迭代结束的 `yield break`。迭代器的返回类型可以是 `IEnumerable<T>`、`IEnumerable`、`IAsyncEnumerable<T>` 异步迭代。
 - 当开始对迭代器的结果进行迭代时，迭代器会一直执行，直到到达第一个 `yield return` 语句为止。 然后，迭代器的执行会暂停，调用方会获得第一个迭代值并处理该值。在后续的每次迭代中，迭代器的执行都会在导致上一次挂起的 `yield return` 语句之后恢复，并继续执行，直到到达下一个 `yield return` 语句为止。当控件到达迭代器或 `yield break` 语句的末尾时，迭代完成。
@@ -530,7 +553,7 @@ finally
 ```
 
 ---
-### checked 和 unchecked 语句
+## checked 和 unchecked 语句
 
 - `checked` 和 `unchecked` 语句指定整型类型算术运算和转换的溢出检查上下文。当发生整数算术溢出时，溢出检查上下文将定义发生的情况。在已检查的上下文中，引发 `System.OverflowException`；如果在常数表达式中发生溢出，则会发生编译时错误。在未检查的上下文中，会通过丢弃任何不适应目标类型的高序位来将操作结果截断。 
 
@@ -553,7 +576,7 @@ int Mul(int x, int y)
 ```
 
 ---
-### fixed 语句
+## fixed 语句
 
 - `fixed` 语句可防止垃圾回收器重新定位可移动变量，并声明指向该变量的指针。固定变量的地址在语句的持续时间内不会更改。只能在相应的 `fixed` 语句中使用声明的指针，且声明的指针是只读的，无法修改。
 - `fixed` 而可初始化声明使用数组的指针、使用变量的地址、使用实现名为 `GetPinnableReference` 的方法的类型实例（方法返回非托管类型的 `ref` 变量，例如 .NET 类型 `System.Span<T>` 和 `System.ReadOnlySpan<T>`）、使用字符串、使用固定大小的缓冲区（堆栈上声明的 `stackalloc` 内存不需要固定）。
@@ -647,7 +670,7 @@ class Sample
 ```
 
 ---
-### lock 语句
+## lock 语句
 
 - `lock(x){ .. }` 语句获取给定对象的互斥锁，执行语句块，然后释放锁，其中 `x` 是引用类型。当锁被持有时，持有该锁的线程可以再次获取并释放该锁。任何其他线程都被阻止获取锁并等待，直到锁被释放。`lock` 语句确保在任何时刻最多只有一个线程执行它的线程体。
 - 在 `lock` 语句的正文中不能使用 `await` 表达式。
@@ -694,7 +717,7 @@ class AccountTest
   - 当同步对共享资源的线程访问时，一般锁定专用对象实例（例如，`private readonly object balanceLock = new object();`）或另一个不太可能被代码无关部分用作 `lock` 对象的实例。避免对不同的共享资源使用相同的 `lock` 对象实例，因为这可能导致死锁或锁争用。避免使用 `this`、`Type` 实例、字符串字面量作为 `lock` 对象。
 
 ---
-### using 语句
+## using 语句
 
 - `using(<IDisposable> disposable){ .. }` 语句或 `using <IDisposable> disposable;` 声明可确保正确使用 `IDisposable` 实例 `disposable`：`disposable` 局部变量在它的作用域末尾调用它的 `Dispose` 方法并释放该对象。`using` 语句可确保在发生异常的情况下也会释放 `IDisposable` 实例。在一个 `using` 语句中声明多个实例时，它们将按声明的相反顺序释放。
 - 由 `using` 语句或声明进行声明的变量是只读的，无法重新分配该变量或将其作为 `ref` 或 `out` 参数传递。
