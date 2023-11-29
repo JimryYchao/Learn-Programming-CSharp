@@ -65,6 +65,9 @@ class Sample<T> where T : struct // T 约束为结构类型
 
 #### Abstract 抽象类
 
+抽象类代表抽象实体。其抽象成员 定义了从抽象实体派生的对象应包含什么，但这种成员不包含实现。抽象类的大多数功能通常都没有
+实现。一个类要从抽象类成功地派生，必须为抽象基类中的抽象方法提供具体的实现。
+
 `abstract` 修饰符用于指示类是不完整的，并打算作为基类。抽象类与非抽象类的区别在于：
 - 抽象类不能直接实例化为对象，但可以包含派生自抽象类的非抽象类实例的引用。
 - 抽象类中可以可选的声明抽象函数成员（属性、方法、索引器、运算符等）。
@@ -224,7 +227,7 @@ class Sample
 - 类的实例包含在类及其基类中声明的所有实例字段的集合，并且存在从派生类类型到其任何基类类型的隐式转换。因此，对某个派生类实例的引用可以被视为对其任何基类实例的引用。
 - 类可以声明虚方法、属性、索引器和事件，派生类可以重写这些函数成员的实现。这使类能够显示多态行为，其中函数成员调用执行的操作取决于调用该函数成员的实例的运行时类型。
 
-<br>
+>---
 
 ### Object 对象类型
 
@@ -242,7 +245,7 @@ obj = num;      // implicit boxing
 int s_num = (int)num;  // unboxing
 ```
 
-<br>
+>---
 
 ### Dynamic 动态类型
 
@@ -292,13 +295,13 @@ class ExampleClass
 // Local variable
 ```
 
-<br>
+>---
 
 ### String 字符串类型
 
 `string` 类型是直接从 `object` 继承的密封类类型，它的实例表示 Unicode 字符序列。可以将 `string` 的值写成字符串字面值。关键字 `string` 是预定义类 `System.String` 的别名。
 
-<br>
+>---
 
 ### Interface 接口类型
 
@@ -365,7 +368,7 @@ class Sample : ISample
 
 接口成员中提供的默认实现等效于派生类型中的显式接口实现。具有默认实现的接口方法不要求其派生实现类型显式重定义，未显式重定义过的接口成员只能使用接口实例访问默认实现的成员。
 
-接口实现类型可以重定义具有默认实现的接口成员（显式接口实现或默认实现）。
+接口实现类型可以重定义具有默认实现的接口成员（显式接口实现或标准实现），私有接口方法只能通过标准实现方式进行重定义。调用接口时，重定义的方法（除了接口的私有默认实现的重定义方法）将参与重载决策，接口会选择最派生的方法实现。
 
 ```csharp
 Sample s = new Sample();
@@ -381,7 +384,44 @@ interface IFace{
     void Func2() => Console.WriteLine("IFace.Func2");
 }
 class Sample : IFace{
-    public void Func1() => Console.WriteLine("Sample.Func1");  // 重定义
+    public void Func1() => Console.WriteLine("Sample.Func1");  // 重定义，标准实现
+}
+```
+
+接口私有 `private` 修饰的默认实现方法，只能在接口内部使用，即使在派生类型中重定义为 `public` 方法，接口内部调用该方法时，重载决策也不会选择派生类型中的重定义实现。接口非 `private` 的默认实现方法，参与接口方法的重载决策。
+
+```csharp
+interface ISample
+{
+    private void Fun(int a) => Console.WriteLine($"ISample.Fun({a})");
+    // private >> protected 或其他访问修饰符
+    // protected void Fun(int a) => Console.WriteLine($"ISample.Fun({a})");  // Output: Sample.Fun(10)
+    void Output(int a) => Fun(a);
+}
+class Sample : ISample
+{
+    public void Fun(int a) => Console.WriteLine($"Sample.Fun({a})");
+    static void Main(string[] args)
+    {
+        ISample sample = new Sample();
+        sample.Output(10);  // ISample.Fun(10)
+    }
+}
+```
+
+派生接口可以显式重写基接口的默认实现方法，也可以将基接口方法重新声明为抽象。
+
+```csharp
+interface IA
+{
+    void M() => Console.WriteLine();
+}
+interface IB:IA
+{
+    abstract void IA.M();
+}
+class Sample: IB  // err，需要提供 IA.M() 的实现
+{
 }
 ```
 
@@ -656,7 +696,7 @@ class Sample : IInstance<Sample>
 }
 ```
 
-<br>
+>---
 
 ### Array 数组类型
 
@@ -750,7 +790,7 @@ class Test
 }
 ```
 
-<br>
+>---
 
 ### Delegate 委托类型
 
@@ -847,18 +887,24 @@ class Sample
 }
 ```
 
-<br>
+>---
 
-### 引用类型空注释
+### 可为空的引用类型
 
-由于在可为 null 的感知上下文选择加入了代码，可以使用可为 null 的引用类型、null 静态分析警告和空包容运算符（`!`）是可选的语言功能。在可为 null 的感知上下文中：
+由于在可为 `null` 的感知上下文选择加入了代码，可以使用可为 `null` 的引用类型、`null` 静态分析警告和空包容运算符（`!`）是可选的语言功能。在可为 `null` 的感知上下文中：
   - 引用类型 `T` 的变量必须用非 `null` 值进行初始化，并且不能为其分配可能为 `null` 的值。
   - 引用类型 `T?` 的变量可以用 `null` 进行初始化，也可以分配 `null`，但在取消引用之前必须对照 `null` 进行检查。
   - 类型为 `T?` 的变量 `m` 在应用空包容运算符时被认为是非空的，如 `m!` 中所示。
 
-类型为 `T` 的变量和类型为 `T?` 的变量由相同的 .NET 类型表示。可为 null 的引用类型不是新的类类型，而是对现有引用类型的注释。编译器使用这些注释来帮助你查找代码中潜在的 null 引用错误。不可为 null 的引用类型和可为 null 的引用类型在运行时没有区别。
+类型为 `T` 的变量和类型为 `T?` 的变量由相同的 .NET 类型表示。可为 `null` 的引用类型不是新的类类型，而是对现有引用类型的注释。编译器使用这些注释来帮助你查找代码中潜在的 `null` 引用错误。不可为 `null` 的引用类型和可为 `null` 的引用类型在运行时没有区别。
 
 可以通过两种方式控制可为 null 的上下文。在项目级别，可以添加 `<Nullable>enable</Nullable>` 项目设置。在单个 C# 源文件中，可以添加 `#nullable enable` 来启用可为 null 的上下文。在 .NET 6 之前，新项目使用默认值 `<Nullable>disable</Nullable>`。从 .NET 6 开始，新项目将在项目文件中包含 `<Nullable>enable</Nullable>` 元素。
+
+可空引用类型不能出现在：
+- 作为基类或接口。
+- 作为对象构造表达式（`new()`）中的类型。
+- 作为委托构造表达式（`new delegateType()`）中的 `delegateType` 类型。
+- 作为 `is` 表达式、`catch` 子句、类型模式中的类型。
 
 ---
 ## 值类型
@@ -867,13 +913,13 @@ class Sample
 
 引用类型可以包含 `null` 值，但是值类型只有是为可为空的值类型时，才能包含 `null` 值。对于每一个非空值类型，都有一个对应的可空值类型。
 
-<br>
+>---
 
 ### System.ValueType 类型
 
 所有的值类型都隐式继承类 `System.ValueType`，任何类型都不可能从值类型派生，所有值类型都是隐式密封的。
 
-<br>
+>---
 
 ### 默认构造函数
 
@@ -890,7 +936,7 @@ class Sample
   - 对于 `struct`，其默认值为所有的值类型字段设置为默认值和所有的引用类型字段设置为 `null` 值。
   - 对于可空值类型的默认值为其 `HasValue` 属性为 `false` 的实例。
 
-<br>
+>---
 
 ### Simple 简单类型
 
@@ -908,6 +954,8 @@ C# 提供了一组预定义的结构类型（简单类型），它们可以通�
 - `double` 对应于 `System.Double`。
 - `decimal` 对应于 `System.Decimal`。
 - `bool` 对应于 `System.Boolean`。
+- `nint` 对应于 `System.IntPtr`。
+- `nuint` 对应于 `System.UIntPtr`。
 
 简单类型与其他结构类型的不同之处在于：
 - 大多数简单类型允许通过文本字面量来创建值。
@@ -962,6 +1010,18 @@ uint _uint_32 = 32u;                // 无符号整数后缀 U, u
 ulong _ulong_64 = 0xffffuL;         // 无符号长整数后缀 ul, lu, Ul, lU, UL, LU 
 ```
 
+> 数字分隔符
+
+任何数字序列都可以用下划线分隔，两个连续数字之间可以有一个以上的下划线。在小数中也可以使用。
+
+```csharp
+int bin = 0b1001_1010_0001_0100;
+int hex = 0x1b_a0_44_fe;
+int dec = 33_554_432;
+int weird = 1_2__3___4____5_____6______7_______8________9;
+double real = 1_000.111_1e-1_000;
+```
+
 #### char 字符类型
 
 `char` 类型用来表示 Unicode UTF-16 字符，类型支持比较、相等、增量和减量运算符。算数和逻辑位运算得到 `int` 结果。
@@ -982,7 +1042,7 @@ nint    _IntPtr = new IntPtr();     // 有符号本机 32 位或 64 位整数
 nuint   _UIntPtr = new UIntPtr();   // 无符号本机 32 位或 64 位整数
 ```
 
-- 本机大小的整数类型具有特殊行为，因为存储是由目标计算机上的自然整数大小决定的。
+类型 `nint` 和 `nuint` 由底层类型由 `System.IntPtr` 和 `System.UIntPtr` 表示，编译器为这些类型提供额外的转换和操作。本机大小的整数类型具有特殊行为，因为存储是由目标计算机上的自然整数大小决定的。
 
 ```csharp
 // sizeof, 获取本机整数的大小需要在不安全的上下文中
@@ -1001,7 +1061,16 @@ Console.WriteLine($"nuint.MaxValue = {nuint.MaxValue}");
 nint a = (nint)otherInteger;
 ```
 
-<br>
+类型 `nint` 和 `nuint` 转换和操作是由编译器合成的，不是底层 `IntPtr` 和 `UIntPtr` 类型的一部分，因此这些转换和运算符操作无法从动态类型的运行时绑定中获得。
+
+```csharp
+nint x = 2;
+nint y = x + x; // ok
+dynamic d = x;
+nint z = d + x; // RuntimeBinderException: '+' cannot be applied 'System.IntPtr' and 'System.IntPtr'
+```
+
+>---
 
 ### Floating-point 浮点类型
 
@@ -1029,7 +1098,7 @@ var nan = 0.0/0;   // 非数值
 - 若浮点运算结果的大小对于目标格式来说太大，则将运算结果变为正无穷大或负无穷大。
 - 若浮点操作无效，则该操作的结果为 NaN；若其中一个操作数为 NaN 时，最终运算结果也是 NaN。
 
-<br>
+>---
 
 ### Decimal 十进制数值类型 
 
@@ -1057,7 +1126,7 @@ float f = 3.14f;
 decimal df = (decimal)f;
 ```
 
-<br>
+>---
 
 ### Bool 布尔类型
 
@@ -1074,7 +1143,7 @@ bool rt = Convert.ToBoolean("True");    // true
 bool rt2 = Convert.ToBoolean(0);        // false
 ```
 
-<br>
+>---
 
 ### Enumeration 枚举类型
 
@@ -1140,7 +1209,7 @@ public static class EnumExt
 }
 ```
 
-<br>
+>---
 
 ### ValueTuple 元组类型
 
@@ -1241,7 +1310,7 @@ foreach (var (repo, commitCount) in snapshotCommitMap)
     Console.WriteLine($"The {repo} repository had {commitCount:N0} commits as of November 10th, 2021.");
 ```
 
-<br>
+>---
 
 ### Nullable-value 可为空的值类型
 
@@ -1294,11 +1363,11 @@ bool IsNullable(Type type) => Nullable.GetUnderlyingType(type) != null;
 
 可为空值类型拥有预定义的一元或二元运算符时，若至少存在一个 `null` 值时，运算结果也为 `null`。对于比较运算符 `<`、`>`、`<=` 和 `>=`，如果一个或全部两个操作数都为 `null`，则结果为 `false`。`null == null` 返回 `true`。
 
-<br>
+>---
 
 ### Struct 结构类型
 
-结构体类似于类，因为它们表示可以包含数据成员和函数成员的数据结构。与类不同的是，结构是值类型，不需要堆分配。结构类型的变量直接包含该结构的数据，而类类型的变量包含对数据的引用，被称为对象。
+结构体类似于类，因为它们表示可以包含数据成员和函数成员的数据结构。与类不同的是，结构是值类型，不需要堆分配。结构类型的变量直接包含该结构的数据，而类类型的变量包含对数据的引用，被称为对象。从 C#11 起，对于任何在结构构造函数返回或使用之前没有显式赋值的字段，都会将这些字段隐式初始化为默认值（在 C# 的早期版本编译器会给出这些未显式赋值字段的明确赋值错误）。
 
 结构类型可以声明常量、字段、方法、属性、事件、索引器、运算符、实例构造函数、静态构造函数和嵌套类型。使用 `struct` 关键字定义结构类型。
 
@@ -1340,7 +1409,7 @@ readonly struct Sample
   - `ref struct` 不能是数组的元素类型、元组的元素类型、不能实现接口、不能是类型参数、不能在迭代器中使用。
   - `ref struct` 不能是类或非 `ref struct` 的字段的声明类型。
   - `ref struct` 不能被装箱为 `System.ValueType` 或 `System.Object`。
-  - `ref struct` 变量不能由 Lambda 表达式或本地函数捕获。
+  - `ref struct` 变量不能由 Lambda 表达式或局部函数捕获。
   - `ref struct` 变量不能在 `async` 方法中使用，但可以在同步方法中使用 `ref struct` 变量。例如，在返回 `Task` 或 `Task<TResult>` 的同步方法中。
   - `ref struct` 中不能声明异步实例方法、迭代器实例方法。
 
@@ -1362,39 +1431,6 @@ class Sample
     async void AsyncTest()
     {
         // Point Origin = new(0, 0); // err: async 方法中无法使用 ref 结构
-    }
-}
-```
-
-从 C#11 开始，可以在 `ref struct` 中声明 `ref` 字段。`ref` 字段可能具有 null 值，使用 `Unsafe.IsNullRef<T>(ref T src)` 方法确定 `ref` 字段是否为 `null`。
-
-当 `readonly` 修饰 `ref` 字段时：
-  - `ref`：在任何时候，都可以使用 `=` 为此字段关联引用赋值，或使用 `= ref` 重新赋值引用。
-  - `readonly ref`：只能在构造函数或 `init` 访问器中使用 `= ref` 重新赋值引用。可以在字段访问修饰符允许的任何时间点使用 `=` 为此字段关联引用赋值。 
-  - `ref readonly`：在任何时候，都不能使用 `=` 为此类字段关联引用赋值，但是可以使用 `= ref` 重新赋值引用。
-  - `readonly ref readonly`：只能在构造函数或 `init` 访问器中通过 `= ref` 重新赋值引用。
-
-```csharp
-class DATA
-{
-    public static int F_Data = 0;
-    public static int RF_Data = 0;
-    public static int FR_Data = 0;
-    public static int RFR_Data = 0;
-}
-ref struct Ref_Data
-{
-    public ref int F_Data;              // 表示引用可修改，值可修改
-    public readonly ref int RF_Data;    // 表示引用不可修改，值可修改
-    public ref readonly int FR_Data;    // 表示引用可修改，值不可修改
-    public readonly ref readonly int RFR_Data;  // 表示引用和值均不可修改
-    public Ref_Data()
-    {
-        // 可以在构造函数或 init 属性访问器中重新赋值
-        F_Data = ref DATA.F_Data;
-        FR_Data = ref DATA.FR_Data;
-        RF_Data = ref DATA.RF_Data;
-        RFR_Data = ref DATA.RFR_Data;
     }
 }
 ```
@@ -1609,7 +1645,7 @@ public struct Buffer
 }
 ```
 
-<br>
+>---
 
 ### Boxing & unboxing 装箱和拆箱
 
@@ -1701,6 +1737,58 @@ catch (System.InvalidCastException e)
 ```
 
 ---
+## 匿名类型
+
+匿名类型提供了一种方便的方法，可用来将一组只读属性封装到单个对象中，而无需首先显式定义一个类型，每个属性的类型由编译器推断。类型名由编译器生成，并且不能在源代码级使用，可结合使用 `new` 运算符和对象初始值设定项创建匿名类型。
+
+匿名类型包含一个或多个公共只读属性。无法包含其他种类的类成员（如方法或事件）。用来初始化属性的表达式不能为 null、匿名函数或指针类型。
+
+```csharp
+var v = new { Amount = 108, Message = "Hello" };
+Console.WriteLine(v.Amount + v.Message);
+```
+
+- 匿名类型是 `class` 类型，它们直接派生自 `object`，并且无法强制转换为除 `object` 外的任何类型。如果程序集中的两个或多个匿名对象初始值指定了属性序列，这些属性采用相同顺序且具有相同的名称和类型，则编译器将对象视为相同类型的实例，它们共享同一编译器生成的类型信息。
+- 无法将字段、属性、时间或方法的返回类型声明为具有匿名类型。同样，也不能将方法、属性、构造函数或索引器的形参声明为具有匿名类型。要将匿名类型或包含匿名类型的集合作为参数传递给某一方法，可将参数作为类型 `object` 进行声明。
+
+> 应用
+
+- 匿名类型通常用在查询表达式的 `select` 子句中，以便返回源序列中每个对象的属性子集。
+
+```csharp
+var productQuery =
+    from prod in products
+    select new { prod.Color, prod.Price };
+
+foreach (var v in productQuery)
+    Console.WriteLine("Color={0}, Price={1}", v.Color, v.Price);
+```
+
+- 还可以按另一种类型（类、结构或另一个匿名类型）的对象定义字段。它通过使用保存此对象的变量来完成。
+
+```csharp
+var product = new Product();
+var bonus = new { note = "You won!" };
+var shipment = new { address = "Nowhere St.", product };
+var shipmentWithBonus = new { address = "Somewhere St.", product, bonus };
+```
+
+- 可通过将隐式键入的本地变量与隐式键入的数组相结合创建匿名键入的元素的数组。
+
+```csharp
+var anonArray = new[] { new { name = "apple", diam = 4 }, new { name = "grape", diam = 1 }};
+```
+
+- 匿名类型支持采用 `with` 表达式形式的非破坏性修改。
+
+```csharp
+var apple = new { Item = "apples", Price = 1.35 };
+var onSale = apple with { Price = 0.79 };
+Console.WriteLine(apple);
+Console.WriteLine(onSale);
+```
+
+---
 ## 泛型类型
 
 泛型类型声明本身表示一个未绑定的构造类型，使用类型参数为其构造形成许多不同类型的 “蓝图”。使用泛型构造时，需要为类型参数绑定具体类型名称。
@@ -1746,7 +1834,7 @@ class Sample<T>
 class Sample: Sample<int>.Nested;
 ```
 
-<br>
+>---
 
 ### 封闭类型和开放类型
 
@@ -1774,7 +1862,7 @@ g_string.GetType() = Generic`1[[System.String, System.Private.CoreLib, Version=8
 record struct Generic<T>(string Field);   // 泛型记录
 ```
 
-<br>
+>---
 
 ### 类型约束
 
@@ -1808,22 +1896,22 @@ class Base;
 interface IBase;
 ```
 
-#### 不受约束的类型参数批注 `?` 和 default 约束
+#### 无约束的类型参数注释 `?` 和 default 约束
 
-在 C# 8 中，`?` 批注仅适用于显式约束为值类型或引用类型的类型参数。在 C#9 中，`?` 批注可应用于任何类型参数，而不考虑约束。
+在 C# 8 中，`?` 批注只能用于显式约束为值类型或引用类型的类型参数。在 C#9 中，`?` 批注可应用于任何类型参数，而不受约束。除非在类型参数中显式地约束为 `struct`，否则注释只能在 `#nullable enable` 的上下文中使用。
 
 ```csharp
 static T? FirstOrDefault<T>(this IEnumerable<T> collection) { ... };   // 不受约束的类型参数批注
 ```
 
-如果类型参数 `T` 替换为引用类型，则 `T?` 表示该引用类型的可以为 null 的实例。
+如果类型参数 `T` 替换为引用类型，则 `T?` 表示该引用类型的可空实例。
 
 ```csharp
 var s1 = new string[0].FirstOrDefault();  // string? s1
 var s2 = new string?[0].FirstOrDefault(); // string? s2
 ```
 
-如果 `T` 用值类型替换，则 `T?` 表示的实例 `T`。 
+如果 `T` 用值类型替换，则 `T?` 表示为 `T` 的一个实例。 
 
 ```csharp
 var i1 = new int[0].FirstOrDefault();   // int i1
@@ -1837,6 +1925,22 @@ var u1 = new U[0].FirstOrDefault();  // U? u1
 var u2 = new U?[0].FirstOrDefault(); // U? u2
 #nullable disable
 var u3 = new U[0].FirstOrDefault();  // U? u3
+```
+
+对于 `T?` 的返回值，相当于 `[MaybeNull] T`。对于参数 `T?`，相当于 `[AllowNull] T`。
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+public abstract class A
+{
+    [return: MaybeNull] public abstract T F1<T>();
+    public abstract void F2<T>([AllowNull] T t);
+}
+public class B : A
+{
+    public override T? F1<T>() where T : default { return default; }   // matches A.F1<T>()
+    public override void F2<T>(T? t) where T : default { }    // matches A.F2<T>()
+}
 ```
 
 > default 约束
@@ -1916,6 +2020,39 @@ class Derived : Base
 }
 ```
 
+#### 约束继承
+
+对于泛型类型的类型参数和它们的约束，都不会被派生类继承，因为类型参数不是成员。派生泛型的类型参数是其泛型基类的类型参数，因此类型参数必须具有等同（或更强）于基类的约束。 
+
+```csharp
+class A;
+class B : A;
+
+class A<T>;
+class B<T> : A<T> where T : A;
+class C<T> : B<T> /* where T : B*/;    
+// 类型参数的约束不被继承，可以声明约束为同等或更强的限制
+```
+
+而基类的虚泛型方法或接口泛型方法被继承并重写或实现时，重写或显式接口实现方法的约束是从基方法继承的，因此不能直接指定这些约束，除非指定 `class` 或 `struct` 约束。
+
+```csharp
+class Sample
+{
+    public virtual void FunA<T>() where T : Sample { }
+    public virtual void FunB<T>() where T : struct { }
+}
+class Derived : Sample
+{
+    public override void FunA<T>() where T : Sample // err
+        => base.FunA<T>();
+    public override void FunB<T>() /*where T : struct*/  // okey
+        => base.FunB<T>();
+}
+```
+
+在泛型类继承的情况下，不仅可以保留基类本来的约束（这是必需的），还可添加额外的约束，从而对派生类的类型参数进行更大的限制。但重写虚泛型方法时，需遵守和基类方法完全一样的约束。额外的约束会破坏多态性，所以不允许新增约束。另外，重写方法的类型参数约束是隐式继承的。
+
 #### 泛型类型中的静态成员
 
 使用泛型类型时指定类型参数时，运行时将创建该类型参数的封闭式构造类型。从同一泛型类型的构建的不同构造类型之间，各构造泛型类型的静态成员（包括静态构造函数、字段、方法、属性等）独立存在。在首次调用该类型时，会首先调用它的静态构造函数。对于泛型接口类型的不能构造类型之间，静态成员（非抽象）也是相互独立的。
@@ -1951,7 +2088,9 @@ class Sample<T>
 }
 ```
 
-#### 泛型接口的协变与逆变
+>---
+
+### 协变与逆变
 
 借助泛型类型参数的协变和逆变，可以使用类型自变量的派生程度比目标构造类型更高（协变）或更低（逆变）的构造泛型类型。协变和逆变统称为 “变体”，未标记为协变或逆变的泛型类型参数称为 “固定参数” 。
 
@@ -2080,6 +2219,1283 @@ IEnumerable<object> e2 = new List<int>();  // CS0266，值类型不支持协变
 IEnumerable<object>[] enumerables = new List<string>[] { }; // 数组的协变
 ```
 
+>---
+
+### 泛型的内部机制
+
+泛型类的类型参数成了元数据，CLR 在需要时会利用它们构造恰当的类。所以，泛型支持继承、多态性以及封装。可用泛型定义方法、属性、字段、类、接口和委托。泛型类编译后与普通类无太大差异，编译结果无非就是元数据和参数化的 CIL。
+
+```csharp
+// csharp
+class Sample<T> where T : ISample
+{
+    private T[] _items;
+    // rest ...
+}
+// MSIL
+.class private auto ansi beforefieldinit 
+    Sample`1<(ISample) T>     // 约束，`1 表示类型参数的数目，表示一个占位
+	extends [System.Runtime]System.Object
+{
+    // rest ...
+    .field private !T[] _items   // ! 标记占位的位置
+    // ...
+}
+```
+
+#### 实例化基于值类型的泛型
+
+用值类型作为类型参数首次构造一个泛型类型时，CLR 会将指定的类型参数放到 CIL 中合适的位置，从而创建一个具体化的泛型类型。CLR 会针对每个新的 “参数值类型” 创建一个新的具体化泛型类型。
+
+使用具体化值类型的类，好处在于能获得较好的性能。代码能避免转换和装箱，因为每个具体的泛型类都原生包含值类型。
+
+#### 实例化基于引用类型的泛型
+
+对于引用类型，泛型的工作方式稍有不同。使用引用类型作为类型参数首次构造一个泛型类型时，CLR 会在 CIL 代码中用 `object` 引用替换类型参数来创建一个具体化的泛型类型（而不是基于所提供的类型实参来创建一个具体化的泛型类型）。之后每次用引用类型参数实例化一个构造好的类型，CLR 都重用之前生成好的泛型类型的版本，即使提供的引用类型与第一次不同。
+
+---
+## record 记录类型
+
+从 C#9 开始，可以使用 `record` 修饰符定义一个引用类型，用来提供用于封装数据的内置功能。C#10 允许 `record class` 语法作为同义词来阐明引用类型，并允许 `record struct` 使用相同功能定义值类型。
+
+```ANTLR
+// 记录
+record_class_declaration
+    : [ attributes ]? class_modifier* partial? record_type identifier <type_parameter_list>? ( parameter_list? )? 
+      record_bases?  type_parameter_constraints* { record_body }
+record_type
+    : record 'or' record class  
+record_bases
+    | record <class>? identifier : record_class_base, interface_bases 
+    ;
+
+// 记录结构
+record_struct_declaration
+    : [ attributes ]? struct_modifier* partial? record_type identifier <type_parameter_list>? ( parameter_list? )? 
+      record_bases?  type_parameter_constraints* { record_body }
+record_type
+    : record struct
+record_bases
+    | record struct identifier : interface_bases
+    ;
+```
+
+记录不能从类继承，除非是 `object`，而类不能从记录继承。记录可以从其他记录继承。记录的定义声明中可以包含一组参数列表（主构造函数），以构造位置记录。该记录参数不能使用 `ref`、`out`、`this` 修饰，可以使用 `in` 或 `params` 修饰。
+
+```csharp
+// 记录
+abstract record BaseRecord;  
+record Sample<T>(int X, in T Y) : BaseRecord, IDisposable where T : unmanaged
+{
+    public void Dispose() { }
+}
+
+// 记录结构
+record struct Sample(params int[] Values) : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => Values.AsEnumerable().GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+```
+
+>---
+
+### 位置记录
+
+位置记录：在记录上声明主构造函数时，编译器会为记录类型自动生成一个位置构造函数，同时根据位置参数自动生成一个解构函数 `Deconstruct` 以支持将位置记录解构为元组，并在该位置记录中为主构造函数的参数生成公共属性：
+- 对于 `record`，编译器为位置参数生成 `get/init` 公共属性。
+- 对于 `record struct`，编译器为位置参数生成 `get/set` 公共属性。
+- 对于 `readonly record struct`，编译器为位置参数生成 `get/init` 公共属性。
+
+```csharp
+public record Person(string FirstName, string LastName);
+// 相当于
+public record Person{
+    public string FirstName { get; init; }
+    public string LastName { get; init; }
+    // 结构函数在记录中自动生成，可以声明方法重载或显式声明默认的 Deconstruct
+    public void Deconstruct(out string firstName, out string lastName) 
+        => (firstName, lastName) = (FirstName, LastName);
+}
+
+public record struct Point(int x, int y);
+// 相当于
+public record struct Point{
+    public int x {get; set;}
+    public int y {get; set;}
+}
+
+public readonly record struct Score(int Math, int English);
+// 相当于
+public readonly record struct Score{
+    public int Math { get; init; }
+    public int English { get; init; }
+}
+```
+
+若要覆盖编译器自动生成的属性，可以在源中自行定义同名的属性，并从记录的位置参数初始化该属性。
+
+```csharp
+public record Person(string FirstName, string LastName, string Id)
+{
+    internal string Id { get; init; } = Id;
+}
+```
+
+#### 位置记录中的解构函数
+
+为了支持将 `record` 对象能解构成元组，我们给 `record` 添加解构函数 `Deconstruct`。声明主构造函数的记录定义为位置记录，该位置记录会为主构造函数中的位置参数自动生成一个解构函数。
+
+```csharp
+record Person
+{
+    public string FirstName { get; init; }
+    public string LastName { get; init; }
+    public Person(string firstName, string lastName) 
+        => (FirstName, LastName) = (firstName, lastName);
+    public void Deconstruct(out string firstName, out string lastName) 
+        => (firstName, lastName) = (FirstName, LastName);
+}
+// 相当于
+record Person(string FirstName, string LastName);
+```
+
+解构记录为元组。
+
+```csharp
+var (first, last) = new Person("Hello", "World");
+record Person(string FirstName, string LastName);
+```
+
+> 重定义解构函数或重载解构函数 `Deconstruct`
+
+```csharp
+using System.Diagnostics;
+
+var (first, last) = new Person("Hello", "World");
+var (firstName, _, Number) = new Person("Hello", "World") { PhoneNumber = "5566-6655" };
+
+record Person(string FirstName, string LastName)
+{
+    public string PhoneNumber { get; set; } = "";
+    // 重定义
+    public void Deconstruct(out string firstName, out string lastName)
+    {
+        Console.WriteLine("Use Deconstruct >> " + new StackFrame(0, true));
+        (firstName, lastName) = (FirstName, LastName);
+    }
+    // 重载
+    public void Deconstruct(out string firstName, out string lastName, out string PhoneNumber)
+    {
+        firstName = FirstName;
+        lastName = LastName;
+        PhoneNumber = this.PhoneNumber;
+    }
+}
+```
+
+>---
+
+### 记录的相等性
+
+对于 `class` 类型，两个对象引用内存中的同一对象，则这两个对象相等。
+对于 `struct` 类型，两个对象是相同的类型并且存储相同的值，则这两个对象相等。
+对于 `record` 类型，如果两个对象是相同的类型且存储相同的值，则这两个对象相等。
+
+```csharp
+class Sample
+{
+    public record Person(string FirstName, string LastName, string[] PhoneNumbers);
+
+    static void Main()
+    {
+        var phoneNumbers = new string[2];
+        Person person1 = new("Nancy", "Davolio", phoneNumbers);
+        Person person2 = new("Nancy", "Davolio", phoneNumbers);
+
+        Console.WriteLine(person1 == person2); // output: True
+        person1.PhoneNumbers[0] = "555-1234";
+        Console.WriteLine(person1 == person2); // output: True
+        Console.WriteLine(ReferenceEquals(person1, person2)); // output: False
+    }
+}
+```
+
+为实现值相等性，编译器为记录类型合成了几种方法：
+  - `Object.Equals(Object)` 的替代，无法显式声明此替代。
+  - 运算符 `==` 和 `!=` 的替代，无法显式声明这些运算符。
+  - `virtual` 或 `sealed` 的 `Equals(R? other)`，其中 `R` 是记录类型。此方法实现 `IEquatable<T>`，可以显式声明此方法，还应该提供 `GetHashCode` 的实现。
+  - `Object.GetHashCode()` 的替代，可以显式声明此方法。
+  - 提供返回 `Type` 的 `EqualityContract` 只读属性的实现，可以显式声明此属性。该属性在密封记录中是 `private` 的，在可继承的记录中是 `protected virtual` 的。由于在默认实现的 `GetHashCode` 方法中调用了 `EqualityContract`，因此不建议在此属性中调用 `GetHashCode` 方法。  
+
+```csharp
+using System.Diagnostics;
+
+Person p1 = new("Hello", "World");
+Person pClone = p1;
+pClone.PhoneNumber = "6666-5555";
+Console.WriteLine(p1);
+Console.WriteLine(Object.ReferenceEquals(p1, pClone));   // true
+
+var p2 = p1 with { PhoneNumber = "5566-6655" };         // with 调用复制构造函数
+Console.WriteLine(p2);
+Console.WriteLine(Object.ReferenceEquals(p1, p2));      // false
+
+var p3 = p1 with { };               // with 调用复制构造函数
+Console.WriteLine(p3 == p1);        // 调用 Person.Equals, true
+Console.WriteLine(Object.ReferenceEquals(p1, p3));      // false
+
+record Person(string FirstName, string LastName) : IEquatable<Person>
+{
+    protected virtual Type EqualityContract
+    {
+        get
+        {
+            Console.WriteLine("Use EqualityContract at " + new StackFrame(1).GetMethod().Name);
+            return this.GetType();
+        }
+    }
+    public override int GetHashCode()
+    {
+        Console.WriteLine("Use GetHashCode");
+        return unchecked((EqualityComparer<Type>.Default.GetHashCode(EqualityContract) * -1521134295
+               + EqualityComparer<string>.Default.GetHashCode(FirstName)) * -1521134295
+               + EqualityComparer<string>.Default.GetHashCode(LastName));
+    }
+    public virtual bool Equals(Person? other)
+    {
+        Console.WriteLine("Use Equals");
+        return (object)other != null
+                && EqualityContract == other.EqualityContract
+                && EqualityComparer<string>.Default.Equals(FirstName, other.FirstName)
+                && EqualityComparer<string>.Default.Equals(LastName, other.LastName);
+    }
+    protected Person(Person origin)
+    {
+        Console.WriteLine("Use Clone");
+        (FirstName, LastName) = origin;
+        PhoneNumber = origin.PhoneNumber;
+    }
+    public string PhoneNumber { get; set; } = "";
+}
+/*
+Person { FirstName = Hello, LastName = World, PhoneNumber = 6666-5555 }
+True
+Use Clone
+Person { FirstName = Hello, LastName = World, PhoneNumber = 5566-6655 }
+False
+Use Clone
+Use Equals
+Use EqualityContract at Equals
+Use EqualityContract at Equals
+True
+False
+*/
+```
+
+>---
+
+### 记录的复制与克隆
+
+若需要复制包含一些修改的实例，可以使用 `with` 表达式来实现非破坏性变化。`with` 表达式创建一个新的记录实例，该实例是现有记录实例的一个副本，并修改了指定的属性或字段。
+
+```csharp
+class Sample
+{
+    public record Person(string FirstName, string LastName)
+    {
+        public string[] PhoneNumbers { get; init; }
+    }
+
+    public static void Main()
+    {
+        Person person1 = new("Nancy", "Davolio") { PhoneNumbers = new string[1] };
+        Console.WriteLine(person1);
+        // output: Person { FirstName = Nancy, LastName = Davolio, PhoneNumbers = System.String[] }
+
+        Person person2 = person1 with { FirstName = "John" };
+        Console.WriteLine(person2);
+        // output: Person { FirstName = John, LastName = Davolio, PhoneNumbers = System.String[] }
+        Console.WriteLine(person1 == person2);
+        // output: False
+
+        person2 = person1 with { PhoneNumbers = new string[1] };
+        Console.WriteLine(person2);
+        // output: Person { FirstName = Nancy, LastName = Davolio, PhoneNumbers = System.String[] }
+        Console.WriteLine(person1 == person2); 
+        // output: False
+
+        person2 = person1 with { };
+        Console.WriteLine(person1 == person2); 
+        // output: True
+    }
+}
+```
+
+`with` 表达式可以设置位置属性或使用标准属性语法创建的属性。显式声明属性必须有一个 `init` 或 `set` 访问器才能在 `with` 表达式中进行更改。`with` 表达式的结果是一个浅的副本，这意味着对于引用属性，只复制对实例的引用。原始记录和副本最终都具有对同一对象的引用。
+
+记录类型包含两个复制成员：
+- 接受记录类型的单个参数的构造函数 `recordType(recordType origin)`，它被称为 “复制构造函数”。
+- 具有编译器保留名称的合成公共无参实例 `Clone` 方法。
+
+复制构造函数的目的是将状态从目标源对象复制到正在创建的新实例，这个构造函数不运行记录声明中存在的任何实例字段或属性的初始值项。若没有显式声明复制构造函数，则编辑器将自动合成。密封记录的复制构造函数为 `private`，可继承的记录则是 `protected`。
+
+虚拟克隆方法返回由复制构造函数初始化的新记录。用户不能替代克隆方法，也不能在任意记录类型中创建名为 `Clone` 的成员。`Clone` 方法是由编译器自动合成的，当使用 `with` 表达式时，编译器将创建调用克隆方法的代码，而 `Clone` 方法将返回调用复制构造函数的结果。
+
+```csharp
+Person p1 = new("Hello", "World");
+Person pClone = p1;
+pClone.PhoneNumber = "6666-5555";
+Console.WriteLine(p1);
+Console.WriteLine(Object.ReferenceEquals(p1, pClone));   // true
+
+var p2 = p1 with { PhoneNumber = "5566-6655" };
+Console.WriteLine(p2);
+Console.WriteLine(Object.ReferenceEquals(p1, p2));      // false
+
+var p3 = p1 with { };
+Console.WriteLine(Object.ReferenceEquals(p1, p3));      // false, 值相等性
+
+sealed record Person(string FirstName, string LastName)
+{
+    private Person(Person origin)
+    {
+        Console.WriteLine("Use Clone");
+        (FirstName, LastName) = origin;
+        PhoneNumber = origin.PhoneNumber;
+    }
+    public string PhoneNumber { get; set; } = "";
+}
+```
+
+>---
+
+### 记录的格式化字符串打印
+
+记录类型具有编译器生成的 `ToString` 方法，可显式公共属性和字段的名称和值。`ToString` 方法返回一个格式如下的字符串：`<record type name> { <property name> = <value>, <property name> = <value>, ...}`，其中每个 `<value>` 打印的字符串是属性或字段对应类型的 `ToString()`。
+
+为了实现此功能，编译器在 `record class` 类型中合成了一个虚拟 `PrintMembers` 方法和一个 `ToString` 替代，此成员在 `record struct` 类型中为 `private`。
+
+```csharp
+using System.Runtime.CompilerServices;
+using System.Text;
+
+Console.WriteLine(new Point(0,0));  // Point { x = 0, y = 0 }
+public record struct Point(int x, int y)
+{
+    [CompilerGenerated]
+    public override readonly string ToString()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.Append("Point");
+        stringBuilder.Append(" { ");
+        if (PrintMembers(stringBuilder))
+        {
+            stringBuilder.Append(' ');
+        }
+        stringBuilder.Append('}');
+        return stringBuilder.ToString();
+    }
+
+    [CompilerGenerated]
+    private readonly bool PrintMembers(StringBuilder builder)
+    {
+        builder.Append("x = ");
+        builder.Append(x.ToString());
+        builder.Append(", y = ");
+        builder.Append(y.ToString());
+        return true;
+    }
+}
+```
+
+> 自定义 ToString
+
+```csharp
+using System.Text;
+
+PointArray X = new((0, 0), (1, 1), (2, 2), (3, 3), (4, 4));
+Console.WriteLine(X);   // Output: (0,0),(1,1),(2,2),(3,3),(4,4)
+
+public record struct Point(int x, int y)
+{
+    public static implicit operator Point((int, int) p) => new Point(p.Item1, p.Item2);
+    public override string ToString() => $"({this.x},{this.y})";
+}
+public readonly record struct PointArray(params Point[] points)
+{
+    public override string ToString()
+    {
+        StringBuilder sb = new StringBuilder();
+        if (points.Length > 0)
+        {
+            sb = new StringBuilder(points[0].ToString());
+            foreach (Point p in points[1..points.Length])
+                sb.Append("," + p.ToString());
+        }
+        return sb.ToString();
+    }
+}
+```
+
+> 自定义 PrintMembers
+
+```csharp
+using System.Text;
+
+PointArray X = new((0, 0), (1, 1), (2, 2), (3, 3), (4, 4));
+Console.WriteLine(X);   
+// Output: PointArray { points = { (0,0), (1,1), (2,2), (3,3), (4,4) } }
+
+public record struct Point(int x, int y)
+{
+    public static implicit operator Point((int, int) p) => new Point(p.Item1, p.Item2);
+    public override string ToString() => $"({this.x},{this.y})";
+}
+public readonly record struct PointArray(params Point[] points)
+{
+    public readonly int Length => points.Length;
+    private bool PrintMembers(StringBuilder sb)
+    {
+        if (points.Length == 0)
+            return false;
+        else
+        {
+            sb.Append($"points = {{ {points[0].ToString()}");
+            foreach (Point p in points[1..points.Length])
+                sb.Append(", " + p.ToString());
+            sb.Append(" }");
+            return true;
+        }
+    }
+}
+```
+
+>---
+
+### 继承
+
+一条记录可以从另一条记录继承。派生记录为基记录主构造函数中的所有参数声明位置参数，基记录声明并初始化这些属性；派生记录不会隐藏它们，而只会创建和初始化未在其基记录中声明的参数的属性。
+
+要使两个记录变量相等，运行时类型必须相等。包含变量的类型可能不同，但相等性测试依赖于实际对象的运行时类型，而不是声明的变量类型。
+
+`with` 表达式结果的运行时类型与表达式操作数相同：运行时类型的所有属性都会被复制，但用户只能设置编译时类型的属性。
+
+派生记录类型的合成 `PrintMembers` 方法并调用基实现 `base.PrintMembers()`。结果是派生类型和基类型的所有公共属性和字段都包含在 `ToString` 输出中。派生记录也会重新合成基记录的 `EqualityContract`、`GetHashCode`、`Deconstruct` 方法。 
+
+```csharp
+class Sample
+{
+    public abstract record Person(string FirstName, string LastName);
+    public record Teacher(string FirstName, string LastName, int Grade)
+        : Person(FirstName, LastName);
+    public record Student(string FirstName, string LastName, int Grade)
+        : Person(FirstName, LastName);
+
+    public static void Main()
+    {
+        Person teacher = new Teacher("Nancy", "Davolio", 3);
+        Console.WriteLine(teacher);
+        // output: Teacher { FirstName = Nancy, LastName = Davolio, Grade = 3 }
+
+        /* 相等性测试 */
+        Person student = new Student("Nancy", "Davolio", 3);
+        Console.WriteLine(teacher == student);       // output: False
+        Student student2 = new Student("Nancy", "Davolio", 3);
+        Console.WriteLine(student2 == student);      // output: True
+
+        /* with 表达式 */
+        Person clone_teacher = teacher with { FirstName = "Tom" }; // 无法定义 Grade，虽然在运行时类型包含此属性
+        Teacher teacher2 = (Teacher)teacher with { Grade = 6 };
+        Console.WriteLine(teacher2);
+        // output: Teacher { FirstName = Nancy, LastName = Davolio, Grade = 6 }
+
+        /* 解构函数 */
+        var (first, second) = (Teacher)teacher;       // 支持基记录的解构函数
+        var (first2, second2, grade) = (Teacher)teacher; // 在 Teacher 重新生成的解构函数
+    }
+}
+```
+
+---
+## 指针类型
+
+C# 的核心语言与 C/C++ 的显著区别在于它没有将指针作为数据类型。相反，C# 提供了引用和创建由垃圾收集器管理的对象的能力。这种设计加上其他特性，使 C# 成为一种比 C/C++ 更安全的语言。在核心 C# 语言中，不可能有未初始化的变量、“悬空” 指针（被释放或删除的内存区域）或超出数组边界的索引表达式。因此，经常困扰 C/C++ 程序的所有类型的 bug 都被消除了。
+
+尽管实际上 C/C++ 中的每个指针类型结构在 C# 中都有对应的引用类型，但在某些情况下，必须访问指针类型。例如，如果不访问指针，与底层操作系统接口、访问内存映射设备或实现时间关键型算法可能是不可能或不实际的。为了满足这种需求，C# 提供了编写不安全代码的能力。
+
+在不安全代码中，可以声明和操作指针，执行指针和整型之间的转换，获取变量的地址，等等。从某种意义上说，编写不安全代码很像在 C# 程序中编写 C 代码。从开发人员和用户的角度来看，
+
+不安全代码实际上是一个 “安全” 的特性。不安全的代码应该用 `unsafe` 标记清楚，这样开发人员就不可能不小心使用不安全的特性，并且执行引擎的工作是确保不安全的代码不能在不受信任的环境中执行。
+
+>---
+
+### 不安全上下文
+
+C# 支持不安全上下文，用户可在其中编写不可验证的代码。在不安全的上下文中，代码可使用指针、分配和释放内存块，以及使用函数指针调用方法。可以将方法、类型和代码块定义为不安全。
+
+通过在类型、成员或局部函数的声明中包含不安全修饰符 `unsafe`，或使用 `unsafe { ... }` 语句引入不安全上下文。
+
+`unsafe` 修饰符可以标记类型声明（类、结构、接口、委托）和成员声明（字段、方法、属性、事件、索引器、运算符、实例构造函数、终结器、静态构造函数、局部函数）的整个文本范围为不安全上下文。也可以在函数成员的块中使用 `unsafe { ... }` 语句引入不安全上下文块。
+
+调用需要指针的本机函数时，需使用不安全代码，因此可能会引发安全风险和稳定性风险。在某些情况下，通过移除数组绑定检查，不安全代码可提高应用程序的性能。
+
+```csharp
+int* p;         // p 是指向整数的指针。
+int** p;        // p 是指向整数的指针的指针。
+int*[] p;       // p 是指向整数的指针的一维数组。
+char* p;        // p 是指向字符的指针。
+void* p;        // p 是指向未知类型的指针。
+
+int* p1, p2, p3;    // Ok
+int *p1, *p2, *p3;  // Invalid in C#
+```
+
+>---
+
+### 指针声明
+
+在不安全的上下文中，可以声明指针类型或指针类型的数组：
+
+```ANTLR
+pointer_type
+    : value_type (*)+
+    | void (*)*
+```
+
+与引用（引用类型的值）不同，指针不受垃圾收集器的跟踪，垃圾收集器不知道指针和它们所指向的数据。因此，不允许指针指向引用或包含引用的结构体，并且指针指向的类型必须为非托管类型。指针类型本身是非托管类型，因此一个指针类型可以指向另一个指针类型。
+
+指针类型是一种单独的类型。与引用类型和值类型不同，指针类型不从对象继承，并且指针类型和对象之间不存在转换。特别是，指针不支持装箱和拆箱。但是，允许在不同指针类型之间以及指针类型与整型之间进行转换。
+
+```csharp
+unsafe struct Sample
+{
+    byte* pb;
+    char* pc;
+    int** pptr;
+    int*[] parr;
+    void* p;
+
+    Sample* pS;
+}
+```
+
+类型为 `T*` 的指针的值表示 `T` 类型变量的地址。地址运算符 `&` 用于获取类型变量的地址，指针间接操作符 `*` 可用于访问该变量。
+
+```csharp
+int[] arr = [10, 20, 30, 40, 50];
+
+unsafe
+{
+    // 必须将对象固定在堆上，这样它在使用时，垃圾回收器不会移动它
+    fixed (int* p = arr) // 或 &arr[0]. &arr[index]
+    {
+        // 固定指针无法移动, 无法赋值
+        //  p++;  // CS1656
+        // 所以创建另一个指针来显示它的递增。
+        int* p2 = p;
+        Console.WriteLine(*p2);  // 10
+        // 由于指针的类型，增加 p2 会使指针增加其基础类型大小的字节：4
+        p2 += 1;
+        Console.WriteLine(*p2);  // 20
+        p2 += 1;
+        Console.WriteLine(*p2);  // 30
+
+        Console.WriteLine("--------");
+        // 对 p 解引用并递增会改变 arr[0] 的值
+        Console.WriteLine(*p);   // 10
+        *p += 1;
+        Console.WriteLine(*p);   // 11
+        *p += 1;
+        Console.WriteLine(*p);   // 12
+    }
+    Console.WriteLine(arr[0]);  // 12
+}
+```
+
+`void*` 类型表示指向未知类型的指针。由于指向的类型未知，间接操作符不能应用于 `void*` 类型的指针，也不能在这种指针上执行任何算术运算。但是，`void*` 类型的指针可以被强制转换为任何其他指针类型，并与其他指针类型的值进行比较。
+
+指针类型不能用作类型参数，不能用作动态绑定操作的子表达式的类型，不能则用作扩展方法的第一个形参的类型，不能是匿名类型的元素的值。但是可以用作是 `volatile` 字段的类型，动态类型的指针。
+
+```csharp
+unsafe class Sampple
+{
+    void* unknown;
+    volatile dynamic* pd;
+}
+```
+
+指针类型可以作为 `in`、`ref`、`out` 的参数传递，但是可能会导致未定义行为。指针可能被设置为指向一个局部变量，而该局部变量在被调用的方法返回时不再存在，或者指针指向的固定对象不再固定。
+
+```csharp
+class Sample
+{
+    static int value = 20;
+    unsafe static void F(out int* pi1, ref int* pi2)
+    {
+        int i = 10;
+        pi1 = &i;       // return address of local variable
+        fixed (int* pj = &value)
+            pi2 = pj;   // return address that will soon not be fixed
+    }
+    static void newFunInStack()
+    {
+        float i = 3.1415f;
+    }
+    static void Main()
+    {
+        int i = 15;
+        unsafe
+        {
+            int* px1;
+            int* px2 = &i;
+            F(out px1, ref px2);
+            newFunInStack();
+            int v1 = *px1; // undefined
+            Console.WriteLine(v1);  
+            int v2 = *px2; // undefined
+            Console.WriteLine(v2);
+        }
+    }
+}
+```
+
+### 指针操作
+
+在不安全的上下文中，有几种方式可用于操作所有 **非函数指针的指针类型**：
+- 指针间接操作符 `*` 用于访问指针类型指向的值。
+- 指针成员访问 `->` 用于通过指针访问结构体的成员。
+- `[]` 操作符用于索引指针。
+- 地址运算符符 `&` 可用于获取变量的地址。
+- `++` 和 `--` 运算符可用于指针的自增和自减操作。
+- 二元 `+` 和 `-` 运算符用于执行指针和整数的算数。
+- `==`、`!=`、`<=` 和 `>=` 操作符可用于比较指针。
+- 可以使用 `stackalloc` 操作符从调用堆栈中分配内存，并赋值给指针类型或 `Span<T>` 和 `ReadOnlySpan<T>`。
+- `fixed` 语句可以用来临时固定一个变量，以便获得它的地址。
+
+#### 固定与可移动变量
+
+地址运算符 `&` 和固定 `fixed` 语句将变量分为两类：固定变量和可移动变量：
+- 固定变量驻留在不受垃圾收集器操作影响的存储位置（固定变量的例子包括局部变量、值形参和通过解引用指针创建的变量）。
+- 可移动变量驻留在由垃圾收集器重新定位或处理的存储位置中（可移动变量的例子包括对象中的字段、数组中的元素、引用传递的参数）。
+
+`&` 运算符允许不受限制地获取固定变量的地址。由于可移动变量会被垃圾回收器重新定位或处理，因此只能通过固定语句获得可移动变量的地址，并且该地址仅在该固定语句的持续时间内有效。
+
+```csharp
+class Sample
+{
+    static unsafe void Fun(int len, int[] arr)
+    {
+        int * plen = &len; // 固定变量
+        fixed (int* p = arr)  // 可移动变量
+        {
+            int * pArr = p;
+            for (int i = 0;i < len; i++)
+                Console.WriteLine(pArr[i]); ;
+        }
+    }
+    static void Main(string[] args)
+    {
+        Fun(10, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    }
+}
+```
+
+#### 结构成员访问
+
+对于指向结构体的指针，可以通过 `->` 访问结构体的成员。`p->M` 的等价于 `(*p).M`。 
+
+```csharp
+class Test
+{
+    struct Point
+    {
+        public int x;
+        public int y;
+        public override string ToString() => $"({x},{y})";
+    }
+    static void Main()
+    {
+        Point point;
+        unsafe
+        {
+            Point* p = &point;
+            p->x = 10;
+            //  (*p).x = 10;
+            p->y = 20;
+            //  (*p).y = 20;
+            Console.WriteLine(p->ToString());
+        }
+    }
+}
+```
+
+#### 数组元素访问
+
+对于指向数组类型的指针，可以像数组元素访问一样，通过索引器语法使用指针访问数组元素。形式为 `P[E]` 的指针元素访问被精确地求值为 `(P + E)`。
+
+指针元素访问操作符不检查越界错误，并且访问越界元素时的行为未定义。
+
+```csharp
+class Test
+{
+    static void Main()
+    {
+        unsafe
+        {
+            char* p = stackalloc char[256];
+            for (int i = 0; i < 256; i++)
+            {
+                p[i] = (char)i;
+                //  *(p + i) = (char)i;
+            }
+        }
+    }
+}
+```
+
+#### 指针算数
+
+给定一个指针类型为 `T*` 的表达式 `p` 和一个类型为整数类型的表达式 `N`，表达式 `p + N` 计算类型为 `T*` 的指针值，该指针值是由 `p` 给出的地址加上 `N * sizeof(T)` 得到的。表达式 `p - N` 计算类型为 `T*` 的指针值，该指针值是由 `p` 给出的地址减去 `N * sizeof(T)` 得到的。
+
+给定指针类型为 `T*` 的两个表达式 `P` 和 `Q`，表达式 `P - Q` 计算 `P` 和 `Q` 给出的地址之差，然后将该差除以 `sizeof(T)`。结果的类型总是 `long`。实际上，`P - Q` 计算为 `((long)(P) - (long)(Q)) / sizeof(T)`。
+
+如果指针算术操作溢出指针类型的域，则以实现定义的方式截断结果，但不会产生异常。
+
+```csharp
+class Sample
+{
+    static unsafe void Main()
+    {
+        int* values = stackalloc int[20];
+        int* p = &values[1];
+        int* q = &values[15];
+        Console.WriteLine($"p - q = {p - q}");  // -14
+        Console.WriteLine($"q - p = {q - p}");  // 14
+    }
+}
+```
+
+#### 指针比较
+
+比较运算符比较两个操作数给出的地址，就像它们是无符号整数一样。指向高位地址的指针大于指向低位地址的指针。
+
+```csharp
+class Sample
+{
+    static unsafe void Main()
+    {
+        int* values = stackalloc int[20];
+        int* p = &values[1];
+        int* q = &values[15];
+        Console.WriteLine(p > q); // false
+    }
+}
+```
+
+#### fixed 语句
+
+在不安全的上下文中，固定语句允许使用一个额外的构造，即 `fixed` 语句，它用于 “固定”一个可移动的变量，使其地址在语句期间保持不变。
+
+每个固定指针声明给定指针类型的一个局部变量，并用相应计算的地址初始化该局部变量。由固定语句声明的局部变量被认为是只读的。如果内嵌语句试图修改该局部变量（通过赋值或 `++` 和 `--` 运算符）或将其作为 `ref`、`in`、`out` 参数传递，则会发生编译时错误。
+
+`fixed` 语句可防止垃圾回收器重新定位可移动变量，并声明指向该变量的指针。固定变量的地址在语句的持续时间内不会更改。只能在相应的 `fixed` 语句中使用声明的指针，且声明的指针是只读的，无法修改。
+
+`fixed` 而可初始化声明使用数组的指针、使用变量的地址、使用实现名为 `GetPinnableReference` 的方法的类型实例（方法返回非托管类型的 `ref` 变量，例如 .NET 类型 `System.Span<T>` 和 `System.ReadOnlySpan<T>`）、使用字符串、使用固定大小的缓冲区（堆栈上声明的 `stackalloc` 内存不需要固定）。
+
+> 使用数组
+
+```csharp
+unsafe
+{
+    int[] arr = [10, 20, 30, 40, 50];
+    fixed (int* p = arr)
+    {
+        int index = 0;
+        foreach (int i in arr)
+        {
+            p[index] = i * i; 
+            index++;
+        }
+        Console.WriteLine(string.Join(", ", arr));
+        // Output: 100, 400, 900, 1600, 2500
+    }
+}
+```
+
+> 使用变量的地址
+
+```csharp
+unsafe
+{
+    int[] numbers = { 10, 20, 30 };
+    fixed (int* toFirst = &numbers[0], toLast = &numbers[^1])
+        Console.WriteLine(toLast - toFirst);  // output: 2
+}
+```
+
+> 使用实现名为 `GetPinnableReference` 的方法的类型实例
+
+```csharp
+NumberArray arr = new(1, 2, 3, 4, 5, 6);
+unsafe
+{
+    fixed(int* p = arr)
+        for(int i = 0;i< 6; i++)
+            Console.WriteLine(p[i]);
+}
+record NumberArray(params int[] arr)
+{
+    public ref int GetPinnableReference() => ref arr[0];
+}
+```
+
+> 使用字符串
+
+```csharp
+ToUpper("Hello, World"); // Output: HELLO, WORLD
+
+unsafe static void ToUpper(string str)
+{
+    fixed(char* f = str)
+    {
+        int index = 0;
+        foreach (char c in str)
+            f[index] = char.ToUpper(f[index++]);
+    }
+    Console.WriteLine(str);
+}
+```
+
+>---
+
+### 固定大小的缓冲区
+
+可以使用 `fixed` 关键字来创建在数据结构中具有固定大小的数组的缓冲区。当编写与其他语言或平台的数据源进行互操作的方法时，固定大小的缓冲区很有用。
+
+固定大小的缓冲区可以采用允许用于常规结构成员的任何属性或修饰符。唯一的限制是数组类型必须为 `bool`、`byte`、`char`、`short`、`int`、`long`、`sbyte`、`ushort`、`uint`、`ulong`、`float` 或 `double`。
+  
+```csharp
+internal unsafe struct Buffer
+{
+    public fixed char fixedBuffer[128];
+}
+```
+
+在安全代码中，包含数组的 C# 结构不包含该数组的元素，而是包含对该数组的引用。当在不安全的代码块中使用数组时，可以在结构中嵌入固定大小的数组。使用 `fixed` 语句获取指向数组第一个元素的指针，通过此指针访问数组的元素。`fixed` 语句将 `fixedBuffer` 实例字段固定到内存中的特定位置。
+
+```csharp
+internal unsafe struct Buffer
+{
+    public fixed char fixedBuffer[128];
+}
+internal unsafe class Example
+{
+    public Buffer buffer = default;
+}
+private static void AccessEmbeddedArray()
+{
+    var example = new Example();
+    unsafe
+    {
+        // Pin the buffer to a fixed location in memory.
+        fixed (char* charPtr = example.buffer.fixedBuffer)
+        {
+            *charPtr = 'A';
+        }
+        // Access safely through the index:
+        char c = example.buffer.fixedBuffer[0];
+        Console.WriteLine(c);
+
+        // Modify through the index:
+        example.buffer.fixedBuffer[0] = 'B';
+        Console.WriteLine(example.buffer.fixedBuffer[0]);
+    }
+}
+```
+
+固定大小的缓冲区使用 `System.Runtime.CompilerServices.UnsafeValueTypeAttribute` 进行编译，它指示公共语言运行时 CLR 某个类型包含可能溢出的非托管数组。
+
+```csharp
+internal unsafe struct Buffer
+{
+    public fixed char fixedBuffer[128];
+}
+// 为 Buffer 生成 C# 的编译器的特性如下
+internal struct Buffer
+{
+    [StructLayout(LayoutKind.Sequential, Size = 256)]
+    [CompilerGenerated]
+    [UnsafeValueType]
+    public struct <fixedBuffer>e__FixedBuffer
+    {
+        public char FixedElementField;
+    }
+
+    [FixedBuffer(typeof(char), 128)]
+    public <fixedBuffer>e__FixedBuffer fixedBuffer;
+}
+```
+
+与固定缓冲区不同的是，使用 `stackalloc` 分配的内存还会在 CLR 中自动启用缓冲区溢出检测功能。
+
+```csharp
+unsafe
+{
+    int* pSafe = stackalloc int[10];
+    for (int i = 0; i < 100; i++)
+        *(pSafe + i) = i;
+    // 进行缓冲区溢出检查，溢出时引发异常 System.AccessViolationException
+
+    Example ex = new Example();
+    fixed (int* pUnsafe = ex.buffer.fixedBuffer)
+    {
+        for (int i = 0; i < 100; i++)
+            *(pUnsafe + i) = i;   // 不进行缓冲区溢出检查
+    }
+}
+internal unsafe struct Buffer
+{
+    public fixed int fixedBuffer[10];
+}
+internal unsafe class Example
+{
+    public Buffer buffer = default;
+}
+```
+
+>--- 
+
+### 函数指针
+
+C# 提供 `delegate` 委托类型来定义安全函数指针对象。调用委托时，需要实例化从 `System.Delegate` 派生的类型并对其 `Invoke` 方法进行虚拟方法调用，该虚拟调用使用 IL 指令 `callvirt`
+
+可以使用 `delegate*` 语法声明函数指针。编译器将使用 IL 指令 `calli` 指令来调用函数，而不是实例化为委托对象并调用 `Invoke`。在性能关键的代码路径中，使用 IL 指令 `calli` 效率更高。
+
+```csharp
+// 委托定义参数
+public static T Combine<T>(Func<T, T, T> combinator, T left, T right) => combinator(left, right);
+// 函数指针定义参数
+public static T UnsafeCombine<T>(delegate*<T, T, T> combinator, T left, T right) => combinator(left, right);
+```
+
+函数指针只能在 `unsafe` 上下文中声明，只能在静态成员方法或静态本地方法使用地址运算符 `&`。
+
+```csharp
+unsafe
+{
+    // 函数指针声明和调用
+    delegate*<int, int> pAbs = &Abs;
+    Console.WriteLine(pAbs(-999));  // 999
+    // 本地静态方法
+    static int Abs(int val) => Math.Abs(val);
+}
+```
+
+#### 函数指针语法
+
+```ANTLR
+delegate* calling_convention_specifier? <parameter_list, return_type> 
+
+calling_convention_specifier? : 可选的调用约定说明符, 默认为 managed
+    managed : 默认调用约定
+    unmanaged : 非托管调用约定, 未显式指定调用约定类别, 则使用运行时平台默认语法
+    unmanaged [ Calling_convertion <,Calling_convertion ...>? ] : 指定特定的非托管调用约定, 一到若干个进行组合
+
+Calling_convertion : 调用约定
+    Cdecl : 调用方清理堆栈
+    stdcall : 被调用方清理堆栈, 这是从托管代码调用非托管函数的默认约定
+    Thiscall : 指定方法调用的第一个参数是 this 指针, 该指针存储在寄存器 ECX 中
+    Fastcall : 调用约定指定在寄存器中传递函数的参数 (如果可能), NET 可能不支持 
+    MemberFunction : 指示调用函数变体
+    SuppressGCTransition : 指示抑制 GC 转换作为调用约定的一部分
+```
+
+ECMA-335 将 `Calling_convertion` *调用约定* 定义为函数指针类型签名的一部分。默认的调用约定是 `managed`，非托管调用约定可以通过在 `delegate*` 语法后放置一个 `unmanaged` 关键字来指定，该关键字将使用运行时平台默认的调用约定类别。
+
+```csharp
+unsafe
+{
+    // 此方法具有托管调用约定。managed 可省略
+    delegate* managed<int, int> pManagedFun;
+
+    // 此方法将使用运行时平台上的默认非托管调用约定。这取决于平台和体系结构，并由 CLR 在运行时确定。
+    delegate* unmanaged<int, int> pUnmanagedFun;
+}
+```
+
+如果没有提供 `calling_convention_specifier`，则使用默认值 `managed`。
+
+```csharp
+delegate int Func1(string s);
+delegate Func1 Func2(Func1 f);
+
+// Function pointer equivalent without calling convention
+delegate*<string, int>;
+delegate*<delegate*<string, int>, delegate*<string, int>>;
+
+// Function pointer equivalent with calling convention
+delegate* managed<string, int>;
+delegate*<delegate* managed<string, int>, delegate*<string, int>>;
+```
+
+可以为 `unmanaged` 非托管调用指定特定的约定类别：通过在 `System.Runtime.CompilerServices` 命名空间中以 `CallConv` 开头的任何类型并去掉去掉 `CallConv` 前缀后的名称，做为 `unmanaged [Calling_convertion <,Calling_convertion>]` 声明的 `Calling_convertion`。
+
+```csharp
+using System.Runtime.CompilerServices;
+
+// 非托管调用约定类别
+CallConvCdecl Cdecl;
+CallConvFastcall Fastcall;
+CallConvStdcall Stdcall;
+CallConvThiscall Thiscall;
+CallConvMemberFunction MemberFunction;
+CallConvSuppressGCTransition SuppressGCTransition;
+
+unsafe
+{
+    // 此方法将使用 Cdecl 调用约定,
+    // Cdecl 映射到 System.Runtime.CompilerServices.CallConvCdecl
+    delegate* unmanaged[Cdecl]<int, int> pFunCdecl;
+
+    // 此方法将使用 Stdcall 调用约定，并抑制 GC 转换,
+    // Stdcall 映射到 System.Runtime.CompilerServices.CallConvStdcall
+    // SuppressGCTransition 映射到 System.Runtime.Compilerservices.Callconvsuppressgctransition
+    delegate* unmanaged[Stdcall, SuppressGCTransition]<int, int> pFunStdcall;
+}
+```
+
+函数指针类型之间的转换是基于它们的签名（包括调用约定）完成的。
+
+```csharp
+unsafe class Example
+{
+    void Conversions()
+    {
+        delegate*<int, int, int> p1 = ...;
+        delegate* managed<int, int, int> p2 = ...;
+        delegate* unmanaged<int, int, int> p3 = ...;
+
+        p1 = p2; // okay : p1, p2 具有相同的签名 
+        Console.WriteLine(p2 == p1); // True
+        p2 = p3; // error : 调用约定不兼容
+    }
+}
+```
+
+`delegate*` 类型是指针类型，这意味着它具有标准类型的所有功能和限制：
+- 功能：
+  - 指针仅在不安全的上下文中有效。
+  - 包含 `delegate*` 参数或返回类型的方法只能从不安全的上下文中调用。
+  - 不能转换为 `object`。
+  - 不能用作泛型类型参数。
+  - 可以隐式转换 `delegate*` 到 `void*`。
+  - 可以显式转换 `void*` 到 `delegate*`。
+- 限制：
+  - 自定义特性不能应用于 `delegate*` 或它的其任何元素。
+  - 不能将 `delegate*` 参数标记为 `params`。
+  - `delegate*` 类型具有普通指针类型的所有限制。
+  - 指针运算不能直接在函数指针类型上执行。
+  - 仅 `==`、`!=`、`<`、`>`、`<=`、`>=` 运算符可用于比较函数指针。
+
+#### 函数指针的目标方法
+
+允许将方法组作为 `&` 地址运算符的操作数，表达式返回类型是一个函数指针类型 `delegate*`，它具有与目标方法相同的签名和托管调用约定。
+
+在不安全的上下文中，如果满足以下所有条件，则方法 `M` 与函数指针类型 `F` 兼容：
+- `M` 和 `F` 具有相同数量的参数，并且 `M` 中的每个参数与 `F` 中对应的参数具有相同的 `ref`、`out` 或 `in` 修饰符。
+- 对于每个值形参，存在从 `M` 中的形参类型到 `F` 中相应形参类型的恒等转换、隐式引用转换或隐式指针转换。
+- 对于每一个 `ref`、`out` 或 `in` 形参，`M` 中的形参类型与 `F` 中对应的形参类型相同。
+- 如果返回类型是按值返回（无 `ref` 或 `ref readonly`），则存在从 `F` 的返回类型到 `M` 的返回类型的恒等、隐式引用或隐式指针转换。
+- 如果返回类型是引用（`ref` 或 `ref readonly`），则 `F` 的返回类型和修饰符与 `M` 的返回类型和修饰符相同。
+- `M` 的调用约定与 `F` 的调用约定相同。这既包括调用约定位（`unmanaged` 或 `managed`），也包括在非托管标识符中指定的任何调用约定类别。
+- `M` 是静态方法。
+
+```csharp
+unsafe class Util
+{
+    public static void Log() => Console.WriteLine("Log");
+    public static void Log(string mess) => Console.WriteLine(mess);
+    public static void Log(int i) => Console.WriteLine(i);
+
+    static void Main()
+    {
+        delegate*<void> a1 = &Log; // Log()
+        delegate*<int, void> a2 = &Log; // Log(int i)
+
+        // Error: 从方法组 Log 到 void* 的模糊转换
+        void* v = &Log;
+    }
+}
+```
+
+#### void* 与 delegate* 的转换
+
+
+
+#### 调用约定的元数据表示
+
+调用约定通过签名中的 `CallKind` 标志和签名开头的零个或多个 `modopts` 的组合在元数据中的方法签名中进行编码。ECMA-335 目前在 `CallKind` 标志中声明了以下元素。其中，C# 中的函数指针将支持除 `varargs` 以外的所有变量：
+
+```ANTLR
+CallKind
+   : default
+   | unmanaged cdecl
+   | unmanaged fastcall
+   | unmanaged thiscall
+   | unmanaged stdcall
+   | varargs
+   ;
+```
+
+> 从 `calling_conventions_specifier` 映射到 `CallKind`
+
+省略的 `calling_convention_specifier` 或指定为 `managed` 的 `calling_convention_specifier` 映射到默认的 `CallKind`。这是任何未归属于 `UnmanagedCallersOnlyAttribute` 的方法的默认 `CallKind`。
+
+```csharp
+unsafe class Sample
+{
+    public static delegate* managed<string, void> pWriteLine = &WriteLine;
+
+    static void WriteLine(string mess) => Console.WriteLine(mess);
+}
+```
+
+标记有 `UnmanagedCallersOnlyAttribute` 的任何方法均可从 `Native` 代码中直接调用。可以使用 C# 的 address-of 运算符 `&` 将函数加载到局部变量，并作为回调传递给 `Native` 方法。
+
+```csharp
+unsafe class Sample
+{
+    public static delegate* unmanaged[Cdecl]<int, int> pFun1;
+
+    // Target will be invoked using the cdecl calling convention
+    [UnmanagedCallersOnly(CallConvs = new Type[] { typeof(CallConvCdecl) })]
+    public static int Fun(int val) => val;
+
+    [DllImport("NativeLibrary", EntryPoint = "NativePointer")]
+    internal static extern void NativeMethod(delegate* unmanaged[Cdecl]<int, int> pFun);
+
+    static void Main()
+    {
+        pFun1 = &Fun;
+        // Calling in C#
+        Console.WriteLine(pFun1(1000));  
+        // or Callback of Native Method 
+        NativeMethod(pFun1);
+    }
+}
+```
+
+C# 识别 4 种特殊标识符，并映射到 ECMA-335 中特定的现有非托管 `CallKind`。为了实现这种映射，必须单独指定这些标识符，不能指定其他标识符，并且将此标识编码到 `unmanaged` 的 `Calling_convertion` 规范中。这些标识符是 `Cdecl`、`Thiscall`、`Stdcall` 和`Fastcall`，它们分别对应于 `unmanaged Cdecl`、`unmanaged Thiscall`、`unmanaged Stdcall` 和 `unmanaged Fastcall`。
+
+如果指定了多个标识符，或者单个标识符不是特殊标识符（例如 `MemberFunction`、`SuppressGCTransition`），则在标识符上加上 `CallConv` 前缀，并在 `System.Runtime.CompilerServices` 查找相应的类型定义（例如 `CallConvMemberFunction`）。这些类型必须来自程序的核心库，有效组合的集合依赖于平台。
+
+#### UnmanagedCallersOnlyAttribute
+
+`UnmanagedCallersOnlyAttribute` 是 CLR 使用的一个特性，用来指示一个方法应该用特定的调用约定来调用。编译器对该特性有以下支持和限制：
+- 在 C# 中直接调用带有此特性注释的方法是错误的。用户必须获得一个指向该方法的函数指针，然后调用该指针。
+- 将特性应用于普通静态方法或普通静态局部函数以外的任何程序元素都是错误的。C# 编译器会将从带有此特性的元数据中导入的任何非静态或静态非普通方法标记为语言不支持。
+- 如果特性标记的方法具有非 `unmanaged` 类型的参数或返回类型，则会产生错误。
+- 用特性标记泛型类型的方法是错误的。
+- 将标记有该特性的方法转换为委托类型是错误的。
+- 不满足在元数据中调用约定模块要求的 `UnmanagedCallersOnly.CallConvs` 的类型都是错误的。
+
+当确定用有效的 `UnmanagedCallersOnly` 特性标记的方法的调用约定时，编译器对 `CallConvs` 属性中指定的类型执行以下检查，以确定应该用于确定调用约定的有效 `CallKind` 和 `modopt`：
+
+- 如果没有指定类型，`CallKind` 将被视为非托管默认调用约定。在函数指针类型的开始处没有调用约定 `modopt`。
+
+  ```csharp
+  unsafe class Sample
+  {
+      public static delegate* unmanaged <int, int> pFun;>
+  
+      [UnmanagedCallersOnly()]
+      public static int Fun(int val) => val;
+      static void Main()
+      {
+          pFun = &Fun;
+          Console.WriteLine(pFun(10010)); 
+      }
+  }
+  ```
+
+- 如果指定了一种类型，并且该类型为 `CallConvCdecl`、`CallConvThiscall`、`CallConvStdcall` 或 `CallConvFastcall` 中的一个，那么 `CallKind` 将分别被视为 `unmanaged Cdecl`、`unmanaged Thiscall`、`unmanaged Stdcall` 和 `unmanaged Fastcall`。在函数指针类型的开始处没有调用约定 `modopt`。
+  - `CallConvCdecl` 指示调用者清理堆栈。这允许调用带有 `varargs` 的函数。
+  - `CallConvThiscall` 指示使用 `ThisCall` 调用约定时，方法调用的第一个参数是 `this` 指针，该指针存储在寄存器 `ECX` 中。方法调用的其他参数将推送到堆栈上。此调用约定用于对从非托管 DLL 导出的类调用方法。
+  - `CallConvStdcall` 指示被调用者清除堆栈。这是从托管代码调用非托管函数的默认约定。
+  - `CallConvFastcall` 指示使用 `Fastcall` 调用约定时，指定函数的参数在可能的情况下通过寄存器传递。`CallConvFastcall` 调用在当前 `.NET` 不受支持。
+
+  ```csharp
+  unsafe class Sample
+  {
+      public static delegate* unmanaged[Cdecl]<int, int> pFun;
+  
+      [UnmanagedCallersOnly(CallConvs = new[] {typeof(CallConvCdecl) })]
+      public static int Fun(int val) => val;
+      static void Main()
+      {
+          pFun = &Fun;
+          Console.WriteLine(pFun(10010));
+      }
+  }
+  ```
+
+- 如果指定了多个类型，或者单个类型没有被命名为上面特别调用的类型之一（例如 `MemberFunction`、`SuppressGCTransition`），那么 `CallKind` 将被视为非托管默认调用约定，指定的类型的联合将被视为函数指针类型开头的 `modopt`。
+  - `SuppressGCTransition` 指示方法应禁止 GC 转换作为调用约定的一部分。该方法只能在非托管代码中使用。 
+  - `MemberFunction` 指示所使用的调用约定是成员函数变体。
+
+  ```csharp
+  unsafe class Sample
+  {
+      public static delegate* unmanaged[Cdecl, MemberFunction]<int, int> pFun;
+  
+      [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl), typeof(CallConvMemberFunction) })]
+      public static int Fun(int val) => val;
+      static void Main()
+      {
+          pFun = &Fun;
+          Console.WriteLine(pFun(10010));
+      }
+  }
+  ```
+
+- 最终，编译器查看这个有效的 `CallKind` 和 `modopt` 集合，并使用正常的元数据规则来确定函数指针类型的最终调用约定。
+
+
+#### UnmanagedCallConvAttribute 
+
+`UnmanagedCallConvAttribute` 指定 ·NET 调用非托管代码中实现的 P/Invoke 方法（本机函数）所需的调用约定。这些方法的调用约定为 `managed`。
+
+当此特性应用于带有 `DllImportAttribute` 的方法，其中 `CallingConvention` 设置为 `Winapi` 时，.NET 运行时将使用 `UnmanagedCallConvAttribute.CallConvs` 来确定 P/Invoke 的调用约定。如果应用于没有 `DllImportAttribute` 或 `CallingConvention` 设置为 `Winapi` 以外的其他内容的方法，则忽略此特性。
+
+```csharp
+unsafe class Sample
+{
+    public static delegate*<int, int> pFun;
+    public static delegate*<int, int> pFun2;
+
+    // Target will be invoked using the stdcall calling convention
+    [UnmanagedCallConv(CallConvs = new Type[] { typeof(CallConvStdcall) })]
+    [DllImport("NativeLibrary", EntryPoint = "native_function_stdcall")]
+    // 上述特性组合等效于 [DllImport("NativeLibrary", EntryPoint = "native_function_stdcall", CallingConvention = CallingConvention.StdCall)]
+    internal static extern int NativeFunction(int arg);
+
+    // Target will be invoked using the stdcall calling convention and with the GC transition suppressed
+    [UnmanagedCallConv(CallConvs = new Type[] { typeof(CallConvStdcall), typeof(CallConvSuppressGCTransition) })]
+    [DllImport("NativeLibrary", EntryPoint = "native_function_stdcall", CallingConvention = CallingConvention.Winapi)]
+    internal static extern int NativeFunction_NoGCTransition(int arg);
+
+    static void Main()
+    {
+        pFun = &NativeFunction;
+        pFun2 = &NativeFunction_NoGCTransition;
+
+        pFun(10010);
+        pFun2(10086);
+    }
+}
+```
+
 ---
 ## 表达式树类型
 
@@ -2098,11 +3514,11 @@ Expression<Func<int, int>> Exp = x => x + 1;  // Data
 
 并非每个 Lambda 表达式都可以转换为表达式树类型。虽然 Lambda 表达式始终存在到兼容委托类型的转换，但由于特定于实现的原因，它转换表达式树时可能在编译时失败。
 
-<br>
+>---
 
 ### 表达式树的限制
 
-- 不能调用没有实现声明的分部方法、调用已移除的条件方法（`Conditional`）、调用本地函数、调用 `ref` 返回的方法属性或索引器、调用使用可选参数的方法、调用包含命名参数规范的方法、调用省略 `ref` 的 COM 方法、。
+- 不能调用没有实现声明的分部方法、调用已移除的条件方法（`Conditional`）、调用局部函数、调用 `ref` 返回的方法属性或索引器、调用使用可选参数的方法、调用包含命名参数规范的方法、调用省略 `ref` 的 COM 方法、。
 - 不能使用 Lambda 语句、异步 Lambda 表达式、引用 `ref` 返回的 Lambda、使用引用传递（`in`、`out`、`ref`）参数的 Lambda、具有特性的 Lambda、
 - 不能使用 `base` 访问、赋值操作、`dynamic` 动态操作、模式匹配、元组字面值和元组操作（相等、不等、转换）、`??=` 空合并运算符、`?.` 空传播运算符、索引和范围运算符、不安全的指针操作、不能包含左侧为 `null` 或 `default` 字面量的 `??` 合并运算符。
 - 不能使用 `throw` 表达式、`with` 表达式、`switch` 表达式、匿名方法表达式、多维数组和字典的初始值设定项、不支持扩展 `Add` 的集合初始值设定项。
@@ -2110,7 +3526,7 @@ Expression<Func<int, int>> Exp = x => x + 1;  // Data
 - 无法访问静态抽象或虚拟的接口成员、不能包含模式 `System.Index` 或 `System.Range` 索引器访问、不能包含内插字符串处理程序转换、不能在方法组上使用 `&` 地址运算、不能包含索引属性。
 - 表达式树的类型参数不能是非委托类型。
 
-<br>
+>---
 
 ### 执行表达式树
 
@@ -2131,7 +3547,7 @@ del2.DynamicInvoke(" World");
 如果表达式树不表示 Lambda 表达式，可以通过调用 `Lambda<TDelegate>(Expression, IEnumerable<ParameterExpression>)` 方法创建一个新的 Lambda 表达式。
 
 
-<br>
+>---
 
 ## 变量
 
@@ -2155,7 +3571,7 @@ class Sample
 }
 ```
 
-<br>
+>---
 
 ### 变量类别
 #### 静态变量 
@@ -2186,7 +3602,7 @@ class Sample
 
 #### 引用参数
 
-用 `ref` 修饰声明的形参是引用参数。引用参数是在调用函数成员、委托、匿名方法或本地函数时产生的引用变量。引用参数不会创建新的存储位置，它与给定调用中的参数变量表示相同的存储位置。当函数体执行完成时，引用参数也不存在，且引用参数不会被捕获。
+用 `ref` 修饰声明的形参是引用参数。引用参数是在调用函数成员、委托、匿名方法或局部函数时产生的引用变量。引用参数不会创建新的存储位置，它与给定调用中的参数变量表示相同的存储位置。当函数体执行完成时，引用参数也不存在，且引用参数不会被捕获。
 
 变量在作为函数成员或委托调用的引用参数传递之前必须明确赋值。由于明确赋值的目的，引用参数被视为初始赋值。
 
@@ -2194,13 +3610,13 @@ class Sample
 
 #### 输出参数
 
-用 `out` 修饰声明的形参是输出参数。输出参数是在调用函数成员、委托、匿名方法或本地函数时产生的引用变量。当函数体执行完成时，输出参数不再存在，且输出参数不会被捕获。
+用 `out` 修饰声明的形参是输出参数。输出参数是在调用函数成员、委托、匿名方法或局部函数时产生的引用变量。当函数体执行完成时，输出参数不再存在，且输出参数不会被捕获。
 
 输出参数的赋值规则：
 - 在函数成员或委托调用中将变量作为输出参数传递之前，不需要明确赋值。
 - 在函数成员或委托调用正常完成之后，作为输出参数传递的每个变量都被认为是在该执行路径中分配的。
 - 在函数成员或匿名函数中，输出参数最初被认为是未分配的。
-- 函数成员、匿名函数或本地函数的每个输出参数必须在函数正常返回之前明确赋值。
+- 函数成员、匿名函数或局部函数的每个输出参数必须在函数正常返回之前明确赋值。
 
 #### 输入参数
 
@@ -2218,7 +3634,7 @@ class Sample
 
 弃元 `_` 是一个没有名称的局部变量，由声明表达式引入。弃元也可以作为 `out` 参数传递。由于弃元没有被明确赋值，所以访问它的值始终是错误的。但有些声明中 `_` 是一个有效的标识符，此时 `_` 是一个明确赋值的变量存在，在其作用域范围内，弃元无法使用。
 
-<br>
+>---
 
 ### 明确赋值
 
@@ -2243,11 +3659,112 @@ class Sample
 
 初始未分配的结构实例变量、输出参数、局部变量。
 
-#### 变量引用的原子性
+>---
 
-`bool`、`char`、`byte`、`sbyte`、`short`、`ushort`、`int`、`uint`、`float` 和引用类型的读取和写入是原子的，具有前面列表中基础类型的枚举类型的读写也是原子的；`long`、`ulong`、`double`、`decimal` 和用户定义类型的读写不能保证为原子性。
+### 隐式变量
 
-<br>
+声明局部变量时，可以让编译器从初始化表达式推断出变量的类型。使用 `var` 关键字隐式声明变量，隐式变量只能应用于局部变量声明。`var` 的常用于接收函数返回、类型推断、模式匹配、匿名类型的声明、隐式变量的声明等。
+
+```csharp
+var Ps = new PointArray(PointArray.RandomPoints(50));
+Ps.AddPoints(PointArray.RandomPoints(50));
+var first_Ps = Ps.GetPointsInQuadrant(1);
+var Second_Ps = Ps.GetPointsInQuadrant(2);
+var Third_Ps = Ps.GetPointsInQuadrant(3);
+var Forth_Ps = Ps.GetPointsInQuadrant(4);
+
+Print(first_Ps);
+Print(Second_Ps);
+Print(Third_Ps);
+Print(Forth_Ps);
+// -----------------------------------------------
+static void Print<T>(in IEnumerable<T> arr)
+{
+    foreach (var item in arr)
+        Console.WriteLine(item.ToString());
+}
+
+record struct PointArray(params (int x, int y)[] points)
+{
+    public readonly int PointsCount => points.Length;
+    private bool PrintMembers(System.Text.StringBuilder sb)
+    {
+        if (points.Length > 0)
+        {
+            sb.Append(points[0]);
+            foreach (var p in points[1..])
+                sb.Append(" ," + p);
+            return true;
+        }
+        return false;
+    }
+    public static (int, int)[] RandomPoints(int count)
+    {
+        int seed = DateTime.Now.Microsecond;
+        Random r = new Random(seed);
+        var ps = new (int, int)[count];
+        for (int i = 0; i < count; i++)
+            ps[i] = (r.Next(-128, 128), r.Next(-128, 128));
+        return ps;
+    }
+
+    public void AddPoints(params (int x, int y)[] points)
+    {
+        (int x, int y)[] newPoints = new (int x, int y)[points.Length + this.points.Length];
+        Array.Copy(this.points, newPoints, this.points.Length);
+        Array.Copy(points, 0, newPoints, this.points.Length, points.Length);
+        this.points = newPoints;
+    }
+    public (int, int)[] GetPointsInQuadrant(uint order)
+    {
+        if (order < 0 || order > 4)
+            return default;
+        var state = static delegate (int x, int y, uint order)
+        {
+            return order switch
+            {
+                1 => x > 0 && y > 0,
+                2 => x > 0 && y < 0,
+                3 => x < 0 && y < 0,
+                4 => x < 0 && y > 0,
+            };
+        };
+        var ps = from (int x, int y) p in this.points
+                 where state(p.x, p.y, order)
+                 select p;
+        return ps.ToArray();
+    }
+}
+```
+
+可以使用 `var` 作为 `out` 参数传递。隐式类型输出变量的类型是重载解析选择的方法签名中相应参数的类型。当无法重载决策时（例如发生歧义）需要显式输入变量参数的类型。
+
+```csharp
+class Sample
+{
+    static void Fun(out int num)
+    {
+        num = 1;
+    }
+    static void Fun(out string mess)
+    {
+        mess = "";
+    }
+    static void Main(string[] args)
+    {
+        Fun(out var num);  // 隐式声明，歧义
+        Fun(out string mess);  // 显式输入类型
+    }
+}
+```
+
+>---
+
+### 变量引用的原子性
+
+`bool`、`char`、`byte`、`sbyte`、`short`、`ushort`、`int`、`uint`、`float` 和引用类型的读取和写入是原子的，具有前面列表中基础类型的枚举类型的读写也是原子的，本机大小的整数 `nint`、`unint` 的读写也是原子的；`long`、`ulong`、`double`、`decimal` 和用户定义类型的读写不能保证为原子性。
+
+>---
 
 ### 引用变量和引用返回
 
@@ -2287,7 +3804,7 @@ ref int Fun()
 }
 ```
 
-<br>
+>---
 
 ### Ref-Safe-Context
 
@@ -2440,13 +3957,13 @@ class S
 
 #### 对引用变量的限制
 
-- Lambda 表达式或本地函数不能捕获引用形参、输出形参、输入形参、`ref 局部变量或 `ref struct` 类型的局部。
+- Lambda 表达式或局部函数不能捕获引用形参、输出形参、输入形参、`ref 局部变量或 `ref struct` 类型的局部。
 - 引用形参、输出形参、输入形参和 `ref struct` 结构类型的形参都不能作为迭代器方法或异步方法的实参。
 - `ref` 局部变量和 `ref struct` 类型的局部变量，都不能出现在 `yield return` 语句或 `await` 表达式的上下文中。
 - 对于 `ref` 重赋值 `e1 = ref e2`，`e2` 的 *Ref-Safe-Context* 至少与 `e1` 的 *Ref-Safe-Context* 一样宽。
 - 对于一个 `ref return` 方法的语句 `return ref`，`ref` 的 *Ref-Safe-Context* 是 *Caller-Context*。
 
-<br>
+>---
 
 ### Safe-Context 约束
 
@@ -2506,28 +4023,62 @@ ref struct Sample
 
 调用构造函数的 `new` 表达式遵循与方法调用相同的规则，构造函数的调用被视为返回正在构造的类型的方法的调用。如果存在任何的初始化项，则 *Safe-Context* 是所有对象初始化项表达式的最窄的。
 
-<br>
+>---
+
+<!-- ### scoped 作用域修饰符
+
+关键字 `scoped` 将用于限制值的生存期。它可以应用于 `ref`、`out`、`in` 引用或一个 `ref struct` 的值（可以是参数或是局部变量），并且具有将 *Ref-Safe-Context* 或 *Safe-Context* 的生存期限制为 *Function-Member* 当前方法。例如：
+
+| Parameter or Local | ref-safe-context | safe-context |
+|---|---|---|
+| `Span<int> s` | *function-member* | *caller-context* | 
+| `scoped Span<int> s` | *function-member* | *function-member* | 
+| `ref Span<int> s` | *caller-context* | *caller-context* | 
+| `scoped ref Span<int> s` | *function-member* | *caller-context* | 
+
+在这种关系中，一个值的 *Ref-Safe-Context* 不会比它的 *Safe-Context* 范围更宽。
+
+```csharp
+Span<int> CreateSpan(scoped ref int parameter)
+{
+    // Just as with C# 10, the implementation of this method isn't relevant to callers.
+}
+
+Span<int> BadUseExamples(int parameter)
+{
+    // Legal in C# 10 and legal in C# 11 due to scoped ref
+    return CreateSpan(ref parameter);
+
+    // Legal in C# 10 and legal in C# 11 due to scoped ref
+    int local = 42;
+    return CreateSpan(ref local);
+
+    // Legal in C# 10 and legal in C# 11 due to scoped ref
+    Span<int> span = stackalloc int[42];
+    return CreateSpan(ref span[0]);
+}
+```
+
+因此，`scoped` 修饰符意味着结构类型的 `this` 可以定义为 `scoped ref`。
+
+```csharp
+
+``` -->
+
 
 
 
 
 ### ==============
 
-所有的引用变量都遵守安全规则。对于任何变量，
-
-
-
-
-
-
 
 
 
 ---
 ### 引用类型
-<br>
+>---
 
-#### string 字符串类型
+### string 字符串类型
 
 - `string` 类型表示零个或多个 Unicode 字符的序列。使用相等运算符 `==` 和 `!=` 比较 `string` 对象的值，为不是比较对象的引用。
 
@@ -2539,7 +4090,7 @@ Console.WriteLine(str1 == str2);  // true
 Console.WriteLine(object.ReferenceEquals(str1, str2)); // false
 ```
 
-> 字符串拼接
+#### 字符串拼接
 
 - `+` 用于拼接两个字符串片段。字符串是不可变的，每次赋值时，编译器实际上会创建一个新的字符串对象来保存新的字符序列，并将新对象赋值给目标，并将之前的内存用于垃圾回收。
 
@@ -2558,10 +4109,9 @@ for (int i = 0; i < str.Length; i++)
 // Output: t e s t
 ```
 
-> 字符串内插
+#### 字符串内插
 
 - `$` 字符将字符串字面量标识为内插字符串，内插字符串是可能包含内插表达式的字符串文本。将内插字符串解析为结果字符串时，带有内插表达式的项会替换为表达式结果的字符串表示形式。
-- 内插字符串初始化常量时，所有的内插表达式也必须是常量字符串。C#11 起内插表达式支持使用换行符，以使表达式更具有可读性
 
 ```csharp
 $"{<interpolationExpression>[,<alignment>][:<formatString>]}"
@@ -2589,7 +4139,18 @@ string message = $"The usage policy for {safetyScore} is {
     }}";
 ```
 
-> 逐字字符串
+- 内插字符串初始化常量时，所有的内插表达式也必须是常量字符串。C#11 起内插表达式支持使用换行符，以使表达式更具有可读性。
+
+```csharp
+public class Sample
+{
+    const string S1 = $"Hello world";
+    const string S2 = $"Hello{" "}World";
+    const string S3 = $"{S1} Kevin, welcome to the team!";
+}
+```
+
+#### 逐字字符串
 
 - `@` 指示将原义解释字符串。简单转义序列（如代表反斜杠的 `"\\"`）、十六进制转义序列（如代表大写字母 A 的 `"\x0041"`）和 Unicode 转义序列（如代表大写字母 A 的 `"\u0041"`）都将按字面解释。引号转义 `""` 不会按字面解释。
 - 逐字内插字符串中，大括号转义序列（`{{` 和 `}}`）不按字面解释。
@@ -2608,7 +4169,7 @@ Console.WriteLine(str);
 //{   3.141592653589793} >> "default formatting of the pi number"
 ```
 
-> 原始字符串
+#### 原始字符串
 
 - 原始字符串字面量从 C#11 开始可用。字符串字面量可以包含任意文本，而无需转义序列，字符串字面量可以包括空格和新行、嵌入引号以及其他特殊字符。原始字符串字面量用至少三个双引号（`"""`） 括起来。
 
@@ -2627,7 +4188,7 @@ You could extend this example with as many embedded quotes as needed for your te
 """""
 ```
 
-> UTF-8 字符串字面量
+#### UTF-8 字符串字面量
 
 - .NET 中的字符串是使用 UTF-16 编码存储的。UTF-8 是 Web 协议和其他重要库的标准。从 C#11 开始，可以将 `u8` 后缀添加到字符串字面量以指定 UTF-8 编码。UTF-8 字面量存储为 `ReadOnlySpan<byte>` 对象。 UTF-8 字符串字面量的自然类型是 `ReadOnlySpan<byte>`。UTF-8 字符串字面量不能与字符串内插结合使用。
 
@@ -2641,780 +4202,5 @@ Console.WriteLine(strU16);
 string str = "Hello world!";
 ReadOnlySpan<byte> bytes = Encoding.UTF8.GetBytes(str);
 ```
-
-<br>
-
-#### record 记录类型
-
-- 从 C#9 开始，可以使用 `record` 修饰符定义一个引用类型，用来提供用于封装数据的内置功能。C#10 允许 `record class` 语法作为同义词来阐明引用类型，并允许 `record struct` 使用相同功能定义值类型。
-- 位置记录：在记录上声明主构造函数时，编译器会为记录类型自动生成一个位置构造函数，同时根据位置参数自动生成一个解构函数 `Deconstruct` 以支持将位置记录解构为元组，并在该位置记录中为主构造函数的参数生成公共属性。
-
-```csharp
-public record Person(string FirstName, string LastName);
-// 相当于
-public record Person{
-    public required string FirstName { get; init; }
-    public required string LastName { get; init; }
-    // 结构函数在记录中自动生成，可以声明方法重载或显式声明默认的 Deconstruct
-    public void Deconstruct(out string firstName, out string lastName) 
-    => (firstName, lastName) = (FirstName, LastName)
-}
-
-public record struct Point(int x, int y);
-// 相当于
-public record struct Point{
-    public int x {get; set;}
-    public int y {get; set;}
-}
-
-public readonly record struct Score(int Math, int English);
-// 相当于
-public readonly record struct Score{
-    public int Math { get; init; }
-    public int English { get; init; }
-}
-```
-
-> 属性定义的位置语法
-
-- 在创建实例时，可以使用位置参数来声明记录的属性，并初始化属性：
-- 在为记录的属性定义使用位置语法时，编译器将创建以下内容：
-  - 为记录声明中提供的每个位置参数提供一个公共的自动实现的属性：对于 `record` 类型，为 `required` 只读属性；对于 `readonly record struct` 类型，为只读属性；对于 `record struct` 类型，为读写属性。
-  - 在主构造函数上，它的参数与记录声明上的位置参数匹配。
-  - 对于 `record struct` 类型，则是将每个字段设置为其默认值的无参数构造函数。
-
-* 若要更改自动实现的属性的可访问性或可变性，或为访问器提供实现，可以在源中自行定义同名的属性，并从记录的位置参数初始化该属性。
-
-```csharp
-public record Person(string FirstName, string LastName, string Id)
-{
-    internal string Id { get; init; } = Id;
-}
-```
-
-> 位置记录中的解构函数
-
-- 为了支持将 `record` 对象能解构成元组，我们给 `record` 添加解构函数 `Deconstruct`。声明主构造函数的记录定义为位置记录，该位置记录会为主构造函数中的位置参数自动生成一个解构函数。
-
-```csharp
-record Person
-{
-    public string FirstName { get; init; }
-    public string LastName { get; init; }
-    public Person(string firstName, string lastName) 
-        => (FirstName, LastName) = (firstName, lastName);
-    public void Deconstruct(out string firstName, out string lastName) 
-        => (firstName, lastName) = (FirstName, LastName);
-}
-// 相当于
-record Person(string FirstName, string LastName);
-```
-
-- 解构记录为元组。
-
-```csharp
-var (first, last) = new Person("Hello", "World");
-record Person(string FirstName, string LastName);
-```
-
-- 重定义解构函数或重载解构函数 `Deconstruct`
-
-```csharp
-using System.Diagnostics;
-
-var (first, last) = new Person("Hello", "World");
-var (firstName, _, Number) = new Person("Hello", "World") { PhoneNumber = "5566-6655" };
-
-record Person(string FirstName, string LastName)
-{
-    public string PhoneNumber { get; set; } = "";
-    // 重定义
-    public void Deconstruct(out string firstName, out string lastName)
-    {
-        Console.WriteLine("Use Deconstruct >> " + new StackFrame(0, true));
-        (firstName, lastName) = (FirstName, LastName);
-    }
-    // 重载
-    public void Deconstruct(out string firstName, out string lastName, out string PhoneNumber)
-    {
-        firstName = FirstName;
-        lastName = LastName;
-        PhoneNumber = this.PhoneNumber;
-    }
-}
-```
-
-> 值相等性
-
-- 对于 `class` 类型，两个对象引用内存中的同一对象，则这两个对象相等。
-- 对于 `struct` 类型，两个对象是相同的类型并且存储相同的值，则这两个对象相等。
-- 对于 `record` 类型，如果两个对象是相同的类型且存储相同的值，则这两个对象相等。
-
-```csharp
-class Sample
-{
-    public record Person(string FirstName, string LastName, string[] PhoneNumbers);
-
-    static void Main()
-    {
-        var phoneNumbers = new string[2];
-        Person person1 = new("Nancy", "Davolio", phoneNumbers);
-        Person person2 = new("Nancy", "Davolio", phoneNumbers);
-
-        Console.WriteLine(person1 == person2); // output: True
-        person1.PhoneNumbers[0] = "555-1234";
-        Console.WriteLine(person1 == person2); // output: True
-        Console.WriteLine(ReferenceEquals(person1, person2)); // output: False
-    }
-}
-```
-
-- 为实现值相等性，编译器合成了几种方法：
-  - `Object.Equals(Object)` 的替代，无法显式声明此替代。
-  - 运算符 `==` 和 `!=` 的替代，无法显式声明这些运算符。
-  - `virtual` 或 `sealed` 的 `Equals(R? other)`，其中 `R` 是记录类型。此方法实现 `IEquatable<T>`，可以显式声明此方法，还应该提供 `GetHashCode` 的实现。
-  - `Object.GetHashCode()` 的替代，可以显式声明此方法。
-  - 提供返回 `Type` 的 `EqualityContract` 只读属性的实现，可以显式声明此属性。该属性在密封记录中是 `private` 的，在可继承的记录中是 `protected virtual` 的。由于在默认实现的 `GetHashCode` 方法中调用了 `EqualityContract`，因此不建议在此属性中调用 `GetHashCode` 方法。  
-
-```csharp
-using System.Diagnostics;
-
-Person p1 = new("Hello", "World");
-Person pClone = p1;
-pClone.PhoneNumber = "6666-5555";
-Console.WriteLine(p1);
-Console.WriteLine(Object.ReferenceEquals(p1, pClone));   // true
-
-var p2 = p1 with { PhoneNumber = "5566-6655" };         // with 调用复制构造函数
-Console.WriteLine(p2);
-Console.WriteLine(Object.ReferenceEquals(p1, p2));      // false
-
-var p3 = p1 with { };               // with 调用复制构造函数
-Console.WriteLine(p3 == p1);        // 调用 Person.Equals, true
-Console.WriteLine(Object.ReferenceEquals(p1, p3));      // false
-
-record Person(string FirstName, string LastName) : IEquatable<Person>
-{
-    protected virtual Type EqualityContract
-    {
-        get
-        {
-            Console.WriteLine("Use EqualityContract at " + new StackFrame(1).GetMethod().Name);
-            return this.GetType();
-        }
-    }
-    public override int GetHashCode()
-    {
-        Console.WriteLine("Use GetHashCode");
-        return unchecked((EqualityComparer<Type>.Default.GetHashCode(EqualityContract) * -1521134295
-               + EqualityComparer<string>.Default.GetHashCode(FirstName)) * -1521134295
-               + EqualityComparer<string>.Default.GetHashCode(LastName));
-    }
-    public virtual bool Equals(Person? other)
-    {
-        Console.WriteLine("Use Equals");
-        return (object)other != null
-                && EqualityContract == other.EqualityContract
-                && EqualityComparer<string>.Default.Equals(FirstName, other.FirstName)
-                && EqualityComparer<string>.Default.Equals(LastName, other.LastName);
-    }
-    protected Person(Person origin)
-    {
-        Console.WriteLine("Use Clone");
-        (FirstName, LastName) = origin;
-        PhoneNumber = origin.PhoneNumber;
-    }
-    public string PhoneNumber { get; set; } = "";
-}
-/*
-Person { FirstName = Hello, LastName = World, PhoneNumber = 6666-5555 }
-True
-Use Clone
-Person { FirstName = Hello, LastName = World, PhoneNumber = 5566-6655 }
-False
-Use Clone
-Use Equals
-Use EqualityContract at Equals
-Use EqualityContract at Equals
-True
-False
-*/
-```
-
-> 非破坏性变化
-
-- 若需要复制包含一些修改的实例，可以使用 `with` 表达式来实现非破坏性变化。`with` 表达式创建一个新的记录实例，该实例是现有记录实例的一个副本，并修改了指定的属性或字段。
-
-```csharp
-class Sample
-{
-    public record Person(string FirstName, string LastName)
-    {
-        public string[] PhoneNumbers { get; init; }
-    }
-
-    public static void Main()
-    {
-        Person person1 = new("Nancy", "Davolio") { PhoneNumbers = new string[1] };
-        Console.WriteLine(person1);
-        // output: Person { FirstName = Nancy, LastName = Davolio, PhoneNumbers = System.String[] }
-
-        Person person2 = person1 with { FirstName = "John" };
-        Console.WriteLine(person2);
-        // output: Person { FirstName = John, LastName = Davolio, PhoneNumbers = System.String[] }
-        Console.WriteLine(person1 == person2);
-        // output: False
-
-        person2 = person1 with { PhoneNumbers = new string[1] };
-        Console.WriteLine(person2);
-        // output: Person { FirstName = Nancy, LastName = Davolio, PhoneNumbers = System.String[] }
-        Console.WriteLine(person1 == person2); 
-        // output: False
-
-        person2 = person1 with { };
-        Console.WriteLine(person1 == person2); 
-        // output: True
-    }
-}
-```
-
-- `with` 表达式可以设置位置属性或使用标准属性语法创建的属性。显式声明属性必须有一个 `init` 或 `set` 访问器才能在 `with` 表达式中进行更改。
-- `with` 表达式的结果是一个浅的副本，这意味着对于引用属性，只复制对实例的引用。原始记录和副本最终都具有对同一实例的引用。
-- 编译器合成了一个克隆方法 `Clone` 和一个复制构造函数 `recordType(recordType origin)`，虚拟克隆方法返回由复制构造函数初始化的新记录。用户不能替代克隆方法，也不能在任意记录类型中创建名为 `Clone` 的成员。克隆方法的实际名称是由编译器生成的，当使用 `with` 表达式时，编译器将创建调用克隆方法的代码，然后设置 `with` 表达式中指定的属性。复制构造函数可以被显式定义，在非密封记录中必须是 `public` 或 `protected`。
-- `with` 表达式会调用类型的复制构造函数。
-
-```csharp
-Person p1 = new("Hello", "World");
-Person pClone = p1;
-pClone.PhoneNumber = "6666-5555";
-Console.WriteLine(p1);
-Console.WriteLine(Object.ReferenceEquals(p1, pClone));   // true
-
-var p2 = p1 with { PhoneNumber = "5566-6655" };
-Console.WriteLine(p2);
-Console.WriteLine(Object.ReferenceEquals(p1, p2));      // false
-
-var p3 = p1 with { };
-Console.WriteLine(Object.ReferenceEquals(p1, p3));      // false, 值相等性
-
-sealed record Person(string FirstName, string LastName)
-{
-    private Person(Person origin)
-    {
-        Console.WriteLine("Use Clone");
-        (FirstName, LastName) = origin;
-        PhoneNumber = origin.PhoneNumber;
-    }
-    public string PhoneNumber { get; set; } = "";
-}
-```
-
-> 用于显示的内置格式设置
-
-- 记录类型具有编译器生成的 `ToString` 方法，可显式公共属性和字段的名称和值。 `ToString` 方法返回一个格式如下的字符串：`<record type name> { <property name> = <value>, <property name> = <value>, ...}`，其中每个 `<value>` 打印的字符串是属性或字段对应类型的 `ToString()`。为了实现此功能，编译器在 `record class` 类型中合成了一个虚拟 `PrintMembers` 方法和一个 `ToString` 替代，此成员在 `record struct` 类型中为 `private`。
-
-```csharp
-using System.Text;
-
-PointArray X = new((0, 0), (1, 1), (2, 2), (3, 3), (4, 4));
-Console.WriteLine(X);   // Output: (0,0),(1,1),(2,2),(3,3),(4,4)
-
-public record struct Point(int x, int y)
-{
-    public static implicit operator Point((int, int) p) => new Point(p.Item1, p.Item2);
-    public override string ToString() => $"({this.x},{this.y})";
-}
-public readonly record struct PointArray(params Point[] points)
-{
-    public override string ToString()
-    {
-        StringBuilder sb = new StringBuilder();
-        if (points.Length > 0)
-        {
-            sb = new StringBuilder(points[0].ToString());
-            foreach (Point p in points[1..points.Length])
-                sb.Append("," + p.ToString());
-        }
-        return sb.ToString();
-    }
-}
-```
-
-- 自定义 PrintMembers 方法
-
-```csharp
-using System.Text;
-
-PointArray X = new((0, 0), (1, 1), (2, 2), (3, 3), (4, 4));
-Console.WriteLine(X);   
-// Output: PointArray { points = { (0,0), (1,1), (2,2), (3,3), (4,4) } }
-
-public record struct Point(int x, int y)
-{
-    public static implicit operator Point((int, int) p) => new Point(p.Item1, p.Item2);
-    public override string ToString() => $"({this.x},{this.y})";
-}
-public readonly record struct PointArray(params Point[] points)
-{
-    public readonly int Length => points.Length;
-    private bool PrintMembers(StringBuilder sb)
-    {
-        if (points.Length == 0)
-            return false;
-        else
-        {
-            sb.Append($"points = {{ {points[0].ToString()}");
-            foreach (Point p in points[1..points.Length])
-                sb.Append(", " + p.ToString());
-            sb.Append(" }");
-            return true;
-        }
-    }
-}
-```
-
-> 继承
-
-- 一条记录可以从另一条记录继承。派生记录为基本记录主构造函数中的所有参数声明位置参数，基本记录声明并初始化这些属性；派生记录不会隐藏它们，而只会创建和初始化未在其基本记录中声明的参数的属性。
-- 要使两个记录变量相等，运行时类型必须相等。包含变量的类型可能不同，但相等性测试依赖于实际对象的运行时类型，而不是声明的变量类型。
-- `with` 表达式结果的运行时间类型与表达式操作数相同：运行时类型的所有属性都会被复制，但用户只能设置编译时类型的属性。
-- 派生记录类型的合成 `PrintMembers` 方法并调用基实现 `base.PrintMembers()`。结果是派生类型和基类型的所有公共属性和字段都包含在 `ToString` 输出中。派生记录也会重新合成基记录的 `EqualityContract`、`GetHashCode`、`Deconstruct` 方法。 
-
-```csharp
-class Sample
-{
-    public abstract record Person(string FirstName, string LastName);
-    public record Teacher(string FirstName, string LastName, int Grade)
-        : Person(FirstName, LastName);
-    public record Student(string FirstName, string LastName, int Grade)
-        : Person(FirstName, LastName);
-
-    public static void Main()
-    {
-        Person teacher = new Teacher("Nancy", "Davolio", 3);
-        Console.WriteLine(teacher);
-        // output: Teacher { FirstName = Nancy, LastName = Davolio, Grade = 3 }
-
-        /* 相等性测试 */
-        Person student = new Student("Nancy", "Davolio", 3);
-        Console.WriteLine(teacher == student); // output: False
-        Student student2 = new Student("Nancy", "Davolio", 3);
-        Console.WriteLine(student2 == student); // output: True
-
-        /* with 表达式 */
-        Person clone_teacher = teacher with { FirstName = "Tom" }; // 无法定义 Grade，虽然在运行时类型包含此属性
-        Teacher teacher2 = (Teacher)teacher with { Grade = 6 };
-        Console.WriteLine(teacher2);
-        // output: Teacher { FirstName = Nancy, LastName = Davolio, Grade = 6 }
-
-        /* 解构函数 */
-        var (first, second) = (Teacher)teacher;  // 支持基记录的解构函数
-        var (first2, second2, grade) = (Teacher)teacher; // 在 Teacher 重新生成的解构函数
-    }
-}
-```
-
-<br>
-
-
----
-### 匿名类型
-
-- 匿名类型提供了一种方便的方法，可用来将一组只读属性封装到单个对象中，而无需首先显式定义一个类型，每个属性的类型由编译器推断。类型名由编译器生成，并且不能在源代码级使用，可结合使用 `new` 运算符和对象初始值设定项创建匿名类型。
-- 匿名类型包含一个或多个公共只读属性。无法包含其他种类的类成员（如方法或事件）。用来初始化属性的表达式不能为 null、匿名函数或指针类型。
-
-```csharp
-var v = new { Amount = 108, Message = "Hello" };
-Console.WriteLine(v.Amount + v.Message);
-```
-
-- 匿名类型是 `class` 类型，它们直接派生自 `object`，并且无法强制转换为除 `object` 外的任何类型。如果程序集中的两个或多个匿名对象初始值指定了属性序列，这些属性采用相同顺序且具有相同的名称和类型，则编译器将对象视为相同类型的实例，它们共享同一编译器生成的类型信息。
-- 无法将字段、属性、时间或方法的返回类型声明为具有匿名类型。同样，也不能将方法、属性、构造函数或索引器的形参声明为具有匿名类型。要将匿名类型或包含匿名类型的集合作为参数传递给某一方法，可将参数作为类型 `object` 进行声明。
-
-> 应用
-
-- 匿名类型通常用在查询表达式的 `select` 子句中，以便返回源序列中每个对象的属性子集。
-
-```csharp
-var productQuery =
-    from prod in products
-    select new { prod.Color, prod.Price };
-
-foreach (var v in productQuery)
-    Console.WriteLine("Color={0}, Price={1}", v.Color, v.Price);
-```
-
-- 还可以按另一种类型（类、结构或另一个匿名类型）的对象定义字段。它通过使用保存此对象的变量来完成。
-
-```csharp
-var product = new Product();
-var bonus = new { note = "You won!" };
-var shipment = new { address = "Nowhere St.", product };
-var shipmentWithBonus = new { address = "Somewhere St.", product, bonus };
-```
-
-- 可通过将隐式键入的本地变量与隐式键入的数组相结合创建匿名键入的元素的数组。
-
-```csharp
-var anonArray = new[] { new { name = "apple", diam = 4 }, new { name = "grape", diam = 1 }};
-```
-
-- 匿名类型支持采用 `with` 表达式形式的非破坏性修改。
-
-```csharp
-var apple = new { Item = "apples", Price = 1.35 };
-var onSale = apple with { Price = 0.79 };
-Console.WriteLine(apple);
-Console.WriteLine(onSale);
-```
-
----
-### 隐式类型
-
-- 声明局部变量时，可以让编译器从初始化表达式推断出变量的类型。使用 `var` 关键字声明隐式类型，隐式类型只能应用于本地方法范围内的变量。`var` 的常见用途是用于构造函数调用表达式，例如 `var xs = new List<int>();`。
-
-```csharp
-var Ps = new PointArray(PointArray.RandomPoints(50));
-Ps.AddPoints(PointArray.RandomPoints(50));
-var first_Ps = Ps.GetPointsInQuadrant(1);
-var Second_Ps = Ps.GetPointsInQuadrant(2);
-var Third_Ps = Ps.GetPointsInQuadrant(3);
-var Forth_Ps = Ps.GetPointsInQuadrant(4);
-
-Print(first_Ps);
-Print(Second_Ps);
-Print(Third_Ps);
-Print(Forth_Ps);
-// -----------------------------------------------
-static void Print<T>(in IEnumerable<T> arr)
-{
-    foreach (var item in arr)
-        Console.WriteLine(item.ToString());
-}
-
-record struct PointArray(params (int x, int y)[] points)
-{
-    public readonly int PointsCount => points.Length;
-    private bool PrintMembers(System.Text.StringBuilder sb)
-    {
-        if (points.Length > 0)
-        {
-            sb.Append(points[0]);
-            foreach (var p in points[1..])
-                sb.Append(" ," + p);
-            return true;
-        }
-        return false;
-    }
-    public static (int, int)[] RandomPoints(int count)
-    {
-        int seed = DateTime.Now.Microsecond;
-        Random r = new Random(seed);
-        var ps = new (int, int)[count];
-        for (int i = 0; i < count; i++)
-            ps[i] = (r.Next(-128, 128), r.Next(-128, 128));
-        return ps;
-    }
-
-    public void AddPoints(params (int x, int y)[] points)
-    {
-        (int x, int y)[] newPoints = new (int x, int y)[points.Length + this.points.Length];
-        Array.Copy(this.points, newPoints, this.points.Length);
-        Array.Copy(points, 0, newPoints, this.points.Length, points.Length);
-        this.points = newPoints;
-    }
-    public (int, int)[] GetPointsInQuadrant(uint order)
-    {
-        if (order < 0 || order > 4)
-            return default;
-        var state = static delegate (int x, int y, uint order)
-        {
-            return order switch
-            {
-                1 => x > 0 && y > 0,
-                2 => x > 0 && y < 0,
-                3 => x < 0 && y < 0,
-                4 => x < 0 && y > 0,
-            };
-        };
-        var ps = from (int x, int y) p in this.points
-                 where state(p.x, p.y, order)
-                 select p;
-        return ps.ToArray();
-    }
-}
-```
-
----
-### 指针类型
-
-#### 不安全上下文
-
-- C# 支持 `unsafe` 上下文，用户可在其中编写不可验证的代码。在 `unsafe` 上下文中，代码可使用指针、分配和释放内存块，以及使用函数指针调用方法。可以将方法、类型和代码块定义为不安全。调用需要指针的本机函数时，需使用不安全代码，因此可能会引发安全风险和稳定性风险。在某些情况下，通过移除数组绑定检查，不安全代码可提高应用程序的性能。
-- 指针不能指向引用（`ref`）或包含引用的结构，因为无法对对象引用进行垃圾回收，即使有指针指向它也是如此。垃圾回收器并不跟踪是否有任何类型的指针指向对象。
-
-```csharp
-int* p;         // p 是指向整数的指针。
-int** p;        // p 是指向整数的指针的指针。
-int*[] p;       // p 是指向整数的指针的一维数组。
-char* p;        // p 是指向字符的指针。
-void* p;        // p 是指向未知类型的指针。
-
-int* p1, p2, p3;    // Ok
-int *p1, *p2, *p3;  // Invalid in C#
-```
-
-- 无法对 `void*` 类型的指针应用间接寻址运算符，但是可以使用强制转换将 `void` 指针转换为任何其他指针类型，反之亦然。
-- 指针可以为 null。将间接寻址运算符应用于 null 指针将导致空引用异常。
-- 在方法之间传递指针可能会导致未定义的行为。
-
-```csharp
-unsafe
-{
-    fixed (void* PEmptyString = &string.Empty)
-        Console.WriteLine(Convert.ToString((long)(nuint)PEmptyString, 16));  // 输出指针地址值
-
-    int* p = null;
-    int a = *p;   // ERROR: System.NullReferenceException: “Object reference not set to an instance of an object.”
-}
-```
-
-> 获取对象的地址
-
-```csharp
-int[] arr = [10, 20, 30, 40, 50];
-
-unsafe
-{
-    // 必须将对象固定在堆上，这样它在使用时，垃圾回收器不会移动它
-    fixed (int* p = arr) // 或 &arr[0]. &arr[index]
-    {
-        // 固定指针无法移动, 无法赋值
-        //  p++;  // CS1656
-        // 所以创建另一个指针来显示它的递增。
-        int* p2 = p;
-        Console.WriteLine(*p2);  // 10
-        // 由于指针的类型，增加 p2 会使指针增加其基础类型大小的字节：4
-        p2 += 1;
-        Console.WriteLine(*p2);  // 20
-        p2 += 1;
-        Console.WriteLine(*p2);  // 30
-
-        Console.WriteLine("--------");
-        // 对 p 解引用并递增会改变 arr[0] 的值
-        Console.WriteLine(*p);   // 10
-        *p += 1;
-        Console.WriteLine(*p);   // 11
-        *p += 1;
-        Console.WriteLine(*p);   // 12
-    }
-    Console.WriteLine(arr[0]);  // 12
-}
-```
-
-<br>
-
-#### 指针相关的运算符和语句
-
-- `*`：执行指针间接寻址。
-- `->`：通过指针访问结构或类对象的成员。
-- `[]`：为指针建立索引。
-- `&`：获取变量的地址。
-- `++` 和 `--`：递增和递减指针。
-- `+` 和 `-`：执行指针算法。
-- `==`、`!=`、`<`、`>`、`<=` 和 `>=`：比较指针。
-- `stackalloc`：在堆栈上分配内存。
-- `fixed` 语句：临时固定变量以便找到其地址。
-
-<br>
-
-#### 固定大小的缓冲区
-
-- 可以使用 `fixed` 关键字来创建在数据结构中具有固定大小的数组的缓冲区。当编写与其他语言或平台的数据源进行互操作的方法时，固定大小的缓冲区很有用。固定大小的缓冲区可以采用允许用于常规结构成员的任何属性或修饰符。唯一的限制是数组类型必须为 `bool`、`byte`、`char`、`short`、`int`、`long`、`sbyte`、`ushort`、`uint`、`ulong`、`float` 或 `double`。
-  
-```csharp
-internal unsafe struct Buffer
-{
-    public fixed char fixedBuffer[128];
-}
-```
-
-- 在安全代码中，包含数组的 C# 结构不包含该数组的元素，而是包含对该数组的引用。当在不安全的代码块中使用数组时，可以在结构中嵌入固定大小的数组。使用 `fixed` 语句获取指向数组第一个元素的指针，通过此指针访问数组的元素。`fixed` 语句将 `fixedBuffer` 实例字段固定到内存中的特定位置。
-
-```csharp
-internal unsafe struct Buffer
-{
-    public fixed char fixedBuffer[128];
-}
-internal unsafe class Example
-{
-    public Buffer buffer = default;
-}
-private static void AccessEmbeddedArray()
-{
-    var example = new Example();
-    unsafe
-    {
-        // Pin the buffer to a fixed location in memory.
-        fixed (char* charPtr = example.buffer.fixedBuffer)
-        {
-            *charPtr = 'A';
-        }
-        // Access safely through the index:
-        char c = example.buffer.fixedBuffer[0];
-        Console.WriteLine(c);
-
-        // Modify through the index:
-        example.buffer.fixedBuffer[0] = 'B';
-        Console.WriteLine(example.buffer.fixedBuffer[0]);
-    }
-}
-```
-
-- 固定大小的缓冲区使用 `System.Runtime.CompilerServices.UnsafeValueTypeAttribute` 进行编译，它指示公共语言运行时 CLR 某个类型包含可能溢出的非托管数组。
-
-```csharp
-internal unsafe struct Buffer
-{
-    public fixed char fixedBuffer[128];
-}
-// 为 Buffer 生成 C# 的编译器的特性如下
-internal struct Buffer
-{
-    [StructLayout(LayoutKind.Sequential, Size = 256)]
-    [CompilerGenerated]
-    [UnsafeValueType]
-    public struct <fixedBuffer>e__FixedBuffer
-    {
-        public char FixedElementField;
-    }
-
-    [FixedBuffer(typeof(char), 128)]
-    public <fixedBuffer>e__FixedBuffer fixedBuffer;
-}
-```
-
-- 使用 `stackalloc` 分配的内存还会在 CLR 中自动启用缓冲区溢出检测功能
-
-```csharp
-unsafe
-{
-    int* pSafe = stackalloc int[10];
-    for (int i = 0; i < 100; i++)
-        *(pSafe + i) = i;
-    // 进行缓冲区溢出检查，溢出时引发异常 System.AccessViolationException
-
-    Example ex = new Example();
-    fixed (int* pUnsafe = ex.buffer.fixedBuffer)
-    {
-        for (int i = 0; i < 100; i++)
-            *(pUnsafe + i) = i;   // 不进行缓冲区溢出检查
-    }
-}
-internal unsafe struct Buffer
-{
-    public fixed int fixedBuffer[10];
-}
-internal unsafe class Example
-{
-    public Buffer buffer = default;
-}
-```
-
-<br> 
-
-#### 函数指针
-
-- C# 提供 `delegate` 类型来定义安全函数指针对象。 调用委托时，需要实例化从 `System.Delegate` 派生的类型并对其 `Invoke` 方法进行虚拟方法调用，该虚拟调用使用 IL 指令 `callvirt`
-- 可以使用 `delegate*` 语法定义函数指针。编译器将使用 IL 指令 `calli` 指令来调用函数，而不是实例化为委托对象并调用 `Invoke`。在性能关键的代码路径中，使用 IL 指令 `calli` 效率更高。
-
-```csharp
-// 委托定义参数
-public static T Combine<T>(Func<T, T, T> combinator, T left, T right) => combinator(left, right);
-// 函数指针定义参数
-public static T UnsafeCombine<T>(delegate*<T, T, T> combinator, T left, T right) => combinator(left, right);
-```
-
-- 函数指针只能在 `unsafe` 上下文中声明，只能在静态成员方法或静态本地方法使用地址运算符 `&`。
-
-```csharp
-unsafe
-{
-    // 函数指针声明和调用
-    delegate*<int, int> pAbs = &Abs;
-    Console.WriteLine(pAbs(-999));  // 999
-    // 本地静态方法
-    static int Abs(int val) => Math.Abs(val);
-}
-```
-
-> 函数指针声明语法
-
-```csharp
-delegate * calling_convention_specifier? <parameter_list, return_type> 
-
-calling_convention_specifier? : 可选的调用约定说明符, 默认为 managed
-    - managed : 默认调用约定
-    - unmanaged : 非托管调用约定, 未显式指定调用约定类别, 则使用运行时平台默认语法
-    - unmanaged [Calling_convertion|,Calling_convertion...] : 指定特定的非托管调用约定, 一到若干个
-        - Calling_convertion : 调用约定
-                - Cdecl : 调用方清理堆栈
-                - stdcall : 被调用方清理堆栈, 这是从托管代码调用非托管函数的默认约定
-                - Thiscall : 指定方法调用的第一个参数是 this 指针, 该指针存储在寄存器 ECX 中
-                - Fastcall : 调用约定指定在寄存器中传递函数的参数 (如果可能), NET 可能不支持 
-                - MemberFunction : 指示使用的调用约定是成员函数变体
-                - SuppressGCTransition : 指示方法应禁止 GC 转换作为调用约定的一部分
-```
-
-- 可以对函数指针显式使用调用约定说明符 `unmanaged`、`managed`，默认使用 `managed` 调用约定（使用托管方法）。
-- 使用 `unmanaged` 调用约定时，可以显式指定一个或多个 ECMA-335 调用约定（`Cdecl`、`Stdcall`、`Fastcall`、`Thiscall`）或 `MemberFunction`、`SuppressGCTransition`。未显式指定的 `unmanaged` 调用约定，则指示 CLR 选择平台的默认调用约定（在运行时基于平台选择调用约定）。
-- 函数调用约定，是指当一个函数被调用时，函数的参数会被传递给被调用的函数，返回值会被返回给调用函数。函数的调用约定就是描述参数是怎么传递和由谁平衡堆栈的，当然还有返回值。
-
-```csharp
-unsafe class Sample
-{
-    // 委托
-    public static T Combine<T>(Func<T, T, T> combinator, T left, T right) => combinator?.Invoke(left, right);
-    // 函数指针
-    public static T UnsafeCombine<T>(delegate*<T, T, T> combinator, T left, T right) => combinator(left, right);
-
-    public static T ManagedCombine<T>(delegate* managed<T, T, T> combinator, T left, T right) => combinator(left, right);
-
-    public static T CDeclCombine<T>(delegate* unmanaged[Cdecl]<T, T, T> combinator, T left, T right) => combinator(left, right);
-    
-    public static T StdcallCombine<T>(delegate* unmanaged[Stdcall]<T, T, T> combinator, T left, T right) => combinator(left, right);
-    
-    public static T FastcallCombine<T>(delegate* unmanaged[Fastcall]<T, T, T> combinator, T left, T right) => combinator(left, right);
-    
-    public static T ThiscallCombine<T>(delegate* unmanaged[Thiscall]<T, T, T> combinator, T left, T right) => combinator(left, right);
-    
-    public static T UnmanagedCombine<T>(delegate* unmanaged<T, T, T> combinator, T left, T right) => combinator(left, right);
-}
-```
-
----
-### 类型默认值
-
-- 任何引用类型：`null`。
-- 任何内置数值类型：`0`。
-- `bool`：`false`。
-- `char`：`\0`。
-- `enum`：`(E)0`。
-- `struct`：成员各类型默认值。
-- 可为 null 的值类型：`HasValue` 属性为 `false` 且 `Value` 属性未定义的实例，即 `null`。
-
-> 默认值表达式
-
-- 默认值表达式生成类型的默认值。有两种类型的表达式：`default` 运算符调用和 `default` 文本：
-  - `default` 运算符的实参必须是类型或类型形参的名称。
-  - `default` 文本用于生成类型的默认值，可用于变量赋值、可选方法参数的默认值、`return` 语句、方法参数传递。
-
-```csharp
-int num = default(int);         // default 运算符
-string str = default;           // default 文本值
-```
-
----
-
 
 ---

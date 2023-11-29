@@ -3,7 +3,7 @@
 ---
 ## 声明语句
 
-- 声明语句声明新的局部变量、局部常量或 `ref` 局部变量。 
+声明语句声明新的局部变量、局部常量或 `ref` 局部变量。 
 
 ```csharp
 void Sample()
@@ -17,11 +17,37 @@ void Sample()
 ```
 
 ---
+## 空语句
+
+当在需要语句的上下文中不需要执行任何操作时，使用空语句（`;`）。执行空语句只是将控制转移到语句的结束点。
+
+```csharp
+bool ProcessMessage() {...}
+void ProcessMessages()
+{
+    while (ProcessMessage())
+        ;
+}
+
+void F(bool done)
+{
+    ...
+    if (done)
+    {
+        goto exit;
+    }
+    ...
+  exit:
+    ;
+}
+```
+
+---
 ## 选择语句
 
 ### if 语句
 
-- `if`、`if-else`、`if-else if` 语句根据布尔表达式的结果选择要遵循的若干代码路径的哪一个。
+`if`、`if-else`、`if-else if` 语句根据布尔表达式的结果选择要遵循的若干代码路径的哪一个。
 
 ```csharp
 string scan = Console.ReadLine();
@@ -33,11 +59,11 @@ else if (scan is "")
 else Console.WriteLine(scan);
 ```
 
-<br>
+>---
 
 ### switch 语句
 
-- `switch` 语句根据与匹配表达式匹配的模式来选择要执行的语句列表。可以为 `switch` 语句的一部分指定多个 `case` 模式；`default` 模式始终匹配成功，最多只有一个 `default` 子句。在 `switch` 语句中，控制不能从一个 `case` 部分贯穿到下一个 `case` 部分。可以使用跳转语句将控制从 `switch` 传递出去。可以在 `case` 模式中使用 `when` 筛选。
+`switch` 语句根据与匹配表达式匹配的模式来选择要执行的语句列表。可以为 `switch` 语句的一部分指定多个 `case` 模式；`default` 模式始终匹配成功，最多只有一个 `default` 子句。在 `switch` 语句中，控制不能从一个 `case` 部分贯穿到下一个 `case` 部分。可以使用跳转语句将控制从 `switch` 传递出去。可以在 `case` 模式中使用 `when` 筛选。
 
 ```csharp
 DisplayMeasurements(3, 4);  // Output: First measurement is 3, second measurement is 4.
@@ -66,18 +92,18 @@ void DisplayMeasurements(int a, int b)
 
 ### for 语句
 
-- `for( 初始化表达式; 条件; 迭代器){ 循环体 }` 在指定条件的布尔表达式的计算结果为 `true` 时，`for` 语句会执行一条语句或一个语句块。“初始化表达式” 部分仅在进入循环前执行一次，并根据条件的值确定是否进入循环体。“条件” 部分在返回 `true` 或不存在时执行循环中的下一个迭代。“迭代器” 部分定义循环主体的每次执行后将执行的操作。`for` 语句的每部分都是可选的：`for(;;);`。
+`for( 初始化表达式; 条件; 迭代器){ 循环体 }` 在指定条件的布尔表达式的计算结果为 `true` 时，`for` 语句会执行一条语句或一个语句块。“初始化表达式” 部分仅在进入循环前执行一次，并根据条件的值确定是否进入循环体。“条件” 部分在返回 `true` 或不存在时执行循环中的下一个迭代。“迭代器” 部分定义循环主体的每次执行后将执行的操作。`for` 语句的每部分都是可选的：`for(;;);`。
 
 ```csharp
 for (int i = 0; i < 10; i++)
     Console.WriteLine(i);
 ```
 
-<br>
+>---
 
 ### foreach 语句
 
-- `foreach(var t in ts)` 语句为类型实例中实现 `System.Collections.IEnumerable` 或 `System.Collections.Generic.IEnumerable<T>` 接口的每个元素执行语句或语句块。
+`foreach(var t in ts)` 语句为类型实例中实现 `System.Collections.IEnumerable` 或 `System.Collections.Generic.IEnumerable<T>` 接口的每个元素执行语句或语句块。
 
 ```csharp
 var fibNumbers = new List<int> { 0, 1, 1, 2, 3, 5, 8, 13 };
@@ -89,7 +115,7 @@ foreach (int element in fibNumbers)
 // 0 1 1 2 3 5 8 13
 ```
 
-- 除了这些类型，迭代对象可以是其类型具有公共无参数 `GetEnumerator` 方法（从 C# 9 开始，`GetEnumerator` 方法可以是类型的扩展方法），`GetEnumerator` 方法的返回类型具有公共 `Current` 属性（可以有 `ref` 修饰，返回迭代变量）和公共无参数 `bool MoveNext` 方法。
+除了这些类型，迭代对象可以是其类型具有公共无参数 `GetEnumerator` 方法（从 C# 9 开始，`GetEnumerator` 方法可以是类型的扩展方法），`GetEnumerator` 方法的返回类型具有公共 `Current` 属性（可以有 `ref` 修饰，返回迭代变量）和公共无参数 `bool MoveNext` 方法。
 
 ```csharp
 NumArray arr = new NumArray(1, 2, 3, 4, 5, 6, 7, 8, 9);
@@ -102,7 +128,7 @@ record struct NumArray(params int[] nums)
 }
 ```
 
-- 若枚举器的 `Current` 属性返回 `ref Current` 则可以使用 `ref` 或 `ref readonly` 修饰声明迭代变量。
+若枚举器的 `Current` 属性返回 `ref Current` 则可以使用 `ref` 或 `ref readonly` 修饰声明迭代变量。
 
 ```csharp
 Span<int> storage = stackalloc int[10];
@@ -115,7 +141,7 @@ foreach (ref readonly var item in storage)
 // 0 1 2 3 4 5 6 7 8 9
 ```
 
-- 定义一个集合类型 `C`、枚举器类型 `E` 和迭代类型 `T`、`ref T` 或 `ref readonly T`，组成一个 `foreach` 语句的形式 `foreach (V v in x) { embedded_statement }`，迭代器的行为类似于：
+定义一个集合类型 `C`、枚举器类型 `E` 和迭代类型 `T`、`ref T` 或 `ref readonly T`，组成一个 `foreach` 语句的形式 `foreach (V v in x) { embedded_statement }`，迭代器的行为类似于：
 
 ```csharp
 {
@@ -135,9 +161,101 @@ foreach (ref readonly var item in storage)
 }
 ```
 
-#### await foreach
+#### foreach 编译时处理
 
-- 可以使用 `await foreach` 语句来使用异步数据流，即对实现 `IAsyncEnumerable<T>` 接口的集合类型进行迭代。异步检索下一个元素时，可能会挂起循环的每次迭代。可以将 `await foreach` 语句与类型具有公共无参 `GetAsyncEnumerator` 方法且该方法的返回类型具有公共 `Current` 属性和公共无参数 `ValueTask<bool> MoveNextAsync` 方法的实例一起使用。
+`foreach` 语句在编译时，首先确定表达式的集合类型、枚举器类型和迭代元素类型。
+
+对于 `foreach(var t in expr)`：
+- 如果表达式 `expr` 的类型 `X` 是数组类型，则可以隐式转换为 `IEnumerable` 接口。`foreach` 语句编译时确定集合类型 `IEnumerable`，枚举器类型是 `IEnumerator`，迭代元素类型是 `X`。
+- 如果表达式 `expr` 是动态表达式，且可以推断表达式的结果可以隐式转换到 `IEnumerable` 接口。那么编译时确定集合类型是 `IEnumerable`，枚举器类型是 `IEnumerator`，迭代元素类型是 `dynamic` 或 `object` 类型。
+- 否则，将判断表达式的结果类型 `X` 是否具有合适的 `GetEnumerator` 方法：
+  - 首先在没有类型参数的 `X` 类型中查找对标识符为 `GetEnumerator` 的公共非静态方法成员。`GetEnumerator` 方法不含有任何参数，返回类型 `E` 应该是一个类、结构或接口类型。
+  - 接下来在 `E` 上查找是否具有 `Current` 的公共非静态的属性。
+  - 接下来在 `E` 上查找是否具有 `MoveNext` 的公共非静态的返回 `bool` 类型的方法。
+  - 当满足上述所有查找条件时，该 `X` 是一个可枚举对象。`foreach` 语句编译时确定集合类型是 `X`，枚举器类型是 `E`，迭代元素类型是 `E.Current` 的属性类型。
+  - 查找过程中当不满足任意步骤的查找条件时，则进行下一步判断。
+- 检查是否有可枚举接口：
+  - 如果在所有类型 `Ti` 中存在从 `X` 到 `IEnumerable<Ti>` 的隐式转换，则存在一个唯一类型 `T`，使得 `T` 不是动态类型，并且对于所有其他类型 `Ti` 存在从 `IEnumerable<T>` 到 `IEnumerable<Ti>` 的隐式转换，则集合类型为接口 `IEnumerable<T>`，枚举类型为接口 `IEnumerator<T>`，迭代元素类型为 `T`。
+  - 否则，如果有多个这样的类型 `T`，则产生一个错误，并且不采取进一步的步骤。
+  - 否则，如果存在从 `X` 到 `IEnumerable` 接口的隐式转换。那么集合类型就是  `IEnumerable`，枚举类型就是 `IEnumerator`，元素类型为 `object`。
+- 否则，将判断表达式的结果类型 `X` 是否具有合适的 `GetEnumerator` 扩展方法，且它的返回类型 `E` 包含符合迭代器规则的 `Current` 和 `MoveNext` 成员。`foreach` 语句编译时确定集合类型是 `X`，枚举器类型是 `E`，迭代元素类型是 `E.Current` 的属性类型。
+- 否则，将产生一个错误，并且不采取进一步的步骤。
+
+```csharp
+class Sample(int[] arr)
+{
+    int[] arr = arr;
+
+    public SampleEnumerator GetEnumerator()
+    {
+        return new SampleEnumerator(this);
+    }
+    static void Main(string[] args)
+    {
+        Sample s = new Sample(new int[] { 1, 2, 3, 4, 5, 6 });
+
+        foreach (var item in s)
+        {
+            Console.WriteLine(item);
+        }
+    }
+    public class SampleEnumerator
+    {
+        private Sample sample;
+        private int index = -1;
+        public SampleEnumerator(Sample sample) => this.sample = sample;
+        public int Current => sample.arr[index];
+        public bool MoveNext() => (++index) < sample.arr.Length;
+    }
+}
+```
+
+#### await foreach 异步流
+
+C# 支持迭代器方法和异步方法，但不支持同时是迭代器和异步方法的方法。可以使用 `await foreach` 语句以支持异步数据流，这种迭代器返回 `IAsyncEnumerable<T>` 或 `IAsyncEnumerator<T>` 而不是 `IEnumerable<T>` 或 `IEnumerator<T>`。`IAsyncDisposable` 接口用于启用异步清理。
+
+可以将 `await foreach` 语句与类型具有公共无参 `GetAsyncEnumerator` 方法且该方法的返回类型具有公共 `Current` 属性和公共无参数 `ValueTask<bool> MoveNextAsync` 方法的实例一起使用。异步检索下一个元素时，可能会挂起循环的每次迭代。
+
+对于 `await foreach` 的编译时处理，等同于 `foreach` 的编译时处理。查找成元时，`GetEnumerator` 替换为 `GetAsyncEnumerator`，`bool MoveNext` 替换为 `TaskType<bool> MoveNextAsync`，`T Current` 替换为 `TaskType Current`。 
+
+```csharp
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default);
+    }
+
+    public interface IAsyncEnumerator<out T> : IAsyncDisposable
+    {
+        ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+```
+
+`await foreach` 可以被视为：
+ 
+```csharp
+await foreach(var task in asyncEnumerable)
+{
+    use(task);
+}
+// >>>>> 
+{
+    IAsyncEnumerator<T> asyncEnumerator = asyncEnumerable.GetAsyncEnumerator();
+    try
+    {
+        while (await asyncEnumerator.MoveNextAsync())
+        {
+            Use(asyncEnumerator.Current);
+        }
+    }
+    finally { await ((System.IAsyncDisposable)asyncEnumerator).DisposeAsync(); }
+}
+```
+
+异步迭代流 `IAsyncEnumerable<T>`：
 
 ```csharp
 await foreach (int n in GenerateNumbersAsync(5))
@@ -194,11 +312,11 @@ finally
 }
 ```
 
-<br>
+>---
 
 ### do 语句
 
-- `do{ .. } while(e)` 在指定的布尔表达式 `e` 的计算结果为 `true` 时，`do` 语句会执行一条语句或一个语句块。在每次执行循环之后都会计算此表达式，因此 `do` 循环会执行一次或多次。
+`do{ .. } while(e)` 在指定的布尔表达式 `e` 的计算结果为 `true` 时，`do` 语句会执行一条语句或一个语句块。在每次执行循环之后都会计算此表达式，因此 `do` 循环会执行一次或多次。
 
 ```csharp
 int n = 0;
@@ -211,11 +329,11 @@ do
 // 01234
 ```
 
-<br>
+>---
 
 ### while 语句
 
-- `while(e) { .. }` 在指定的布尔表达式 `e` 的计算结果为 `true` 时，`while` 语句会执行一条语句或一个语句块。由于在每次执行循环之前都会计算此表达式，所以 `while` 循环会执行零次或多次。
+`while(e) { .. }` 在指定的布尔表达式 `e` 的计算结果为 `true` 时，`while` 语句会执行一条语句或一个语句块。由于在每次执行循环之前都会计算此表达式，所以 `while` 循环会执行零次或多次。
 
 ```csharp
 int n = 0;
@@ -233,7 +351,7 @@ while (n < 5)
 
 ### break 语句
 
-- `break` 语句将终止最接近的封闭迭代语句（即 `for`、`foreach`、`while` 或 `do` 循环）或 `switch` 语句。`break` 语句将控制权转交给已终止语句后面的语句。在嵌套循环中，`break` 语句仅终止包含它的最内部循环。在循环内使用 `switch` 语句时，`switch` 节末尾的 `break` 语句仅从 `switch` 语句中转移控制权。
+`break` 语句将终止最接近的封闭迭代语句（即 `for`、`foreach`、`while` 或 `do` 循环）或 `switch` 语句。`break` 语句将控制权转交给已终止语句后面的语句。在嵌套循环中，`break` 语句仅终止包含它的最内部循环。在循环内使用 `switch` 语句时，`switch` 节末尾的 `break` 语句仅从 `switch` 语句中转移控制权。
 
 ```csharp
 double[] measurements = { -4, 5, 30, double.NaN };
@@ -262,11 +380,11 @@ foreach (double measurement in measurements)
 // Failed measurement.
 ```
 
-<br>
+>---
 
 ### continue 语句
 
-- `continue` 语句启动最接近的封闭迭代语句（即 `for`、`foreach`、`while` 或 `do` 循环）的新迭代。
+`continue` 语句启动最接近的封闭迭代语句（即 `for`、`foreach`、`while` 或 `do` 循环）的新迭代。
 
 ```csharp
 for (int i = 0; i < 5; i++)
@@ -287,11 +405,11 @@ for (int i = 0; i < 5; i++)
 // Iteration 4: done
 ```
 
-<br>
+>---
 
 ### return 语句
 
-- `return` 语句终止它所在的函数的执行，并将控制权和函数结果（若有）返回给调用方。
+`return` 语句终止它所在的函数的执行，并将控制权和函数结果（若有）返回给调用方。
 
 ```csharp
 double surfaceArea = CalculateCylinderSurfaceArea(1, 1);
@@ -305,11 +423,11 @@ double CalculateCylinderSurfaceArea(double baseRadius, double height)
 }
 ```
 
-<br>
+>---
 
 ### goto 语句
 
-- `goto` 语句将控制权转交给带有标签的语句
+`goto` 语句将控制权转交给带有标签的语句
 
 ```csharp
 var matrices = new Dictionary<string, int[][]>
@@ -347,7 +465,7 @@ void CheckMatrices(Dictionary<string, int[][]> matrixLookup, int target)
 // Not found 4 in matrix B.
 ```
 
-- 在 `switch` 语句中 使用 `goto` 语句将控制权移交到具有常量大小写的 `case` 或 `goto default`。
+在 `switch` 语句中 使用 `goto` 语句将控制权移交到具有常量大小写的 `case` 或 `goto default`。
 
 ```csharp
 public enum CoffeeChoice
@@ -384,13 +502,15 @@ public class GotoInSwitchExample
 }
 ```
 
-<br>
+>---
 
 ### yield 语句
 
-- 在迭代器中使用 `yield` 语句提供下一个值的 `yield return` 或表示迭代结束的 `yield break`。迭代器的返回类型可以是 `IEnumerable<T>`、`IEnumerable`、`IAsyncEnumerable<T>` 异步迭代。
-- 当开始对迭代器的结果进行迭代时，迭代器会一直执行，直到到达第一个 `yield return` 语句为止。 然后，迭代器的执行会暂停，调用方会获得第一个迭代值并处理该值。在后续的每次迭代中，迭代器的执行都会在导致上一次挂起的 `yield return` 语句之后恢复，并继续执行，直到到达下一个 `yield return` 语句为止。当控件到达迭代器或 `yield break` 语句的末尾时，迭代完成。
-- Lambda 表达式中不允许使用 `yield return` 语句。
+在迭代器中使用 `yield` 语句提供下一个值的 `yield return` 或表示迭代结束的 `yield break`。迭代器的返回类型可以是 `IEnumerable<T>`、`IEnumerable`、`IAsyncEnumerable<T>` 异步迭代。
+
+当开始对迭代器的结果进行迭代时，迭代器会一直执行，直到到达第一个 `yield return` 语句为止。 然后，迭代器的执行会暂停，调用方会获得第一个迭代值并处理该值。在后续的每次迭代中，迭代器的执行都会在导致上一次挂起的 `yield return` 语句之后恢复，并继续执行，直到到达下一个 `yield return` 语句为止。当控件到达迭代器或 `yield break` 语句的末尾时，迭代完成。
+
+Lambda 表达式中不允许使用 `yield return` 语句。
 
 ```csharp
 foreach (var item in Square([1, 2, 3, 4, 5, 6, 99999/* 溢出位 */, 7, 8, 9]))
@@ -437,14 +557,17 @@ async Task<int> Square(int num)
 ---
 ### 异常处理语句
 
-- 使用 `throw` 和 `try` 语句来处理异常，使用 `throw` 语句引发异常，使用 `try` 语句捕获和处理在执行代码块期间可能发生的异常。
-- 引发异常时，公共语言运行时 CLR 将查找可以处理此异常的 `catch` 块。如果当前执行的方法不包含此类 `catch` 块，则 CLR 查看调用了当前方法的方法，并以此类推遍历调用堆栈。如果未找到 `catch` 块，CLR 将终止正在执行的线程。
+使用 `throw` 和 `try` 语句来处理异常，使用 `throw` 语句引发异常，使用 `try` 语句捕获和处理在执行代码块期间可能发生的异常。
 
-<br>
+引发异常时，公共语言运行时 CLR 将查找可以处理此异常的 `catch` 块。如果当前执行的方法不包含此类 `catch` 块，则 CLR 查看调用了当前方法的方法，并以此类推遍历调用堆栈。如果未找到 `catch` 块，CLR 将终止正在执行的线程。
 
-#### throw 语句
+>---
 
-- 在 `throw e;` 语句中，表达式 `e` 的结果必须隐式转换为 `System.Exception`。可以在 `catch` 块中使用 `throw;` 语句重新引发由 `catch` 处理的异常。`throw;` 保留异常的原始堆栈跟踪，该跟踪存储在 `Exception.StackTrace` 属性中；`throw e;` 更新 `e` 的 `StackTrace` 属性。
+#### throw 表达式或语句
+
+> throw 语句
+
+在 `throw e;` 语句中，表达式 `e` 的结果必须隐式转换为 `System.Exception`。可以在 `catch` 块中使用 `throw;` 语句重新引发由 `catch` 处理的异常。`throw;` 保留异常的原始堆栈跟踪，该跟踪存储在 `Exception.StackTrace` 属性中；`throw e;` 更新 `e` 的 `StackTrace` 属性。
 
 ```csharp
 try
@@ -461,6 +584,11 @@ catch (Exception e)
 
 > throw 表达式
 
+`throw` 表达式的结果没有类型，但是可以隐式转换为任意类型。`throw` 表达式只允许：
+- 作为条件运算符 `? : ` 的第二或第三个操作数。
+- 作为空合并运算符 `??` 的第二个操作数。
+- 作为 Lambda 表达式或方法的表达式主体。
+ 
 ```csharp
 class Person(string name)
 {
@@ -468,7 +596,7 @@ class Person(string name)
 }
 ```
 
-<br>
+>---
 
 #### try-catch
 
@@ -529,7 +657,7 @@ static async Task<int> ProcessAsync(int input)
 }
 ```
 
-<br>
+>---
 
 #### try-finally
 
@@ -576,104 +704,11 @@ int Mul(int x, int y)
 ```
 
 ---
-## fixed 语句
-
-- `fixed` 语句可防止垃圾回收器重新定位可移动变量，并声明指向该变量的指针。固定变量的地址在语句的持续时间内不会更改。只能在相应的 `fixed` 语句中使用声明的指针，且声明的指针是只读的，无法修改。
-- `fixed` 而可初始化声明使用数组的指针、使用变量的地址、使用实现名为 `GetPinnableReference` 的方法的类型实例（方法返回非托管类型的 `ref` 变量，例如 .NET 类型 `System.Span<T>` 和 `System.ReadOnlySpan<T>`）、使用字符串、使用固定大小的缓冲区（堆栈上声明的 `stackalloc` 内存不需要固定）。
-
-> 使用数组
-
-```csharp
-unsafe
-{
-    int[] arr = [10, 20, 30, 40, 50];
-    fixed (int* p = arr)
-    {
-        int index = 0;
-        foreach (int i in arr)
-        {
-            p[index] = i * i; 
-            index++;
-        }
-        Console.WriteLine(string.Join(", ", arr));
-        // Output: 100, 400, 900, 1600, 2500
-    }
-}
-```
-
-> 使用变量的地址
-
-```csharp
-unsafe
-{
-    int[] numbers = { 10, 20, 30 };
-    fixed (int* toFirst = &numbers[0], toLast = &numbers[^1])
-        Console.WriteLine(toLast - toFirst);  // output: 2
-}
-```
-
-> 使用实现名为 `GetPinnableReference` 的方法的类型实例
-
-```csharp
-NumberArray arr = new(1, 2, 3, 4, 5, 6);
-unsafe
-{
-    fixed(int* p = arr)
-        for(int i = 0;i< 6; i++)
-            Console.WriteLine(p[i]);
-}
-record NumberArray(params int[] arr)
-{
-    public ref int GetPinnableReference() => ref arr[0];
-}
-```
-
-> 使用字符串
-
-```csharp
-ToUpper("Hello, World"); // Output: HELLO, WORLD
-
-unsafe static void ToUpper(string str)
-{
-    fixed(char* f = str)
-    {
-        int index = 0;
-        foreach (char c in str)
-            f[index] = char.ToUpper(f[index++]);
-    }
-    Console.WriteLine(str);
-}
-```
-
-> 使用固定大小的缓冲区
-
-```csharp
-internal unsafe struct Buffer
-{
-    public fixed byte fixedBuffer[1024];
-}
-internal unsafe class Example
-{
-    public Buffer buffer = default;
-}
-class Sample
-{
-    unsafe void Handle(byte[] data)
-    {
-        var ex = new Example();
-        fixed (byte* buff = ex.buffer.fixedBuffer)
-        {
-            // handle data in fixedBuffer
-        }
-    }
-}
-```
-
----
 ## lock 语句
 
-- `lock(x){ .. }` 语句获取给定对象的互斥锁，执行语句块，然后释放锁，其中 `x` 是引用类型。当锁被持有时，持有该锁的线程可以再次获取并释放该锁。任何其他线程都被阻止获取锁并等待，直到锁被释放。`lock` 语句确保在任何时刻最多只有一个线程执行它的线程体。
-- 在 `lock` 语句的正文中不能使用 `await` 表达式。
+`lock(x){ .. }` 语句获取给定对象的互斥锁，执行语句块，然后释放锁，其中 `x` 是引用类型。当锁被持有时，持有该锁的线程可以再次获取并释放该锁。任何其他线程都被阻止获取锁并等待，直到锁被释放。`lock` 语句确保在任何时刻最多只有一个线程执行它的线程体。
+
+在 `lock` 语句的正文中不能使用 `await` 表达式。
 
 ```csharp
 public class Account
@@ -714,13 +749,14 @@ class AccountTest
 }
 ```
 
-  - 当同步对共享资源的线程访问时，一般锁定专用对象实例（例如，`private readonly object balanceLock = new object();`）或另一个不太可能被代码无关部分用作 `lock` 对象的实例。避免对不同的共享资源使用相同的 `lock` 对象实例，因为这可能导致死锁或锁争用。避免使用 `this`、`Type` 实例、字符串字面量作为 `lock` 对象。
+当同步对共享资源的线程访问时，一般锁定专用对象实例（例如，`private readonly object balanceLock = new object();`）或另一个不太可能被代码无关部分用作 `lock` 对象的实例。避免对不同的共享资源使用相同的 `lock` 对象实例，因为这可能导致死锁或锁争用。避免使用 `this`、`Type` 实例、字符串字面量作为 `lock` 对象。
 
 ---
 ## using 语句
 
-- `using(<IDisposable> disposable){ .. }` 语句或 `using <IDisposable> disposable;` 声明可确保正确使用 `IDisposable` 实例 `disposable`：`disposable` 局部变量在它的作用域末尾调用它的 `Dispose` 方法并释放该对象。`using` 语句可确保在发生异常的情况下也会释放 `IDisposable` 实例。在一个 `using` 语句中声明多个实例时，它们将按声明的相反顺序释放。
-- 由 `using` 语句或声明进行声明的变量是只读的，无法重新分配该变量或将其作为 `ref` 或 `out` 参数传递。
+`using(<IDisposable> disposable){ .. }` 语句或 `using <IDisposable> disposable;` 声明可确保正确使用 `IDisposable` 实例 `disposable`：`disposable` 局部变量在它的作用域末尾调用它的 `Dispose` 方法并释放该对象。`using` 语句可确保在发生异常的情况下也会释放 `IDisposable` 实例。在一个 `using` 语句中声明多个实例时，它们将按声明的相反顺序释放。
+
+由 `using` 语句或声明进行声明的变量是只读的，无法重新分配该变量或将其作为 `ref` 或 `out` 参数传递。
 
 ```csharp
 // using 语句
@@ -749,7 +785,7 @@ static IEnumerable<int> LoadNumbers_2(string filePath)
 }
 ```
 
-- 使用 `await using` 语句来正确使用 `IAsyncDisposable` 实例：在声明的局部变量离开被声明的作用域语句块时，将自动调用 `DisposeAsync` 方法释放该实例。`await using` 也可以使用拥有公共无参 `public async ValueTask DisposeAsync()` 方法的对象（不必是 `IAsyncDisposable` 接口实例）。
+使用 `await using` 语句来正确使用 `IAsyncDisposable` 实例：在声明的局部变量离开被声明的作用域语句块时，将自动调用 `DisposeAsync` 方法释放该实例。`await using` 也可以使用拥有公共无参 `public async ValueTask DisposeAsync()` 方法的对象（不必是 `IAsyncDisposable` 接口实例）。
 
 ```csharp
 await using (var resource = new AsyncDisposableExample())
@@ -762,7 +798,7 @@ class AsyncDisposableExample{
 
 ```
 
-- 可以将 `using` 语句和声明与适用于可释放模式的 `ref` 结构的实例一起使用，该结构有一个实例 `public void Dispose()` 方法。
+可以将 `using` 语句和声明与适用于可释放模式的 `ref` 结构的实例一起使用，该结构有一个实例 `public void Dispose()` 方法。
 
 ```csharp
 int num = 1;

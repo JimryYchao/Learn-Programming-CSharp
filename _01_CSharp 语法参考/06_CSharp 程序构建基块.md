@@ -1,6 +1,6 @@
 # CSharp 程序构建基块
 
-C# 中的类型主要由成员、表达式、语句等构建基块生成的。构成成员的类型一般为：常量、字段、方法、属性、索引器、事件、运算符、构造函数、终结器、嵌套类型等。表达式是在操作数和运算符的基础之上构造而成。程序操作使用语句进行表示。.NET 声明命名空间来整理类型。
+C# 中的类型主要由成员、表达式、语句等构建基块生成的。构成成员的类型一般为：常量、字段、方法、属性、索引器、事件、运算符、构造函数、终结器、嵌套类型等。表达式是在操作数和运算符的基础之上构造而成。程序操作使用语句进行表示。.NET 声明命名空间来整理类型。类型和成员可以使用特性进行信息标注。
 
 ---
 ## 命名空间
@@ -40,7 +40,7 @@ namespace SampleNamespace
 }
 ```
 
-<br>
+>---
 
 ### 全局命名空间
 
@@ -59,7 +59,7 @@ namespace SampleSpace
 }
 ```
 
-<br>
+>---
 
 ### 文件范围的命名空间
 
@@ -85,7 +85,7 @@ namespace ANestedNamespace // Not allowed!
 }
 ```
 
-<br>
+>---
 
 ### using 指令
 
@@ -151,7 +151,7 @@ Console.WriteLine(ar);   // (5,8)
 List<char> chars = "Hello, World".ToList();   // Linq.Enumerable 扩展方法
 ```
 
-<br>
+>---
 
 ### 程序集外部别名
 
@@ -171,11 +171,11 @@ using Class1V1 = GridV1::Namespace.Class1;
 using Class1V2 = GridV2::Namespace.Class1;
 ```
 
-<br>
+>---
 
 ### 全局 using 指令
 
-从 C#10 开始使用 `global using` 创建全局引用，`global` 这意味着 `using` 指令的作用范围从当前声明作用域扩大到所有文件，这包括全局命名空间引用、全局 `using` 别名、全局 `using static` 类型。
+从 C#10 开始使用 `global using` 创建全局引用，`global` 这意味着 `using` 指令的作用范围从当前声明作用域扩大到所有文件，这包括全局命名空间引用、全局 `using` 别名、全局 `using static` 类型、全局 `extern alias`。
 
 ```csharp
 global using System;
@@ -195,7 +195,7 @@ namespace Sample.Sample.Sample.Sample.SampleSpace
 }
 ```
 
-<br>
+>---
 
 ### 任何类型的别名
 
@@ -271,7 +271,7 @@ class Sample
 }
 ```
 
-<br>
+>---
 
 ### 保留的成员名称
 
@@ -349,7 +349,7 @@ T Item[PList];
 void Finalize();
 ```
 
-<br>
+>---
 
 ### 常量
 
@@ -368,7 +368,7 @@ class Sample
 }
 ```
 
-<br>
+>---
 
 ### 字段
 
@@ -421,7 +421,7 @@ class VolatileTest<T> where T : class
 
 #### readonly 字段
 
-可以将字段声明为 `readonly` 只读字段。只读字段只能在初始化期间或在构造函数中赋值。只读字段类似于常量，在退出构造函数时不能重新分配只读字段。
+可以将字段声明为 `readonly` 只读字段。只读字段只能在初始值设定项、或在构造函数中初始化值，实例只读字段也可以在其包含类型中的所有属性的 `init` 访问器中设置。只读字段类似于常量，在退出构造函数时不能重新分配只读字段。
 
 只读值类型字段包含数据，数据不可变；只读引用类型包含对其数据的引用，无法重新分配但是可以修改引用的状态。
 
@@ -515,14 +515,42 @@ struct Person(string FirstName, string LastName)
 }
 ```
 
-
-
 #### ref 字段（结构专属）
 
+从 C#11 开始，可以在 `ref struct` 中声明 `ref` 引用字段或 `ref readonly` 只读引用字段。`ref` 字段可能具有 null 值，使用 `Unsafe.IsNullRef<T>(ref T src)` 方法确定 `ref` 字段是否为 `null`。
 
+当 `readonly` 修饰 `ref` 字段时：
+  - `ref`：在任何时候，都可以使用 `=` 为此字段关联引用赋值，或使用 `= ref` 重新赋值引用。
+  - `ref readonly`：在任何时候，都不能使用 `=` 为此类字段关联引用赋值，但是可以使用 `= ref` 重新赋值引用。
+  - `readonly ref`：只能在构造函数或 `init` 访问器中使用 `= ref` 重新赋值引用。可以在字段访问修饰符允许的任何时间点使用 `=` 为此字段关联引用赋值。 
+  - `readonly ref readonly`：只能在构造函数或 `init` 访问器中通过 `= ref` 重新赋值引用。
 
+```csharp
+class DATA
+{
+    public static int F_Data = 0;
+    public static int FR_Data = 0;
+    public static int RF_Data = 0;
+    public static int RFR_Data = 0;
+}
+ref struct Ref_Data
+{
+    public ref int F_Data;              // 表示引用可修改，值可修改
+    public ref readonly int FR_Data;    // 表示引用可修改，值不可修改
+    public readonly ref int RF_Data;    // 表示引用不可修改，值可修改
+    public readonly ref readonly int RFR_Data;  // 表示引用和值均不可修改
+    public Ref_Data()
+    {
+        // 可以在构造函数或 init 属性访问器中重新赋值
+        F_Data = ref DATA.F_Data;
+        RF_Data = ref DATA.RF_Data;
+        FR_Data = ref DATA.FR_Data;
+        RFR_Data = ref DATA.RFR_Data;
+    }
+}
+```
 
-<br>
+>---
 
 ### 方法
 
@@ -547,7 +575,7 @@ public void Print(string message) => Console.WriteLine("DEBUG: " + message);
 
 #### 静态和实例方法
 
-- 使用 `static` 修饰符声明的方法是静态方法。静态方法不对特定的实例起作用，只能直接访问静态成员。未使用 `static` 修饰符声明的方法是实例方法。实例方法对特定的实例起作用，能够访问静态和实例成员。
+使用 `static` 修饰符声明的方法是静态方法。静态方法不对特定的实例起作用，只能直接访问静态成员。未使用 `static` 修饰符声明的方法是实例方法。实例方法对特定的实例起作用，能够访问静态和实例成员。
 
 ```csharp
 class Entity{
@@ -778,20 +806,15 @@ class Test
 }
 ```
 
-<!-- <br>
-
-#### scoped 参数和局部变量
-
-- 可以使用作用域修饰符 `scoped` 限制引用传递的（`ref`、`out`、`in`）参数或 `ref struct` 的参数或局部变量的作用域限制在当前方法，确保代码不会延长变量的生存期。
-
-```csharp
-
-``` -->
-
 #### 命名参数
 
-- 通过命名实参，可以为形参指定实参，方法是将实参与该形参的名称匹配，而不是与形参在形参列表中的位置匹配。使用命名参数传递实参时，可以不再需要将实参的顺序与所调用方法的形参列表顺序相匹配，而位置参数必须与对应形参位置相匹配。每个形参的实参都可按形参名称显式进行指定。
-- 当命名参数与位置参数一起使用时，必须要它们用在正确的位置。
+带有参数名称的参数被称为命名参数，没有名称的参数是位置参数。通过命名实参，可以为形参指定实参，方法是将实参与该形参的名称匹配。
+
+使用命名实参，就不再需要将实参的顺序与所调用方法的形参列表中的形参顺序相匹配。每个参数都可以使用命名参数。当位置参数位于位置错误的命名参数或命名 `params` 参数之后，将发生编译时错误。
+
+允许在非尾随位置使用命名参数，只要它们在正确的位置，例如 `DoSomething(isEmployed:true, name, age)`。
+
+尾随位置参数后的命名参数可以不与方法形参位置相匹配。
 
 ```csharp
 class NamedExample
@@ -811,6 +834,10 @@ class NamedExample
         PrintOrderDetails(sellerName: "Gift Shop", 31, productName: "Red Mug");
         PrintOrderDetails("Gift Shop", orderNum: 31, "Red Mug");
 
+        // Named arguments behind of positional arguments can be supplied for
+        // the parameters in any order.
+        PrintOrderDetails("Gift Shop", productName: "Red Mug", orderNum: 31);
+
         // However, mixed arguments are invalid if used out-of-order.
         // The following statements will cause a compiler error.
         // PrintOrderDetails(productName: "Red Mug", 31, "Gift Shop");
@@ -828,9 +855,11 @@ class NamedExample
 
 #### 可选参数
 
-- 方法、构造函数、索引器或委托的定义可以指定其形参为必需还是可选。任何调用都必须为所有必需的形参提供实参，但可以为可选的形参省略实参。每个可选参数都有一个默认值，可以是常量表达式、`new ValType()` 值类型或 `default`。
-- 在分部方法实现、显式接口成员实现、单参数索引器声明、运算符声明中使用可选参数，编译器会生成警告，这些成员永远不能允许以省略实参的方式调用。
-- 可选参数列表定义必须定义参数列表的末尾和必须参数之后。被提供实参的可选参数之前的全部可选参数都必须提供相应的实参。
+方法、构造函数、索引器或委托的定义可以指定其形参为必需还是可选。任何调用都必须为所有必需的形参提供实参，但可以为可选的形参省略实参。每个可选参数都有一个默认值，可以是常量表达式、`new ValType()` 值类型或 `default`。
+
+在分部方法实现、显式接口成员实现、单参数索引器声明、运算符声明中使用可选参数，编译器会生成警告，这些成员永远不能允许以省略实参的方式调用。
+
+可选参数列表定义必须定义参数列表的末尾和必须参数之后。被提供实参的可选参数之前的全部可选参数都必须提供相应的实参。
 
 ```csharp
 ExampleMethod(required);
@@ -875,9 +904,9 @@ public class Program
 
 #### 方法主体和局部变量
 
-- 方法主体指定了在调用方法时执行的语句。方法主体可以声明特定于方法调用的局部变量，局部变量在使用前必须先明确赋值，可以稍后的语句中延迟赋值。
+方法主体指定了在调用方法时执行的语句。方法主体可以声明特定于方法调用的局部变量，局部变量在使用前必须先明确赋值，可以稍后的语句中延迟赋值。
 
-- 方法使用 `return` 语句将控制权返回给调用方。对于无返回类型的 `void` 方法，`return` 语句可省略。
+方法使用 `return` 语句将控制权返回给调用方。对于无返回类型的 `void` 方法，`return` 语句可省略。
 
 ```csharp
 public static void WriteSquares()
@@ -895,7 +924,7 @@ public static void WriteSquares()
 
 #### 方法重载
 
-- 借助方法重载，同一类中可以有多个同名的方法，只要这些方法具有唯一签名即可。编译器使用重载决策（查找与自变量匹配度最高的）来确定要调用的特定方法，并在找不到任何最佳匹配项时报告错误。
+借助方法重载，同一类中可以有多个同名的方法，只要这些方法具有唯一签名即可。编译器使用重载决策（查找与自变量匹配度最高的）来确定要调用的特定方法，并在找不到任何最佳匹配项时报告错误。
 
 ```csharp
 class OverloadingExample
@@ -996,10 +1025,11 @@ class ExternTest
 }
 ```
 
-#### 本地函数
+#### 局部函数
 
-- 本地函数是一种嵌套在另一个成员中的方法，且仅能从其包含成员中调用它，因此本地函数不包含任何访问修饰符。可以在方法、构造函数、属性访问器、事件访问器、匿名方法、Lambda 表达式、终结器、其他本地函数中声明和调用本地函数。在相同作用域下声明的本地函数无法声明同名的重载函数。
-- 可以声明 `async`、`unsafe`、`static`、`extern static` 修饰的本地函数。从 C#9 开始，可以将特性应用于本地函数、其参数和类型参数。
+局部函数是一种嵌套在另一个成员中的方法，且仅能从其包含成员中调用它，因此局部函数不包含任何访问修饰符。可以在方法、构造函数、属性访问器、事件访问器、匿名方法、Lambda 表达式、终结器、其他局部函数中声明和调用局部函数。在相同作用域下声明的局部函数无法声明同名的重载函数。
+
+可以声明 `async`、`unsafe`、`static`、`extern static` 修饰的局部函数。从 C#9 开始，可以将特性应用于局部函数、其参数和类型参数。`extern` 表示局部函数是外部的。
 
 ```csharp
 private static string GetText(string path, string filename)
@@ -1015,16 +1045,61 @@ private static string GetText(string path, string filename)
 }
 ```
 
-* 本地函数与 Lambda 表达式的区别在于：
+使用 `Conditional` 特性标记的局部方法也只能是静态的。
+
+```csharp
+#undef Conditonal
+
+using System.Diagnostics;
+using System.Reflection;
+
+public class Sample
+{
+    public static unsafe void Fun(out Delegate inline)
+    {
+        // 调用被忽略
+        funInline("Hello World");
+
+        // 反射获取内联方法
+        var t = typeof(Sample);
+        foreach (var me in t.GetRuntimeMethods())
+        {
+            if (me.Name.Contains("funInline"))
+            {
+                Console.WriteLine(me.Name);
+                inline = me.CreateDelegate<Action<string>>(target: null);
+                return;
+            }
+        }
+        inline = null;
+
+        [Conditional("Conditonal")]
+        static void funInline(string mess)
+        {
+            Console.WriteLine(mess);
+        }
+    }
+    static void Main(string[] args)
+    {
+        Fun(out Delegate de);
+        de?.DynamicInvoke("Reflection funInline");
+    }
+}
+```
+
+局部函数与 Lambda 表达式的区别在于：
   - Lambda 表达式是在运行时声明和分配的对象，使用前必须对其进行明确赋值，并在声明时转换为委托；
-  - 本地函数在编译时定义，若只是通过调用方法一样调用本地函数而不捕获封闭范围中的变量时，本地函数不会转换为委托，只有在本地函数中明确分配了封闭范围的变量时，本地函数将作为委托类型实现。
-- 本地函数可以避免 Lambda 表达式始终需要的堆分配。若本地函数不会转化为委托时，并且本地函数捕获的变量不会被其他转换为委托的 Lambda 或本地函数捕获，则编译器可以避免堆分配。
+  - 局部函数在编译时定义，若只是通过调用方法一样调用局部函数而不捕获封闭范围中的变量时，局部函数不会转换为委托，只有在局部函数中明确分配了封闭范围的变量时，局部函数将作为委托类型实现。
+
+局部函数可以避免 Lambda 表达式始终需要的堆分配。若局部函数不会转化为委托时，并且局部函数捕获的变量不会被其他转换为委托的 Lambda 或局部函数捕获，则编译器可以避免堆分配。
+
+除非将局部函数转换为委托，否则捕获是在值类型的帧中完成的，这意味着使用带有捕获功能的局部函数不会产生任何 GC 压力。
 
 ```csharp
 public static int LocalFunctionFactorial(int n)
 {
     return nthFactorial(n);
-    // 本地函数编译时定义
+    // 局部函数编译时定义
     int nthFactorial(int number) => 
         number < 2 ? 1 : number * nthFactorial(number - 1);
 }
@@ -1043,8 +1118,157 @@ int M()
     int y;
     LocalFunction();
     return y;
-    // 本地函数捕获封闭范围中的 y 并明确分配，此时本地函数作为本地函数实现。编译器将为其堆分配。 
+    // 局部函数捕获封闭范围中的 y 并明确分配，此时局部函数作为局部函数实现。编译器将为其堆分配。 
     void LocalFunction() => y = 0;
+}
+```
+
+> 外部变量的 CIL 实现
+
+C# 编译器为捕捉外部变量的匿名方法或局部函数创建一个闭包（*closure*），它是一个数据结构，被捕获的局部变量作为实例字段在闭包中实现，从而延长了其生存期，所有使用局部变量的地方都改为使用闭包中的那个字段：
+- 对于转换为委托的匿名方法或局部函数，编译器为其构造一个类类型的闭包。
+  
+```csharp
+// CSharp
+class Sample
+{
+    int value;
+    delegate void SampleDelegate();
+    static SampleDelegate StaticFun(Sample s)
+    {
+        int v = 0;
+        SampleDelegate? result = delegate { Console.WriteLine(++s.value + v); };
+        return result;
+    }
+    static void Main()
+    {
+        Sample s = new Sample();
+        var de = Sample.StaticFun(s);
+        de?.Invoke(); // 1
+        de?.Invoke(); // 2
+        de?.Invoke(); // 3
+    }
+}
+// MSIL to C#
+internal class Sample
+{
+    // result 的闭包类型 
+	[CompilerGenerated]
+	private sealed class <>c__DisplayClass2_0
+	{
+		public Sample s;
+		public int v;
+		internal void <StaticFun>b__0()  // 匿名函数
+		{
+			Console.WriteLine(++s.value + v);
+		}
+	}
+    [System.Runtime.CompilerServices.NullableContext(1)]
+	private static SampleDelegate StaticFun(Sample s)
+	{
+		<>c__DisplayClass2_0 <>c__DisplayClass2_ = new <>c__DisplayClass2_0();  // 闭包调用
+		<>c__DisplayClass2_.s = s;
+		<>c__DisplayClass2_.v = 0;
+		return new SampleDelegate(<>c__DisplayClass2_.<StaticFun>b__0);
+	}
+    // ... rest members
+}
+```
+  
+- 对于捕获外部变量的局部函数，且未转换为委托类型时，编译器为其构造一个结构类型的闭包，并相应的在包含类型中为其构造一个私有方法，并将闭包类型作为引用参数进行传递。
+
+```csharp
+// CSharp
+class Sample
+{
+    int value;
+    void Fun()
+    {
+        int x = 0;
+        fun();      // 未转换为委托的局部函数调用
+        void fun() =>     // 局部函数声明，捕获 this
+            Console.WriteLine(++this.value + x++);
+    }
+
+    static void Main()
+    {
+        Sample s = new Sample();
+        s.Fun();  // 1
+        s.Fun();  // 2
+        s.Fun();  // 3
+    }
+}
+// MSIL to C#
+internal class Sample
+{
+	[StructLayout(LayoutKind.Auto)]
+	[CompilerGenerated]
+	private struct <>c__DisplayClass1_0   // 捕获外部变量且未转换委托的局部函数的闭包结构
+	{
+		public Sample <>4__this;
+		public int x;
+	}
+
+	private void Fun()
+	{
+		<>c__DisplayClass1_0 <>c__DisplayClass1_ = default(<>c__DisplayClass1_0);   // 闭包调用
+		<>c__DisplayClass1_.<>4__this = this;
+		<>c__DisplayClass1_.x = 0;
+		<Fun>g__fun|1_0(ref <>c__DisplayClass1_);
+	}
+
+	[CompilerGenerated]
+	private void <Fun>g__fun|1_0(ref <>c__DisplayClass1_0 P_0)  // 提升局部函数为包含类型的私有函数成员
+	{
+		Console.WriteLine(++value + P_0.x++);
+	}
+    // rest members ...
+}
+```
+
+- 未捕获外部变量的局部函数，CIL 为在它的外部包含类型中为其构造为一个私有方法，并在声明局部函数的地方调用该构造的方法。
+
+```csharp
+// CSharp
+class Sample
+{
+    static void Main()
+    {
+        funInline();
+        void funInline()
+        {
+            Console.WriteLine("=== End ===");
+        }
+    }
+}
+// MSIL to C#
+internal class Sample
+{
+	private static void Main()
+	{
+		<Main>g__funInline|0_0();   // 不包含闭包的局部函数调用
+	}
+
+	[CompilerGenerated]
+	internal static void <Main>g__funInline|0_0()  // 提升局部函数为包含类型的私有函数成员
+	{
+		Console.WriteLine("=== End ===");
+	}
+}
+```
+
+#### 方法协变返回
+
+允许方法的重写声明比它重写的方法更派生的返回类型。
+
+```csharp
+class Base
+{
+    public virtual Base Create() => new Base();
+}
+class Derived : Base
+{
+    public override Derived Create() => new Derived();
 }
 ```
 
@@ -1086,7 +1310,8 @@ public static class Ext
 方法的返回类型可以使用 `ref` 修饰或 `ref readonly`，表示该方法返回一个变量引用：
 - `ref` 返回变量的引用，可以重新分配（`= ref`）或赋值修改（`=`）引用变量。
 - `red readonly` 返回只读的变量引用，无法赋值修改（`=`）引用变量，可以重新分配（`= ref`）引用。
-- 可以将 `ref` 返回方法赋值给 `ref readonly` 变量。 
+- 可以将 `ref` 方法返回值分配给 `ref readonly` 变量。
+- `ref readonly` 方法返回值可以作为 `in` 参数传递（不能是 `ref`、`out` 参数）。  
 
 ```csharp
 class Sample
@@ -1155,7 +1380,7 @@ class Sample
 ```
 
 
-<br>
+>---
 
 ### 属性
 
@@ -1163,7 +1388,7 @@ class Sample
 
 在属性中可以组合实现 `get` 读访问器、`set` 写访问器或 `init` 构造访问器，这些访问器可以具有不同的访问级别，访问器的可访问性必须比属性本身具有更强的限制。`value` 用于定义由 `set` 或 `init` 访问器分配的值。
 
-属性也可以被声明为 `virtual` 或 `abstract`，以允许在派生类型中进行重写。属性的修饰符组合和方法规则相同。
+在类中，属性可以被声明为 `virtual` 或 `abstract`，以允许在派生类中进行重写。属性的修饰符组合和方法规则相同。
 
 ```csharp
 public class TimePeriod
@@ -1182,6 +1407,131 @@ public class TimePeriod
     }
     // 表达式主体定义
     public string Greeting => "Hello, World"; 
+}
+```
+
+#### 属性访问器
+
+属性的访问器可以是 `get` 读访问器、`set` 写访问器、`init` 初始化访问器中的一个，也可以是 `get` / `set` 或 `get` / `init` 组合。静态属性不包含 `init` 访问器。
+
+只读 `get` 属性仅在包含类型的实例构造函数中初始化属性值。
+
+```csharp
+struct Sample
+{
+    public Sample(int value)
+    {
+        this.Value = value;   // 仅在实例构造函数中可设置
+    }
+    public int Value { get; }
+}    
+```
+
+`set` 访问器可以在其可访问域中对属性进行设置。
+
+```csharp
+Sample s = new Sample { Value1 = 100 };  // 对象初始化项
+s.Value1 = 1000;  // 外部访问
+
+class Sample
+{
+    public Sample()
+    {
+        Value1 = 1;
+        Value2 = 2;
+        Value3 = 3;
+    }
+    public int Value1 { get; set; }
+    public int Value2 { get; protected set; } // 包含或派生类型内可设置
+    public int Value3 { get; private set; }  // 包含类型内可设置
+}
+class Derived : Sample
+{
+    public Derived()
+    {
+        Value1 = 10;  // 派生内
+        Value2 = 20;  // 派生内
+        Value3 = 30;  //err
+    }
+}
+```
+
+`init` 访问器可以在对象初始化项中、`with` 表达式初始化项中、包含类型（`this`）或派生类型（`base`）的实例构造函数中、在所有属性的 `init` 初始化访问器中、带有命名参数的内部属性用法（例如特性命名参数列表）被认为是可设置的。
+
+```csharp
+Sample sample = new Sample { Value = 10010 };  // 对象初始化项
+
+Sample s2 = sample with { Value = 10086 };  // with 表达式
+
+struct Sample
+{
+    public Sample(int value)
+    {
+        this.Value = value;   // 在实例构造函数中可设置
+    }
+    public int Value { get; init; }
+    public int PropInit
+    {
+        get => 0;
+        init
+        {
+            Value = 10010;  // 其他属性的 init 中
+        }
+    }
+}
+```
+
+任何实例只读字段也可以在所有属性的 `init` 访问器中赋值初始化，且仅限于其相同的包含类型。
+
+```csharp
+struct Sample
+{
+    public int Value { get => s_value; init => s_value = value; }
+
+    private readonly int s_value;
+}
+```
+
+任何自动实现的属性都可以包含一个初始值设定项。具有实例字段初始值设定项的结构类型需要显式声明一个实例构造函数。
+
+```csharp
+class Sample
+{
+    public int Value { get; init; } = 0;
+    public int ReadOnlyValue { get; } = 10010;
+    public int VariableValue { get; set; } = 10086;
+}
+```
+
+#### 如何实现不可变属性
+
+- 仅声明 `get` 访问器的属性只能在构造函数中可变，无法在对象初始化设定项中重新分配。
+- 声明 `get` 和 `init` 访问器的属性在实例构造函数中可变，也可以在对象初始化设定项中重新分配。
+- 表达式主体形式的属性声明仅由一个 `get` 访问器构成，且无法在任何地方修改。
+- 声明 `get` 和 `private set` 访问器的属性只能在该包含类型中设置，对于外部则不可变。
+
+```csharp
+Sample s = new();
+Console.WriteLine(s);
+// Sample { OnlyGet = 10010, Get_Init = 10086, Private_Set = 10000, ReadOnly = 30096 }
+Console.WriteLine(s.Private_Set);  // 10001
+
+Sample s2 = s with { Get_Init = 20010 };
+Console.WriteLine(s2);
+// Sample { OnlyGet = 10010, Get_Init = 20010, Private_Set = 10001, ReadOnly = 40021 }
+
+struct Sample
+{
+    public Sample()
+    {
+        OnlyGet = 10010;
+        Get_Init = 10086;
+        Private_Set = 10000;
+    }
+    public int OnlyGet { get; }
+    public int Get_Init { get; init; }
+    public int Private_Set { get; private set; }
+    public int ReadOnly => Get_Init + OnlyGet + Private_Set++;
 }
 ```
 
@@ -1211,38 +1561,6 @@ public class SampleData
 }
 ```
 
-#### 如何实现不可变属性
-
-- 仅声明 `get` 访问器的属性只能在构造函数中可变，无法在对象的初始化构造器中重新分配。
-- 声明 `get` 和 `init` 访问器的属性在构造函数中可变，也可以在对象的初始化构造器中重新分配。
-- 表达式主体形式的属性声明仅由一个 `get` 访问器构成，且无法在任何地方修改。
-- 声明 `get` 和 `private set` 访问器的属性只能在该类型中设置，对于外部则不可变。
-
-```csharp
-Sample s = new();
-Console.WriteLine(s);
-// Sample { OnlyGet = 10010, Get_Init = 10086, Private_Set = 10000, ReadOnly = 30096 }
-Console.WriteLine(s.Private_Set);  // 10001
-
-Sample s2 = s with { Get_Init = 20010 };
-Console.WriteLine(s2);
-// Sample { OnlyGet = 10010, Get_Init = 20010, Private_Set = 10001, ReadOnly = 40021 }
-
-struct Sample
-{
-    public Sample()
-    {
-        OnlyGet = 10010;
-        Get_Init = 10086;
-        Private_Set = 10000;
-    }
-    public int OnlyGet { get; }
-    public int Get_Init { get; init; }
-    public int Private_Set { get; private set; }
-    public int ReadOnly => Get_Init + OnlyGet + Private_Set++;
-}
-```
-
 #### 虚属性、重写属性、抽象属性和密封属性（类专属）
 
 类可以像方法一样声明属性版本的虚属性、重写属性、抽象属性和密封属性，它们和类似方法的行为完全相同。
@@ -1261,6 +1579,20 @@ class Derived : Base
     protected override int Value { get; set; } = 100;
     // 密封的重写属性
     public sealed override int DeCounter => Value > 0 ? base.DeCounter : 0;
+}
+```
+
+属性可以只重写基属性已声明的访问器的其中一个。同方法的协变返回，只读属性的重写声明可以是比基属性类型的更派生类型。
+
+```csharp
+class Base
+{
+    public virtual Base Instance { get; set; }
+}
+class Derived : Base
+{
+    // 重写基属性的只读访问器，并返回更派生的类型
+    public override Derived Instance => new Derived();  
 }
 ```
 
@@ -1354,12 +1686,12 @@ class Sample
 }
 ```
 
-`readonly` 可以应用于某些自动实现的属性，但它不会产生有意义的效果。无论是否存在关键字，编译器都将所有自动实现的 `get` 访问器视为只读 `readonly`。
+`readonly` 可以应用于某些自动实现的属性，但它不会产生有意义的效果。无论是否存在关键字，编译器都将所有自动实现的 `get` 访问器视为只读 `readonly`。`init` 访问器不能标记为 `readonly`。
 
 ```csharp
 // Allowed
 public readonly int Prop1 { get; }
-public int Prop2 { readonly get; init;}
+public int Prop2 { readonly get; init;}  
 public int Prop3 { readonly get; set; }
 
 // Not allowed
@@ -1416,15 +1748,13 @@ record struct S_Person(string FirstName, string LastName);
 record C_Person(string FirstName, string LastName);
 ```
 
-<br>
+>---
 
 ### 索引器
 
 索引器允许类或结构的实例就像数组一样进行索引。索引器类似于属性，但是需要使用参数进行索引访问。索引器可以不必使用整数值进行索引，可以使用任何类型的值作为索引。
 
 索引器可以重载，因此可以由多个形参作为检索条件。
-
-索引器可以是 `virtual` 或 `abstract`，无法声明为 `static`。
 
 ```csharp
 var arr = new NumberArray(1, 2, 3, 4, 5, 6);
@@ -1438,6 +1768,27 @@ class NumberArray(params int[] Numbers)
         set => Numbers[index] = value;
     }
     public int Length => Numbers.Length;
+}
+```
+
+索引器可以是 `virtual` 或 `abstract`，无法声明为 `static`。重写索引器时，可以仅重写基索引器已声明访问器的其中一个，重写索引器的只读访问器时可以返回比它重写的基索引器更派生的返回类型。
+
+```csharp
+class Base
+{
+    public virtual object this[int index]
+    {
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
+}
+class Derived : Base
+{
+    // 重写只读访问器，返回更派生类型
+    public override string this[int index]
+    {
+        get => throw new NotImplementedException();
+    }
 }
 ```
 
@@ -1546,7 +1897,7 @@ interface ISampleArray<T>
 }
 ```
 
-<br>
+>---
 
 ### 事件
 
@@ -2084,7 +2435,7 @@ worker.StartWorking += async (sender, eventArgs) =>
 
 事件监听器通常具有较长的生存期，事件源可能会在程序的整个生存期内引发事件；而许多基于委托的设计，用作方法的参数进行传递，在返回该方法后不再使用此委托。
 
-<br>
+>---
 
 ### 运算符
 
@@ -2153,7 +2504,7 @@ readonly record struct Point(int X, int Y)
 }
 ```
 
-<br>
+>---
 
 ### 实例构造函数
 
@@ -2393,7 +2744,7 @@ class Person(string name, int age)
 }
 ```
 
-<br>
+>---
 
 ### 静态构造函数
 
@@ -2514,7 +2865,7 @@ class SampleDerived : Sample
 }
 ```
 
-<br> 
+>--- 
 
 ### 终结器
 
@@ -2604,6 +2955,13 @@ public partial class Customer
 }
 ```
 
+可以在分部类或结构上声明主构造函数，且只有一个分部声明上可以拥有参数列表。
+
+```csharp
+partial class Sample(int a, int b) { }
+partial class Sample(int a) {} // err
+```
+
 > 分部类的常见使用场景
 
 常在以下几种情况下需要拆分类定义：
@@ -2617,7 +2975,7 @@ public partial class Customer
 
 泛型类型可以是分部的，每个分部声明都必须以相同的顺序使用相同的参数名。
 
-<br>
+>---
 
 ### 分部方法
 
@@ -2675,6 +3033,8 @@ public partial class PartClass
 }
 ```
 
+接口中的无访问修饰的 `void` 分部方法定义声明，被视为具有隐式的 `private` 的私有接口方法。若提供修饰符则需要提供该分部方法的实现声明。接口分部方法的基本规则与类型中的分部方法规则相同。没有实现声明的分部方法，编译时将在调用点删除分部方法调用。
+
 ---
 ## 迭代器
 
@@ -2682,7 +3042,7 @@ public partial class PartClass
 
 使用迭代器块实现的函数成员，不能使用任何 `in`、`out`、`ref` 修饰的参数或 `ref struct` 类型的参数。
 
-<br>
+>---
 
 ### 枚举器接口和可枚举接口
 
@@ -2690,7 +3050,7 @@ public partial class PartClass
 
 可枚举接口是 `System.Collections.IEnumerable` 和 `System.Collections.Generic.IEnumerable<T>` 以及它们的派生接口。
 
-<br>
+>---
 
 ### yield 类型
 
@@ -2698,7 +3058,7 @@ public partial class PartClass
 - 返回 `IEnumerator` 或 `IEnumerable` 的枚举器的 `yield` 类型是 `object`。
 - 返回 `IEnumerator<T>` 或 `IEnumerable<T>` 的枚举器的 `yield` 类型是 `T`。
 
-<br>
+>---
 
 ### 迭代器对象
 
@@ -2765,7 +3125,7 @@ public partial class PartClass
   - 更改枚举器的状态为 *after*。
 - 如果枚举器对象的状态为 *after*，则调用 *Dispose* 不会有任何影响。
 
-<br>
+>---
 
 ### 可枚举对象
 
@@ -2783,7 +3143,7 @@ public partial class PartClass
 
 可枚举对象提供了 `IEnumerable` 或 `IEnumerable<T>` 接口的 `GetEnumerator` 方法的实现。这两个 `GetEnumerator` 方法共享一个公共实现，该实现获取并返回一个可用的枚举器对象。
 
-<br>
+>---
 
 ### 实现一个可枚举对象和对应的枚举器
 
@@ -2840,7 +3200,7 @@ class Awaiter<T> : INotifyCompletion
 
 异步函数可以通过在函数体中使用 `await` 表达式来暂停求值。之后可以通过调用 *Resumption Delegate* 恢复委托在暂停的 `await` 表达式上恢复计算。恢复委托的类型是 `System.Action`，当调用它时，异步函数调用的计算将从 `await` 表达式停止的地方恢复。如果函数调用从未暂停，则异步函数调用的 *Current Caller* 当前调用者为原始调用者，否则为恢复委托的最近调用者。
 
-<br>
+>---
 
 ### *Task Type* 构建器
 
@@ -2889,7 +3249,7 @@ class TaskBuilderType<T>
 - `SetStateMachine(IAsyncStateMachine)` 可以由编译器生成的 `IAsyncStateMachine` 实现调用，以识别与状态机实例关联的构建器实例，特别是在状态机被实现为值类型的情况下。
   - 如果构建器调用 `stateMachine.SetStateMachine(stateMachine)`，则 `stateMachine` 将在与 `stateMachine` 关联的构建器实例上调用 `builder.SetStateMachine (stateMachine)`。
 
-<br>
+>---
 
 ### *Task-returning* 异步方法的求值
 
@@ -2901,7 +3261,7 @@ class TaskBuilderType<T>
 - 如果函数体因到达 `return` 语句或函数体结束而终止，则在 `returnTask` 中记录结果值（如果有返回值的话），并将其置于 *succeeded* 状态。
 - 如果函数体由于未捕获的异常而终止，则将异常记录在 `returnTask` 中，并将其置于 *faulted* 状态。
 
-<br>
+>---
 
 ### *Void-returning* 异步方法的求值
 
@@ -2946,7 +3306,7 @@ public class ExceptionTest
 }
 ```
 
-<br>
+>---
 
 ### System.Exception
 
@@ -2970,7 +3330,7 @@ catch (NotImplementedException ex)
 void ExceptionTest() => throw new NotImplementedException();
 ```
 
-<br>
+>---
 
 ### 异常处理
 
@@ -3020,7 +3380,64 @@ finally
 - 如果异常存在于终结器内，将中止终结器，并调用基类终结器（如果有）。
 - 如果搜索匹配的 `catch` 子句到达最初启动线程的代码，则终止线程的执行。这种终止的影响是由实现定义的。
 
-<br>
+>---
+
+### 重新引发异常
+
+在 `catch` 块捕获的异常，可以通过一条单独的 `throw;` 语句重新抛出保留原始栈信息的异常。若使用 `throw` 抛出的是 `catch` 块中的具体异常，则会更新所有栈信息来匹配新的抛出位置。这会导致指示异常最初发生位置的栈信息丢失。
+
+```csharp
+class Sample
+{
+    static void Fun() => throw new NotImplementedException();
+    static void Main(string[] args)
+    {
+        try
+        {
+            Fun();
+        }
+        catch (Exception e)
+        {
+            throw;
+            //throw e;
+        }
+    } 
+}
+```
+
+如何抛出现有异常而不替换栈信息？可以使用 `System.Runtime.ExceptionServices.ExceptionDispatchInfo` 类专门处理这种情况。
+
+```csharp
+using System.Runtime.ExceptionServices;
+class ExceptionHandler
+{
+    public static void Capture(Exception ex, bool isThrow = false)
+    {
+        ExceptionDispatchInfo.Throw(ex);
+        // or 
+        var exInfo = ExceptionDispatchInfo.Capture(ex);
+        if(isThrow)
+            exInfo.Throw();
+    }
+}
+class Sample
+{
+    static void Fun() => throw new NotImplementedException();
+    static void Main(string[] args)
+    {
+        try
+        {
+            Fun();
+        }
+        catch (Exception e)
+        {
+            ExceptionHandler.Capture(e, true);
+        }
+    }
+}
+```
+
+>---
 
 ### 定义异常的类别
 
@@ -3037,26 +3454,30 @@ public class InvalidDepartmentException : Exception
 }
 ```
 
-<br>
+>---
 
-### 常见的异常类
-
-- 当基本操作失败时，.NET 运行时会自动引发一些异常。 
+### 常见 .NET 异常类型
 
 ```csharp
 ArithmeticException         // 算术运算期间出现的异常的基类，例如 DivideByZeroException 和 OverflowException。
+ArgumentException           // 传递给方法的参数无效
+ArgumentNullException       // 不应为 null 的参数传递了 null 值
 ArrayTypeMismatchException	// 存储数组元素时，由于元素类型与数组类型不兼容引发。
+ApplicationException        // 作为应用程序定义的异常的基类。
 DivideByZeroException	    // 尝试将整数值除以零时引发。
+FormatException             // 当参数的格式无效或复合格式字符串格式不正确时引发的异常。
 IndexOutOfRangeException	// 索引小于零或超出数组边界时，尝试对数组编制索引时引发。
 InvalidCastException	    // 从基类型显式转换为接口或派生类型在运行时失败时引发。
+InvalidOperationException   // 当方法调用对于对象的当前状态无效时引发的异常。
 NullReferenceException	    // 尝试引用值为 null 的对象时引发。
+NotImplementedException     // 当请求的方法或操作未实现时引发的异常。 
 OutOfMemoryException	    // 尝试使用新运算符分配内存失败时引发。 此异常表示可用于公共语言运行时的内存已用尽。
 OverflowException	        // checked 上下文中的算术运算溢出时引发。
 StackOverflowException	    // 执行堆栈由于有过多挂起的方法调用而用尽时引发；通常表示非常深的递归或无限递归。
 TypeInitializationException	// 静态构造函数引发异常并且没有兼容的 catch 子句来捕获异常时引发。
 ```
 
-<br>
+>---
 
 ### 捕捉非 CLS 异常
 
@@ -3087,6 +3508,3 @@ catch (System.Runtime.CompilerServices.RuntimeWrappedException e)
 ```
 
 ---
-## 
-
-

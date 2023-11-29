@@ -34,7 +34,7 @@ namespace YourNamespace{
 } 
 ```
 
-<br>
+>---
 
 ### 应用启动与终止
 
@@ -44,7 +44,7 @@ namespace YourNamespace{
 
 作为应用程序编译的程序应包含至少一个符合规范要求的方法作为入口点：该方法以 `Main` 命名的非泛型类型的静态声明，不能是泛型方法，也不能在泛型类型中声明。`Main` 方法是可执行程序的入口点，也是程序控制开始和结束的位置。
 
-<br>
+>---
 
 ### Main 方法
 
@@ -141,7 +141,7 @@ private static int $GeneratedMain(string[] args)
     => Main(args).GetAwaiter().GetResult();
 ```
 
-<br>
+>---
 
 ### 命令行自变量
 
@@ -191,7 +191,7 @@ class MainClass
 // If 3 is entered on command line, the output reads:  The factorial of 3 is 6.
 ```
 
-<br>
+>---
 
 ### 顶级语句
 
@@ -260,7 +260,7 @@ static int GeneratedMain(string[] args){}
 static void GeneratedMain(string[] args){}
 ```
 
-<br>
+>---
 
 ### 终止应用
 
@@ -269,6 +269,31 @@ static void GeneratedMain(string[] args){}
 如果有效入口点方法的返回类型为 `void` 或 `Task`，并且执行完成后没有导致异常，则终止状态码为 `0`。
 
 如果有效入口点方法由于异常而终止，则退出代码是特定于实现的。终结器 `finalizer` 是否作为应用程序终止的一部分运行是具体实现的。.NET 框架实现尽一切合理的努力为所有尚未被垃圾收集的对象调用终结器，除非这种清理已经被抑制（通过调用库方法 `GC.SuppressFinalize`）。
+
+>---
+### 托管执行和 CIL
+
+处理器不能直接解释程序集，程序集使用公共中间语言（*Common intermediate Language*，CIL）或中间语言 IL。C# 编译器将 C# 源代码文件转换成中间语言。将 CIL 代码转换成处理器能理解的机器码，还需要在 VES（*Virtual Execution System*，虚拟执行系统），运行时（*runtime*）中按需即时编译（*just-in-time compilation*，JIT 编译）。代码在 “运行时” 的上下文中执行，就称为托管代码 （*managed code*），在 “运行时” 的控制下执行的过程则称为托管执行 （*managed execution*）。
+
+“托管” 是指 “运行时” 管理程序的内存分配、安全性和 JIT 编译等方面，从而控制了主要的程序行为。而执行时不需要 “运行时” 的代码称为本机代码（*native code*）或非托管代码 （*unmanaged code*）。
+
+“运行时” 规范包含在一个包容面更广的规范中，即 CLI（*Common Language Infrastructure*，公共语言基础结构 ）规范：
+- CIL（*Common intermediate Language*）公共中间语言，又称 MSIL，简写为 IL。
+- BCL（*Base Class Library*）基类库，属于 FCL 的一个子集。
+- FCL（*Framework Class Library*）框架类库，内层由大部分 BCL 组成，主要对 .NET 框架、运行时和 CIL 语言提供支持（预定义类型、集合类型、线程处理、应用程序域、运行时、安全性、互操作等）；中间层是包含了对操作系统功能的封装（文件系统、网络连接、图形图像、XML 操作等）；最外层是包含各种类型的应用程序（Windows Forms、ASP.NET、WPF、WCF、WF 等）。
+- CTS（*Common Type System*）公共类型系统，
+- CLS（*Common Language Specification*）公共语言规范，
+- CLR（*Common Language Runtime*）公共语言运行时，也叫 VES（*Virtual Execution System*，虚拟执行系统），CLR 是 .NET 程序集的运行环境。
+- 元数据包括程序集的布局或文件格式规范。
+  
+CIL 在 CLR 执行引擎的上下文中运行，其中运行的主要服务和功能包括：
+- 语言互操作性：不同源语言间的互操作性。语言编译器将每种源语言转换成相同中间语言 CIL 来实现这种互操作性。
+- 类型安全：检查类型间转换，确保兼容的类型才能相互转换。这有助于防范缓冲区溢出。
+- 代码访问安全性：程序集开发者的代码有权在计算机上执行的证明。
+- 垃圾回收：一种内存管理机制，自动释放 CLR 为数据分配的空间。
+- 平台可移植性：同一程序集可在多种操作系统上运行。
+- BCL（基类库）：提供开发者能（在所有 .NET 框架中）依赖的大型代码库。
+
 
 ---
 ## 声明
@@ -291,7 +316,7 @@ C# 程序中的声明定义程序的构成元素。C# 使用命名空间对相�
 - 每个编译单元和命名空间内都有一个别名（`using`、`extern alias`）声明空间。
 - 每个非分部类、结构和接口声明都将创建一个新的声明空间。除了构造函数以外，类或结构不能包含与类或结构同名的成员声明，但允许声明相同名称的方法或运算符重载。基类不会占用类的声明空间，基接口不会占用接口的声明空间，因此允许派生类或接口声明与继承成员同名的成员，这类声明的成员称为隐藏继承的成员。
 - 每个委托、枚举声明都将创建一个新的声明空间。
-- 每个方法声明、属性声明、访问器声明、索引器声明、运算符声明、构造函数声明、匿名函数和本地函数声明都会创建一个新的局部变量声明空间。局部变量声明空间可以嵌套，但是无法在局部和嵌套的声明空间内包含同名局部元素。
+- 每个方法声明、属性声明、访问器声明、索引器声明、运算符声明、构造函数声明、匿名函数和局部函数声明都会创建一个新的局部变量声明空间。局部变量声明空间可以嵌套，但是无法在局部和嵌套的声明空间内包含同名局部元素。
 - 每个块 `{ }` 或 `switch-case` 块、`for`、`foreach`、`using` 等语句都将为局部变量和本地常量创建局部变量声明空间。 
 - 声明名称的文本顺序通常没有意义。例如对于命名空间、常量、方法、属性、事件、索引器、操作符、实例构造函数、终结器、静态构造函数和类型的声明和使用，文本顺序并不重要。声明顺序的重要性体现在：
   - 字段声明的声明顺序决定了它们的初始化式执行的顺序；
@@ -440,7 +465,7 @@ C# 有多种变量，其中包括字段、数组元素、局部变量和参数�
 - 委托类型：`null` 引用、对兼容的委托类型实例的引用。
 - 记录类型：引用记录包含 `null` 引用或记录类型实例的引用，结构记录包含结构记录实例的值。
 
-<br>
+>---
 
 ### 在变量声明中指定类型
 
@@ -461,7 +486,7 @@ var query = from item in source
             select item;
 ```
 
-<br>
+>---
 
 ### .NET 内置类型
 
@@ -490,7 +515,7 @@ string str = "Hello world";
 object obj = null;
 ```
 
-<br>
+>---
 
 ### 非托管类型
 
@@ -508,7 +533,7 @@ public struct Coords<T> where T : unmanaged
 }
 ```
 
-<br>
+>---
 
 ### .NET 通用类型系统
 
@@ -537,7 +562,7 @@ CTS 中的每种类型被定义为值类型或引用类型。这些类型包括 
 
 引用类型完全支持继承。创建类时，可以从其他任何接口或未定义为密封的类继承。派生类可以从基类中继承并替代虚拟方法。
 
-<br>
+>---
 
 ### 泛型类型
 
@@ -573,7 +598,7 @@ public class Pair<TFirst, TSecond> // <,> 类型参数列表
 ```
 
 
-<br>
+>---
 
 ### 隐式类型、匿名类型和可以为 null 的值类型
 
@@ -610,7 +635,7 @@ if (val.HasValue)  // false
 Console.WriteLine(val2 ?? 0);  // 10   
 ```
 
-<br>
+>---
 
 ### 编译时类型和运行时类型
 
@@ -630,13 +655,13 @@ IEnumerable<char> someCharacters = "abcdefghijklmnopqrstuvwxyz";    // 编译时
 
 命名空间和类型拥有成员，这些成员通常通过使用限定名和成员访问符 `.` 来获得。类型的成员可以在类型定义中声明，也可以从类型的基类继承。基类的所有成员（除构造函数、终结器外）将成为派生类型的成员。成员的可访问性不会控制是否继承成员，只会限制派生类型对该成员的可访问性。也可以通过声明同名成员隐藏继承的成员。
 
-<br>
+>---
 
 ### 命名空间成员
 
 没有封闭命名空间的命名空间和类型是全局命名空间的成员，可以显式 `global::` 进行访问成员。命名空间中声明的命名空间和类型是该命名空间的成员。命名空间没有任何访问限制，其他成员类型可以添加可访问性。 
 
-<br>
+>---
 
 ### 结构成员
 
@@ -659,13 +684,13 @@ IEnumerable<char> someCharacters = "abcdefghijklmnopqrstuvwxyz";    // 编译时
 - `nint` 对应于 `System.IntPtr`。
 - `nuint` 对应于 `System.UIntPtr`。
 
-<br>
+>---
 
 ### 枚举成员
 
 枚举的成员是枚举中声明的常量，以及从枚举的直接基类 `System.Enum` 和间接基类 `System.ValueType` 和 `object` 继承的成员。
 
-<br>
+>---
 
 ### 类成员
 
@@ -678,7 +703,7 @@ IEnumerable<char> someCharacters = "abcdefghijklmnopqrstuvwxyz";    // 编译时
 - `object` 对应于 `System.Object`。
 - `string` 对应于 `System.String`。
 
-<br>
+>---
 
 ### 接口成员
 
@@ -703,13 +728,13 @@ class Sample : ISample
 }
 ```
 
-<br>
+>---
 
 ### 数组成员
 
 数组成员是从类 `System.Array` 继承的成员。
 
-<br>
+>---
 
 ### 委托成员
 
@@ -720,7 +745,7 @@ class Sample : ISample
 
 成员声明允许对成员的可访问性进行控制。成员的可访问性由成员声明的可访问性和其直接包含类型的可访问性结合确定。
 
-<br>
+>---
 
 ### 可访问性声明
 
@@ -750,7 +775,7 @@ class Sample : ISample
 - `file` 修饰符将顶级类型的范围和可见性限制为其所包含的文件范围。`file` 修饰符通常应用于源生成器编写的类型。**文件本地类型** 为源生成器提供了一种方便的方法，能够避免在生成的类型之间发生名称冲突。
 - `file` 可用于修饰 `class`、`struct`、`enum`、`interface`、`record`、`delegate`、`record struct`、`Attribute class`。
 
-<br>
+>---
 
 ### 可访问性约束
 
