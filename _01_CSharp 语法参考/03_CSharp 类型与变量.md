@@ -295,11 +295,255 @@ class ExampleClass
 // Local variable
 ```
 
+#### CIL 中的动态类型
+
+在 CIL 中，`dynamic` 类型实际上是一个 `System.Object`，当没有任何调用时，它的声明和 `object` 没有任何区别。为调用成员，编译器要声明 `System.Runtime.CompilerServices.CallSite<T>` 类型的一个变量，`T` 视成员签名而变化。
+
+如 `ToString()` 这样的调用，也需实例化 `CallSite<Func<CallSite,object,string>>` 类型。另外还会动态定义一个方法，该方法可通过参数 `CallSite site`，`object dynamicTarget` 和 `string result` 进行调用。其中，`site` 是调用点本身。 `dynamicTarget` 是要在上面调用方法的 `object`，而 `result` 是 `ToString()` 方法调用的基础类型的返回值。注意不是直接实例化 `CallSite<Func<CallSite _site, object dynamicTarget, string result>>`，而是通过一个 `Create()` 工厂方法来实例化它。这个方法接受一个 `Microsoft.CSharp.RuntimeBinder.CSharpConvertBinder` 类型的参数。在
+得到 `CallSite<T>` 的一个实例后，最后一步是调用 `CallSite<T>.Target()` 来调用实际的成员。
+
+在执行时，框架会在底层用反射来查找成员并验证签名是否匹配。然后，CLR 生成一个表达式树，它代表由调用点定义的动态表达式。表达式树编译好后，就得到了和本来应由编译器生成的结果相似的 CIL。这些 CIL 代码在调用点缓存下来，并通过一个委托调用来实际地触发调用。由于 CIL 现已缓存于调用点，所以后续调用不会再产生反射和编译的开销。
+
+> C# 调用
+
+```csharp
+class Sample
+{
+    static void Main(string[] args)
+    {
+        dynamic dy = 0;
+        string str = dy.ToString();
+    }
+}
+```
+
+> CIL To C#
+
+```csharp
+internal class Sample
+{
+	[CompilerGenerated]
+	private static class <>o__0   // 生成一个动态绑定关联对象
+	{
+		public static CallSite<Func<CallSite, object, object>> <>p__0;
+		public static CallSite<Func<CallSite, object, string>> <>p__1;
+	}
+
+	[System.Runtime.CompilerServices.NullableContext(1)]
+	private static void Main(string[] args)
+	{
+		object dy = 0;   // 被视为 `object` 的 `dynamic dy = 0;`
+		if (<>o__0.<>p__1 == null)
+		{
+			<>o__0.<>p__1 = CallSite<Func<CallSite, object, string>>
+                .Create(Binder.Convert(CSharpBinderFlags.None, typeof(string), typeof(Sample)));
+		}
+		Func<CallSite, object, string> target = <>o__0.<>p__1.Target;
+		CallSite<Func<CallSite, object, string>> <>p__ = <>o__0.<>p__1;
+		if (<>o__0.<>p__0 == null)
+		{
+			<>o__0.<>p__0 = CallSite<Func<CallSite, object, object>>
+            .Create(Binder.InvokeMember(CSharpBinderFlags.None, "ToString", null, typeof(Sample), 
+                    new CSharpArgumentInfo[1] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) }));
+		}
+		string str = target(<>p__, <>o__0.<>p__0.Target(<>o__0.<>p__0, dy));  // 调用 CallSite<T>.Target
+	}
+}
+```
+
+#### 动态绑定的限制
+
+- 无法在动态类型上使用索引和范围运算 `dynamic[a..b]` 或 `dynamic[^a]`。
+
 >---
 
 ### String 字符串类型
 
-`string` 类型是直接从 `object` 继承的密封类类型，它的实例表示 Unicode 字符序列。可以将 `string` 的值写成字符串字面值。关键字 `string` 是预定义类 `System.String` 的别名。
+`string` 类型是直接从 `object` 继承的密封类类型，它的实例表示 Unicode 字符序列。可以将 `string` 的值写成字符串字面值。关键字 `string` 是预定义类 `System.String` 的别名。相等运算符 `==` 和 `!=` 用以比较 `string` 对象的值，而不是比较 `string` 对象的引用。
+
+```csharp
+string str1 = "hello";
+string str2 = "h";
+str2 += "ello";
+Console.WriteLine(str1 == str2);  // true
+Console.WriteLine(object.ReferenceEquals(str1, str2)); // false
+```
+
+#### 字符串拼接
+
+`+` 用于拼接两个字符串片段。字符串是不可变的，每次赋值时，编译器实际上会创建一个新的字符串对象来保存新的字符序列，并将新对象赋值给目标，并将之前的内存用于垃圾回收。
+
+```csharp
+string str = "Hello " + "World!";
+```
+
+#### 字符串索引
+
+`[]` 运算符可用于访问字符串字符序列中的指定索引位置的字符。
+
+```csharp
+string str = "test";
+for (int i = 0; i < str.Length; i++)
+  Console.Write(str[i] + " ");
+// Output: t e s t
+```
+
+#### 字符串内插
+
+`$` 字符将字符串字面量标识为内插字符串，内插字符串是可能包含内插表达式的字符串文本。将内插字符串解析为结果字符串时，带有内插表达式的项会替换为表达式结果的字符串表示形式。大括号转义序列（`{{` 和 `}}`）表示为 `{` 和 `}` 的字符串形式。
+
+```csharp
+$"{<interpolationExpression>[,<alignment>][:<formatString>]}"
+// - interpolationExpression     生成需要设置格式的结果的表达式
+// - alignment                   常数表达式，定义对齐方式和最小字符宽度，负值表示左对齐，正值表示右对齐
+// - formatString                受表达式结果类型支持的格式字符串，例如 DateTime 格式化输出
+
+Console.WriteLine($"|{"Left",-7}|{"Right",7}|");
+// |Left   |  Right|
+
+const int FieldWidthRightAligned = 20;      // $"{{" 打印 {
+Console.WriteLine($"{{{Math.PI,FieldWidthRightAligned}}} - default formatting of the pi number");
+Console.WriteLine($"{{{Math.PI,FieldWidthRightAligned:F3}}} - display only three decimal digits of the pi number");
+//{   3.141592653589793} - default formatting of the pi number
+//{               3.142} - display only three decimal digits of the pi number
+
+string message = $"The usage policy for {safetyScore} is {
+    safetyScore switch
+    {
+        > 90 => "Unlimited usage",
+        > 80 => "General usage, with daily safety check",
+        > 70 => "Issues must be addressed within 1 week",
+        > 50 => "Issues must be addressed within 1 day",
+        _ => "Issues must be addressed before continued use",
+    }}";
+```
+
+内插字符串初始化常量时，所有的内插表达式也必须是常量字符串。
+
+```csharp
+public class Sample
+{
+    const string S1 = $"Hello world";
+    const string S2 = $"Hello{" "}World";
+    const string S3 = $"{S1} Kevin, welcome to the team!";
+}
+```
+
+C#11 起内插表达式支持使用换行，以使表达式更具有可读性。
+
+```csharp
+var v = $"Count is\t: {this.Is.A.Really(long(expr))
+                            .That.I.Should(
+                                be + able)[
+                                    to.Wrap()]}.";
+```
+
+#### 逐字字符串
+
+`@` 指示将原义解释字符串。简单转义序列（如代表反斜杠的 `"\\"`）、十六进制转义序列（如代表大写字母 A 的 `"\x0041"`）和 Unicode 转义序列（如代表大写字母 A 的 `"\u0041"`）都将按字面解释。引号转义 `""` 不会按字面解释。
+
+逐字内插字符串中，大括号转义序列（`{{` 和 `}}`）不按字面解释。
+
+```csharp
+string filename1 = @"c:\documents\files\u0066.txt";
+string filename2 = "c:\\documents\\files\\u0066.txt";
+Console.WriteLine(filename1);
+Console.WriteLine(filename2);
+// The example displays the following output:
+//     c:\documents\files\u0066.txt
+//     c:\documents\files\u0066.txt
+
+string str = $@"{{{Math.PI,20}}} >> ""default formatting of the pi number""";
+Console.WriteLine(str);
+//{   3.141592653589793} >> "default formatting of the pi number"
+```
+
+#### 原始字符串
+
+原始字符串字面量从 C#11 开始可用。字符串字面量可以包含任意文本，而无需转义序列，字符串字面量可以包括空格和新行、嵌入引号以及其他特殊字符。原始字符串字面量用至少三个双引号（`"""`）的分隔符括起来。
+
+```csharp
+var message = """
+This is a multi-line
+    string literal with the second line indented.
+""";
+// 原始字符串的起始、结束引导序列长度要超过字符串中最长的引号序列长度
+"""""
+This raw string literal has four """", count them: """" four!
+embedded quote characters in a sequence. That's why it starts and ends
+with five double quotes.
+
+You could extend this example with as many embedded quotes as needed for your text.
+"""""
+```
+
+原始字符串支持单行形式，分隔符和字符串内容在同一行。单行形式不参与行首空格缩进。
+
+```csharp
+var str = """This is a single line""";
+```
+
+多行原始字符串的字面量分隔符必须位于自己的行，末尾分隔符的右侧决定了原始字符串的行缩进。
+
+```csharp
+var str = """
+    This is a multi-line
+        string literal with the second line indented.
+""";
+Console.WriteLine(str);
+/* output
+    This is a multi-line
+        string literal with the second line indented.
+| <--- 行缩进位置
+*/
+
+var str2 = """
+    This is a multi-line
+        string literal with the second line indented.
+    """;
+/* output
+This is a multi-line
+    string literal with the second line indented.
+| <--- 行缩进位置
+*/
+```
+
+原始字符串也支持内插表达式，字符串指定开始插值所需的大括号数目（由开头的内插字符 `$` 数目决定），任何少于这个数的大括号序列都被视为字符串内容。
+
+```csharp
+string value = "text";
+var str =
+    $$"""
+    {
+        "Summary": {{value}},
+        "length": {{value.Length}}
+    }
+    """;
+string value2 = $$"""{{
+    1
+    + 2
+    + 3}}""";  // 被视为单行原始字符串
+```
+
+#### UTF-8 字符串字面量
+
+.NET 中的字符串是使用 UTF-16 编码存储的。UTF-8 是 Web 协议和其他重要库的标准。从 C#11 开始，可以将 `u8` 后缀添加到字符串字面量以指定 UTF-8 编码。UTF-8 字面量存储为 `ReadOnlySpan<byte>` 对象，两个 `UTF-8` 字符串之间可以拼接。UTF-8 字符串字面量的自然类型也是 `ReadOnlySpan<byte>`。UTF-8 字符串字面量不能与字符串内插结合使用，但可以是 `@` 逐字字符串。
+
+```csharp
+using System.Text;
+
+// u8 to u16
+ReadOnlySpan<byte> strU8 = @"Hello world!"u8;
+string strU16 = Encoding.UTF8.GetString(strU8);
+Console.WriteLine(strU16);
+
+// u16 to u8
+string str = "Hello world!";
+ReadOnlySpan<byte> bytes = Encoding.UTF8.GetBytes(str);
+
+// u8 + u8
+ReadOnlySpan<byte> str1 = "Hello"u8 + " World"u8;
+```
 
 >---
 
@@ -307,48 +551,43 @@ class ExampleClass
 
 接口定义了一个协议，实现接口的类型必须遵循它的协议。一个接口可以继承多个基接口，一个类或结构可以实现多个接口。
 
-使用 `interface` 关键字定义接口类型。一般而言接口不提供其成员的实现，仅用来指定实现接口的类或结构应提供实现的成员。接口可为成员定义默认实现，还可以定义 `static` 成员，以便提供常见功能的单个实现，在类型中声明的同名静态成员不会覆盖接口中声明的静态成员。从 C#11 开始，可以声明 `static abstract` 的非字段成员。
-
-接口可以包含方法、属性、事件、索引器，也可以包含静态构造函数、静态字段、常量或运算符。接口成员默认是公共的，可以显式指定可访问性修饰符，其中 `private` 成员必须有默认实现。
+使用 `interface` 关键字定义接口类型，可以包含方法、属性、事件、索引器，也可以包含静态构造函数、静态成员、常量、运算符、嵌套类型等，这些成员默认的可访问性是 `public`。
 
 ```csharp
-interface IMyInterface<T> where T : IMyInterface<T>
+interface ISample
 {
-    // 接口静态构造
-    static IMyInterface() => Console.WriteLine("Static IMyInterface()");
+    // 实例成员
+    void FunA();
+    int Value { get; set; }
+    event Action MEvent;
+    int this[int index] { get; set; }
+
     // 静态成员
-    static void Func() => Console.WriteLine("Static IMyInterface.Func");
-    const int Zero = 0;
-    abstract static void AbsFunc();
-    // 实例方法
-    void Action();
-    // 实例方法：默认实现
-    virtual void S_Action() => Console.WriteLine("IMyInterface.S_Action");
-    // 属性或索引器
-    int GUI { get; }
-    // 运算符 static abstract/virtual 运算符
-    static virtual bool operator ==(T lhs, T rhs) => lhs.Equals(rhs);
-    static virtual bool operator !=(T lhs, T rhs) => !lhs.Equals(rhs);
-    static abstract T operator ++(T other);
-    // 
-}
-class MyClass : IMyInterface<MyClass>
-{
-    public int GUI => GetHashCode();
-    int counter = 0;
-    public static void AbsFunc() { }    // 实现接口静态抽象成员
-
-    public void Action() => Console.WriteLine("MyClass.Action");
-
-    public static MyClass operator ++(MyClass other)
+    static ISample() { Console.WriteLine("Static ISample"); }
+    static int GUI => 10010;
+    static Action StaticEvent;
+    const string TypeName = nameof(ISample);
+    static ISample operator ++(ISample s)
     {
-        other.counter++;
-        return other;
+        s.Value++;
+        return s;
     }
+
+    // 嵌套类型
+    delegate void OnInvoke();
+    class Nested;
+    interface INestedSample;
+}
+class Sample : ISample
+{
+    public int this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public int Value { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public event Action MEvent;
+    public void FunA() => throw new NotImplementedException();
 }
 ```
 
-类的属性和索引器可以为接口中定义的属性或索引器定义额外的访问器。若接口属性或索引器使用显式接口实现而不是派生类型实现时，访问器必须匹配。
+类的属性和索引器可以为接口中定义的属性或索引器定义额外的访问器。若接口属性或索引器使用显式接口实现而不是派生类型隐式实现时，访问器必须匹配。
 
 ```csharp
 interface ISample
@@ -359,84 +598,52 @@ interface ISample
 class Sample : ISample
 {
     public int Value { get; set; }  // 额外的 set 访问器
-
     string ISample.Name { get; /* set; // err */ }
 }
 ```
 
-#### 接口成员默认实现
+#### 隐式实现与显式接口实现
 
-接口成员中提供的默认实现等效于派生类型中的显式接口实现。具有默认实现的接口方法不要求其派生实现类型显式重定义，未显式重定义过的接口成员只能使用接口实例访问默认实现的成员。
-
-接口实现类型可以重定义具有默认实现的接口成员（显式接口实现或标准实现），私有接口方法只能通过标准实现方式进行重定义。调用接口时，重定义的方法（除了接口的私有默认实现的重定义方法）将参与重载决策，接口会选择最派生的方法实现。
-
-```csharp
-Sample s = new Sample();
-s.Func1();           // Sample.Func1
-((IFace)s).Func2();  // IFace.Func2
-
-IFace sf = s;
-sf.Func1();          // Sample.Func1
-sf.Func2();          // IFace.Func2
-
-interface IFace{
-    void Func1() => Console.WriteLine("IFace.Func1");
-    void Func2() => Console.WriteLine("IFace.Func2");
-}
-class Sample : IFace{
-    public void Func1() => Console.WriteLine("Sample.Func1");  // 重定义，标准实现
-}
-```
-
-接口私有 `private` 修饰的默认实现方法，只能在接口内部使用，即使在派生类型中重定义为 `public` 方法，接口内部调用该方法时，重载决策也不会选择派生类型中的重定义实现。接口非 `private` 的默认实现方法，参与接口方法的重载决策。
+类或结构应提供继承接口中未实现成员的实现定义，在实现类或结构中定位接口成员的实现的过程称为接口映射。可以以隐式或显式接口方式实现继承的接口成员。隐式实现的成员只能声明为 `public` 且无法修改访问修饰符，但可以声明为 `abstract` 或 `virtual`。显式接口实现的方法无法添加访问修饰符或 `abstract`、`virtual`、`sealed`。
 
 ```csharp
 interface ISample
 {
-    private void Fun(int a) => Console.WriteLine($"ISample.Fun({a})");
-    // private >> protected 或其他访问修饰符
-    // protected void Fun(int a) => Console.WriteLine($"ISample.Fun({a})");  // Output: Sample.Fun(10)
-    void Output(int a) => Fun(a);
+    void FunA();
+    void FunB();
 }
 class Sample : ISample
 {
-    public void Fun(int a) => Console.WriteLine($"Sample.Fun({a})");
-    static void Main(string[] args)
-    {
-        ISample sample = new Sample();
-        sample.Output(10);  // ISample.Fun(10)
-    }
+    public virtual void FunA() { /* ... */ }  // 隐式实现，添加 virtual
+    async void ISample.FunB() { /* ... */ }  // 显式接口实现，声明为异步方法
 }
 ```
 
-派生接口可以显式重写基接口的默认实现方法，也可以将基接口方法重新声明为抽象。
-
-```csharp
-interface IA
-{
-    void M() => Console.WriteLine();
-}
-interface IB:IA
-{
-    abstract void IA.M();
-}
-class Sample: IB  // err，需要提供 IA.M() 的实现
-{
-}
-```
-
-#### 接口实现与显式接口实现
-
-类或结构应提供在类或结构的基类列表中列出的接口的所有成员的实现。在实现类或结构中定位接口成员的实现的过程称为接口映射。
+若当接口方法映射到类中的虚方法（使用隐式实现）时，派生类则可能重写虚方法并更改接口的实现和映射关系。
 
 ```csharp
 interface ISample
 {
     void Fun();
 }
-class Sample : ISample
+class Sample  : ISample
 {
-    public void Fun() { /* ... */ }
+    public virtual void Fun() => Console.WriteLine("Sample Fun");
+}
+class Derived : Sample
+{
+    public override void Fun() => Console.WriteLine("Derived Fun");
+    static void Main(string[] args)
+    {
+        Sample s = new Sample();
+        Derived d = new Derived();
+        ISample Is = s;
+        ISample Id = d;
+        s.Fun();    // Sample Fun
+        d.Fun();    // Derived Fun
+        Is.Fun();   // Sample Fun
+        Id.Fun();   // Derived Fun
+    }
 }
 ```
 
@@ -472,7 +679,7 @@ class Sample
 }
 ```
 
-为消除接口之间的歧义，类或接口可以声明显式接口成员实现，用以调用限定于接口的成员。显式接口实现没有访问修饰符，它不作为实现类型的成员，只能通过接口实例调用。
+为消除接口之间的歧义，类或接口可以声明显式接口成员实现，用以调用限定于接口的成员。类或结构的显式接口实现不包含任何修饰符，它不作为实现类型的成员，只能通过接口实例调用。
 
 ```csharp
 Sample logger = new Sample();
@@ -502,17 +709,22 @@ class Sample : IDebug, IError
 }
 ```
 
-若接口函数成员具有一个参数数组，末位排序的参数数组在默认实现时可以在类或结构中附加 `params` 修饰。显式实现接口时，关联的接口成员不允许使用 `params` 数组。
+若接口函数成员具有一个参数数组，末位排序的参数数组在派生类型中实现时可以在类或结构中可选地附加 `params` 修饰。若接口方法的参数是一个数组，隐式实现时可选地附加 `params` 修饰，显式接口实现时不能附加。
 
 ```csharp
 interface ISample
 {
-    void Fun(int[] arr);
+    void Fun(params int[] arr);
+    void FunB(int[] arr);
 }
 class Sample : ISample
 {
     public void Fun(params int[] arr) { }  // 默认实现
-    void ISample.Fun(int[] arr) { }     // 显式接口实现
+    public void FunB(params int[] arr) { }
+
+    // or
+    void ISample.Fun(params int[] arr) { }     // 显式接口实现
+    void ISample.FunB(int[] arr) { }
 }
 ```
 
@@ -521,92 +733,162 @@ class Sample : ISample
 - 由于显式接口成员不能通过类或结构实例访问，因此它们允许将接口实现排除在类或结构的公共接口之外。
 - 显式接口成员实现允许消除具有相同签名成员的歧义。若没有显式接口成员实现，类和结构就不可能具有相同签名和返回类型的接口成员的不同实现。
 
+
+#### 接口成员默认实现
+
+一般而言，接口不提供其成员的实现，仅用来指定实现接口的类或结构应提供实现的成员。接口可为成员定义默认实现，以便提供常见功能的默认实现。接口成员中提供的默认实现等效于派生类型中的显式接口实现，只能通过接口实例进行访问。
+
+```csharp
+interface ISample
+{
+    void FunA();
+    void FunB() => Console.WriteLine("ISample.FunB");  // 默认实现的接口方法
+}
+class Sample : ISample
+{
+    public void FunA() => Console.WriteLine("Sample.FunA");
+    static void Main(string[] args)
+    {
+        Sample s = new Sample();
+        s.FunA();       // Sample.FunA
+
+        ISample s2 = s; 
+        s2.FunA();      // Sample.FunA
+        s2.FunB();      // ISample.FunB
+        // 接口实例访问显式实现的成员
+    }
+}
+```
+
+具有默认实现的接口方法不要求其派生类型显式接口重定义，接口实现类型可以重定义具有默认实现（非 `sealed` 或 `private`）的接口成员，以改变派生继承的接口映射关系：
+- 派生接口只能通过显式接口方式重写基接口方法，可以将基接口方法重新声明为抽象 `abstract`。
+- 派生类型可以通过显式接口方式或隐式方式实现继承的接口方法，并改变派生类型与基接口的映射关系。
+
+```csharp
+interface ISampleA
+{
+    void FunA();
+    void FunB() => Console.WriteLine("ISample.FunB");  // 默认实现的接口方法
+}
+interface ISampleB : ISampleA
+{
+    abstract void ISampleA.FunB();   // 重新声明为 abstract
+}
+class Sample : ISampleA, ISampleB
+{
+    public void FunA() => Console.WriteLine("Sample.FunA From ISampleA");
+    public void FunB() => Console.WriteLine("Sample.FunB From ISampleB");  
+    // 覆盖继承的接口映射, 可以是隐式或显式实现
+    static void Main(string[] args)
+    {
+        Sample s = new Sample();
+        s.FunA();       // Sample.FunA From ISampleA
+
+        ISampleA s2 = s;
+        s2.FunA();      // Sample.FunA From ISampleA
+        s2.FunB();      // Sample.FunB From ISampleB
+
+        ISampleB s3 = s;
+        s3.FunA();      // Sample.FunA From ISampleA
+        s3.FunB();      // Sample.FunB From ISampleB
+    }
+}
+```
+
+没有默认实现的接口成员是隐式公共抽象的，可以显式指定可访问性修饰符。其中 `private`、`virtual`、`sealed` 修饰的成员必须有默认实现。具有默认实现的非私有成员，是隐式 `virtual` 的，可以显式指定为 `virtual`。声明为 `sealed` 的接口成员无法被派生接口或派生类型通过显式接口重定义的方式改变从基接口继承的接口映射关系，即使是在派生类或接口中使用隐式方式实现，但是可以在派生接口中使用 `new` 隐藏继承的成员。
+
+```csharp
+interface ISampleA
+{
+    void FunA();
+    private void FunInline() => Console.WriteLine("ISampleA.FunInline");
+    sealed void FunB() => Console.WriteLine("ISampleA.FunB");  // 默认实现的接口方法
+    virtual void FunC() => FunInline();  // virtual,sealed,private 方法需要有方法主体
+}
+interface ISampleB : ISampleA
+{
+    //void ISampleA.FunB() { }   // err, 无法通过显式实现改变继承的接口映射
+    new void FunB();  // new 隐藏 ISampleA.FunB 并成为 ISampleB 的成员
+}
+class Sample : ISampleA, ISampleB
+{
+    public void FunA() => Console.WriteLine("Sample.FunA From ISampleA");
+    public void FunB() => Console.WriteLine("Sample.FunB From ISampleB");
+    static void Main(string[] args)
+    {
+        Sample s = new Sample();
+        s.FunA();       // Sample.FunA From ISampleA
+
+        ISampleA s2 = s;
+        s2.FunA();      // Sample.FunA From ISampleA
+        s2.FunB();      // ISampleA.FunB     
+        s2.FunC();      // ISampleA.FunInline
+
+        ISampleB s3 = s;
+        s3.FunA();      // Sample.FunA From ISampleA
+        s3.FunB();      // Sample.FunB From ISampleB
+        s3.FunC();      // ISampleA.FunInline
+    }
+}
+```
+
+密封或私有的接口方法无法在派生中通过显式接口实现的方式进行重定义以改变从基接口继承的接口映射。即使在派生类型中声明为 `public` 方法，也无法覆盖继承的接口映射关系。接口的 `private` 方法是隐式密封的。
+
+```csharp
+interface ISample
+{
+    private void Fun(int a) => Console.WriteLine($"ISample.Fun({a})");
+    // private >> protected 或其他访问修饰符
+    // protected void Fun(int a) => Console.WriteLine($"ISample.Fun({a})");  // Output: Sample.Fun(10)
+    sealed void Output(int a)
+    {
+        Console.Write("ISample.Output : ");
+        Fun(a);
+    }
+}
+class Sample : ISample
+{
+    public void Fun(int a) => Console.WriteLine($"Sample.Fun({a})");
+    public void Output(int a)
+    {
+        Console.Write("Sample.Output : ");
+        Fun(a);
+    }
+    static void Main(string[] args)
+    {
+        Sample s = new Sample();
+        s.Output(10010);  // Sample.Output : Sample.Fun(10010)  // 无法改变接口映射
+
+        ISample sample = s;
+        sample.Output(10010);  // ISample.Output : ISample.Fun(10010)
+    }
+}
+```
+
 #### 泛型方法的实现
 
-当泛型方法隐式实现接口方法时，为每个方法类型参数给出的约束在两个声明中应该是等效的（在任何接口类型参数被适当的类型参数替换之后），其中方法类型参数由从左到右的顺序位置标识。隐式实现的方法必须显式指定约束，而显式接口实现的方法不必（也不能）进行约束。
+当泛型方法隐式实现接口方法时，为每个方法类型参数给出的约束在两个声明中应该是等效的（在任何接口类型参数被适当的类型参数替换之后），其中方法类型参数由从左到右的顺序位置标识。隐式实现的方法必须显式指定约束（类型参数是 `object` 的约束不需要显式指定约束），而显式接口实现的方法隐式继承类型参数约束，不能显式声明约束。当隐式实现的约束声明不合法时，只能通过显式方式实现接口成员。
 
 ```csharp
 interface ISample<X, Y, Z>
 {
-    void FunA<T>(T t) where T : X;
+    void FunA<T>(T t) where T : X?;
     void FunB<T>(T t) where T : Y;
     void FunC<T>(T t) where T : Z;
 }
 
 class C : ISample<object, C, string>
 {
-    public void FunA<T>(T t) { }                  // Ok
-    public void FunB<T>(T t) where T : C { }      // Ok
+    public void FunA<T>(T t) { }                  // Ok，`FunA` 不需要指定 `where T:object` 约束，因为 `object` 是所有类型参数的隐式约束。
+    public void FunB<T>(T t) where T : C { }      // Ok，`FunB` 指定的约束和接口中的约束匹配
 //  public void FunC<T>(T t) where T : string { } // Error，只能接口显式实现
     void ISample<object, C, string>.FunC<T>(T t) { }
 }
 ```
 
-- `FunA` 不需要指定 `where T:object` 约束，因为 `object` 是所有类型参数的隐式约束。
-- `FunB` 指定的约束和接口中的约束匹配。
-- `FunC` 默认实现中的约束是一错误，密封类不能作为约束。约束也不能省略，默认实现的接口方法实现的约束需要匹配。因此该方法只能使用显式接口实现。 
-
-#### 接口实现继承
-
-类继承其基类提供的接口实现。若不能显式地重新实现接口，派生类就不能以任何方式改变它从基类继承的接口映射。
-
-```csharp
-interface ISample
-{
-    void Fun();
-}
-class Sample  : ISample
-{
-    public void Fun() => Console.WriteLine("Sample Fun");
-}
-class Derived : Sample
-{
-    public new void Fun() => Console.WriteLine("Derived Fun");
-    static void Main(string[] args)
-    {
-        Sample s = new Sample();
-        Derived d = new Derived();
-        ISample Is = s;
-        ISample Id = d;
-        s.Fun();    // Sample Fun
-        d.Fun();    // Derived Fun
-        Is.Fun();   // Sample Fun
-        Id.Fun();   // Sample Fun
-    }
-}
-```
-
-若当接口方法映射到类中的虚方法（使用默认实现）时，派生类则可能重写虚方法并更改接口的实现。
-
-```csharp
-interface ISample
-{
-    void Fun();
-}
-class Sample  : ISample
-{
-    public virtual void Fun() => Console.WriteLine("Sample Fun");
-}
-class Derived : Sample
-{
-    public override void Fun() => Console.WriteLine("Derived Fun");
-    static void Main(string[] args)
-    {
-        Sample s = new Sample();
-        Derived d = new Derived();
-        ISample Is = s;
-        ISample Id = d;
-        s.Fun();    // Sample Fun
-        d.Fun();    // Derived Fun
-        Is.Fun();   // Sample Fun
-        Id.Fun();   // Derived Fun
-    }
-}
-```
-
 #### 接口重实现
 
-显式实现的接口则无法提供方法重写，派生类也无法重写接口映射，除非在子类中添加接口到 *class_base* 以进行接口的重实现。派生类的公共成员声明和显式接口成员声明参与重新实现接口的接口映射过程。
+在类中显式方式实现的接口无法在派生类中重写接口映射，除非在子类中添加接口到 *class_base* 以进行接口的重实现。派生类的隐式或显式重实现的接口成员将覆盖从基类继承的接口映射关系。
 
 ```csharp
 interface ISample
@@ -654,17 +936,16 @@ abstract class AbSample : ISample
 
 #### 接口的静态抽象和虚拟成员
 
-- 从 C#11 开始，接口可以声明除字段之外的所有成员类型的 `static abstract` 和 `static virtual` 成员。接口指定抽象静态成员，然后要求类和结构为接口抽象静态成员提供显式或隐式实现。接口静态抽象或虚拟成员只能从受接口约束的类型参数或派生实现类型中访问。
-- 接口中声明的 `static virtual` 和 `static abstract` 方法没有类似于类中声明的 `virtual` 或 `abstract` 方法的运行时调度机制。相反，编译器使用编译时可用的类型信息，即调用基（编译时）类型的静态方法。`static virtual` 方法几乎完全是在泛型接口中声明的。
+从 C#11 开始，接口可以声明除静态字段之外的所有静态成员类型的 `static abstract` 和 `static virtual` 成员。
 
 ```csharp
-interface IFace
+interface ISample
 {
     static abstract void Func();
     static abstract event Action E;
     static abstract object Proper { get; set; }
 }
-interface IFace<T> where T : IFace<T>
+interface ISample<T> where T : ISample<T>
 {
     static abstract void Func();
     static abstract event Action E;
@@ -678,21 +959,110 @@ interface IFace<T> where T : IFace<T>
 }
 ```
 
-- 访问接口静态抽象成员
+接口指定静态抽象成员，然后要求类和结构为接口抽象静态成员提供显式或隐式实现，静态虚成员具有默认实现。显式实现的接口静态 `abstract` 或 `virtual` 成员只能从受接口约束的类型参数上访问，隐式实现的接口静态 `abstract` 或 `virtual` 成员可以通过派生类型直接访问。
 
 ```csharp
-Console.WriteLine(Sample.Instance);
-Sample.Func();
-
-interface IInstance<T> where T : IInstance<T>
+interface ISample
 {
-    static abstract void Func();
-    static abstract T Instance { get; }
+    static abstract void FunA();
+    static abstract void FunB();
+    static virtual void FunC() => Console.WriteLine("Static ISample.FunC");
 }
-class Sample : IInstance<Sample>
+class Sample : ISample
 {
-    public static Sample Instance { get; } = new Sample();
-    public static void Func() => Console.WriteLine("Sample.Func");
+    public static void FunA() => Console.WriteLine("Static Sample.FunA");
+    static  void ISample.FunB() => Console.WriteLine("Sample: Static ISample.FunB");
+    static void Main(string[] args)
+    {
+        // 派生类直接访问
+        Sample.FunA();   // Static Sample.FunA
+
+        Test<Sample>();
+    }
+    static void Test<T>() where T : ISample
+    {
+        // 通过类型参数访问接口成员
+        T.FunA();    // Static Sample.FunA
+        T.FunB();    // Sample: Static ISample.FunB
+        T.FunC();    // Static ISample.FunC
+    }
+
+    // public static void FunC() => Console.WriteLine("Static Sample.FunC");  // 隐式重定义
+    // Test<Sample>: T.FunC();   // Static Sample.FunC
+    // Sample.FunC();   // 隐式方式实现的静态虚成员可以直接通过派生类型访问
+}
+```
+
+派生接口同样可以重新定义从基接口继承静态抽象或静态虚成员。
+
+```csharp
+interface ISample
+{
+    static abstract void FunA();
+    static abstract void FunB();
+    static virtual void FunC() => Console.WriteLine("Static ISample.FunC");
+}
+interface IDerivedSample: ISample
+{
+    static void ISample.FunA() => Console.WriteLine("IDerivedSample : Static ISample.FunA");  // 接口重定义
+    static abstract void ISample.FunC();  // 重新定义为 static abstract
+}
+```
+
+接口中声明的 `static virtual` 和 `static abstract` 方法没有类似于类中声明的 `virtual` 或 `abstract` 方法的运行时调度机制。相反，编译器使用编译时可用的类型信息，即调用基（编译时）类型的静态方法。`static virtual` 和 `static abstract` 方法几乎完全是在泛型接口中声明的。
+
+```csharp
+interface ISample<T> where T : ISample<T>, new()
+{
+    static virtual void Fun() { }
+    static virtual T Value { get; } = new T();
+    static abstract event Action E;
+    static abstract T operator ++(T t);
+}
+
+struct Sample : ISample<Sample>
+{
+    public int Value { get; set; } = 0;
+    public Sample(int value)
+    {
+        this.Value = value;
+    }
+    static void ISample<Sample>.Fun() { }  // 显式重定义
+    public static event Action E;  // 隐式实现
+
+    // 显式实现，无法从 Sample 访问, 只能通过类型参数访问
+    static Sample ISample<Sample>.operator ++(Sample s)
+    {
+        s.Value++;
+        return s;
+    }
+    static void Main(string[] args)
+    {
+        Sample s = new Sample(99);
+        s.Increment(ref s);
+        Console.WriteLine(s.Value);  // 100
+    }
+    void Increment<T> (ref T t) where T : ISample<T>,new()
+    {
+        t++;  // 类型参数访问
+    }
+}
+```
+
+对于与非虚实例成员的对称，静态非字段成员允许使用可选的 `sealed` 修饰符，即使它们默认是非虚的：
+
+```csharp
+interface ISample
+{
+    static sealed void M() => Console.WriteLine("Default behavior");
+
+    static int f = 0;
+    static sealed int P1 { get; set; }
+    static sealed int P2 { get => f; set => f = value; }
+
+    static sealed event Action E1;
+    static sealed event Action E2 { add => E1 += value; remove => E1 -= value; }
+    static sealed ISample operator +(ISample l, ISample r) => l;
 }
 ```
 
@@ -966,7 +1336,7 @@ C# 提供了一组预定义的结构类型（简单类型），它们可以通�
 
 ### Integer 整数类型
 
-C# 支持 9 种整数类型：`sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`long`、`ulong`、`char`，所有的有符号整数都使用二进制补码格式表示：
+C# 支持 11 种整数类型：`sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`nint`、`nuint`、`long`、`ulong`、`char`，所有的有符号整数都使用二进制补码格式表示：
 - `sbyte`：有符号 8 位整数，介于 -128 ~ 127 之间。
 - `byte`：无符号 8 位整数，介于 0 ~ 255 之间。
 - `short`：有符号 16 位整数，介于 -32768 ~ 32767 之间。
@@ -976,6 +1346,8 @@ C# 支持 9 种整数类型：`sbyte`、`byte`、`short`、`ushort`、`int`、`u
 - `long`：有符号 64 位整数，介于 -9223372036854775808 ~ 9223372036854775807 之间。
 - `ulong`：无符号 64 位整数，介于 0 ~ 18446744073709551615 之间。
 - `char`：表示值介于 0 ~ 65535 之间的 16 位无符号整数。`char` 类型的可能值集与 Unicode 字符集相对应。
+- `nint`：表示为本机大小的有符号整数，32 或 64 位。
+- `nuint`：表示为本机大小的无符号整数，32 或 64 位。
 
 整数类型的一元或二元运算符总是使用 `int`、`uint`、`long`、`ulong` 精度的整型进行运算。`char` 归类于整型，但是没有其他整数类型到 `char` 类型的隐式转换。`char` 的常量应写成字符形式或 `(char)integer` 的强制转换形式。
 
@@ -4066,141 +4438,4 @@ Span<int> BadUseExamples(int parameter)
 ``` -->
 
 
-
-
-
-### ==============
-
-
-
-
----
-### 引用类型
->---
-
-### string 字符串类型
-
-- `string` 类型表示零个或多个 Unicode 字符的序列。使用相等运算符 `==` 和 `!=` 比较 `string` 对象的值，为不是比较对象的引用。
-
-```csharp
-string str1 = "hello";
-string str2 = "h";
-str2 += "ello";
-Console.WriteLine(str1 == str2);  // true
-Console.WriteLine(object.ReferenceEquals(str1, str2)); // false
-```
-
-#### 字符串拼接
-
-- `+` 用于拼接两个字符串片段。字符串是不可变的，每次赋值时，编译器实际上会创建一个新的字符串对象来保存新的字符序列，并将新对象赋值给目标，并将之前的内存用于垃圾回收。
-
-```csharp
-string str = "Hello " + "World!";
-```
-
-> 字符串索引
-
-- `[]` 运算符可用于只读访问字符串的个别字符。
-
-```csharp
-string str = "test";
-for (int i = 0; i < str.Length; i++)
-  Console.Write(str[i] + " ");
-// Output: t e s t
-```
-
-#### 字符串内插
-
-- `$` 字符将字符串字面量标识为内插字符串，内插字符串是可能包含内插表达式的字符串文本。将内插字符串解析为结果字符串时，带有内插表达式的项会替换为表达式结果的字符串表示形式。
-
-```csharp
-$"{<interpolationExpression>[,<alignment>][:<formatString>]}"
-// - interpolationExpression     生成需要设置格式的结果的表达式
-// - alignment                   常数表达式，定义对齐方式和最小字符宽度，负值表示左对齐，正值表示右对齐
-// - formatString                受表达式结果类型支持的格式字符串，例如 DateTime 格式化输出
-
-Console.WriteLine($"|{"Left",-7}|{"Right",7}|");
-// |Left   |  Right|
-
-const int FieldWidthRightAligned = 20;      // $"{{" 打印 {
-Console.WriteLine($"{{{Math.PI,FieldWidthRightAligned}}} - default formatting of the pi number");
-Console.WriteLine($"{{{Math.PI,FieldWidthRightAligned:F3}}} - display only three decimal digits of the pi number");
-//{   3.141592653589793} - default formatting of the pi number
-//{               3.142} - display only three decimal digits of the pi number
-
-string message = $"The usage policy for {safetyScore} is {
-    safetyScore switch
-    {
-        > 90 => "Unlimited usage",
-        > 80 => "General usage, with daily safety check",
-        > 70 => "Issues must be addressed within 1 week",
-        > 50 => "Issues must be addressed within 1 day",
-        _ => "Issues must be addressed before continued use",
-    }}";
-```
-
-- 内插字符串初始化常量时，所有的内插表达式也必须是常量字符串。C#11 起内插表达式支持使用换行符，以使表达式更具有可读性。
-
-```csharp
-public class Sample
-{
-    const string S1 = $"Hello world";
-    const string S2 = $"Hello{" "}World";
-    const string S3 = $"{S1} Kevin, welcome to the team!";
-}
-```
-
-#### 逐字字符串
-
-- `@` 指示将原义解释字符串。简单转义序列（如代表反斜杠的 `"\\"`）、十六进制转义序列（如代表大写字母 A 的 `"\x0041"`）和 Unicode 转义序列（如代表大写字母 A 的 `"\u0041"`）都将按字面解释。引号转义 `""` 不会按字面解释。
-- 逐字内插字符串中，大括号转义序列（`{{` 和 `}}`）不按字面解释。
-
-```csharp
-string filename1 = @"c:\documents\files\u0066.txt";
-string filename2 = "c:\\documents\\files\\u0066.txt";
-Console.WriteLine(filename1);
-Console.WriteLine(filename2);
-// The example displays the following output:
-//     c:\documents\files\u0066.txt
-//     c:\documents\files\u0066.txt
-
-string str = $@"{{{Math.PI,20}}} >> ""default formatting of the pi number""";
-Console.WriteLine(str);
-//{   3.141592653589793} >> "default formatting of the pi number"
-```
-
-#### 原始字符串
-
-- 原始字符串字面量从 C#11 开始可用。字符串字面量可以包含任意文本，而无需转义序列，字符串字面量可以包括空格和新行、嵌入引号以及其他特殊字符。原始字符串字面量用至少三个双引号（`"""`） 括起来。
-
-```csharp
-var message = """
-This is a multi-line
-    string literal with the second line indented.
-"""
-// 原始字符串的起始、结束引导序列长度要超过字符串中最长的引号序列长度
-"""""
-This raw string literal has four """", count them: """" four!
-embedded quote characters in a sequence. That's why it starts and ends
-with five double quotes.
-
-You could extend this example with as many embedded quotes as needed for your text.
-"""""
-```
-
-#### UTF-8 字符串字面量
-
-- .NET 中的字符串是使用 UTF-16 编码存储的。UTF-8 是 Web 协议和其他重要库的标准。从 C#11 开始，可以将 `u8` 后缀添加到字符串字面量以指定 UTF-8 编码。UTF-8 字面量存储为 `ReadOnlySpan<byte>` 对象。 UTF-8 字符串字面量的自然类型是 `ReadOnlySpan<byte>`。UTF-8 字符串字面量不能与字符串内插结合使用。
-
-```csharp
-using System.Text;
-
-ReadOnlySpan<byte> strU8 = "Hello world!"u8;
-string strU16 = Encoding.UTF8.GetString(strU8);
-Console.WriteLine(strU16);
-
-string str = "Hello world!";
-ReadOnlySpan<byte> bytes = Encoding.UTF8.GetBytes(str);
-```
-
----
+----

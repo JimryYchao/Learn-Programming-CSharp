@@ -582,6 +582,40 @@ All possible combinations of values with FlagsAttribute:
  */
 ```
 
+>---
+
+### SetsRequiredMembers 构造函数
+
+具有必需成员的类型中的所有构造函数，或其基类型指定必需成员的类型中的所有构造函数，在调用该构造函数时必须具有由使用者设置的这些成员。为了使构造函数不受此要求的约束，可以使用 `SetsRequiredMembersAttribute` 对构造函数进行特性标记，从而消除这些要求。编译器不会对该构造函数体进行验证。
+
+`SetsRequiredMemberAttributer` 从构造函数中删除所有需求，并且不以任何方式检查这些需求的有效性。如果需要从具有无效必需成员列表的类型继承，也必需用 `SetsRequiredMembersAttribute` 标记该派生类型的构造函数。
+
+如果构造函数 `C` 链接到一个带有 `SetsRequiredMembersAttribute` 特性标记的 `base` 或 `this` 构造函数，则 `C` 也必须带有 `SetsRequiredMembersAttribute` 特性。
+
+对于记录类型，如果记录类型或其任何基类型具有所需的成员，编译器自动在记录的复制构造函数上标记 `SetsRequiredMembersAttribute`。
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+class Sample()
+{
+    public required string Name { get; set; }
+
+    [SetsRequiredMembers]
+    public Sample(string name) : this()=> Name = name;
+}
+class Derived : Sample
+{
+    [SetsRequiredMembers]
+    public Derived(string name) : base(name) { }
+
+    static void Main(string[] args)
+    {
+        Sample s = new Sample() { /*Name = "Hello"*/ };  // err
+        Derived d = new Derived("Hello");  
+    }
+}
+```
+
 ---
 ## 互操作特性
 

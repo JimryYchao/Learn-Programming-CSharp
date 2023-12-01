@@ -1359,9 +1359,6 @@ class Test
 
 在将匿名函数转换为表达式树时，对编译器生成的对象引用可以存储在表达式树中，对局部变量的访问可以表示为对这些对象的字段访问。这种方法的优点是，它允许在委托和表达式树之间共享 “提升” 的局部变量。
 
-``````
-
-
 ---
 ## 算数运算符
 
@@ -2065,14 +2062,16 @@ int c = (int)b;  // explicit
 #### 隐式数值转换
 
 当某一数值类型 `T` 的值域在目标类型 `U` 的可表示值域范围内，则 `T` 可以隐式转换为 `U`，例如：
-- 从 `byte`、`sbyte` 到 `short`、`int`、`long`、`float`、`double`、`decimal`。
-- 从 `byte` 到 `ushort`、`uint`、`ulong`。
-- 从 `short`、`ushort` 到 `int`、`long`、`float`、`double`、`decimal`。
-- 从 `ushort` 到 `uint`、`ulong`。
-- 从 `int`、`uint` 到 `long`、`float`、`double`、`decimal`。
-- 从 `uint` 到 `ulong`。
+- 从 `byte`、`sbyte` 到 `short`、`int`、`nint`、`long`、`float`、`double`、`decimal`。
+- 从 `byte` 到 `ushort`、`uint`、`nuint`、`ulong`。
+- 从 `short`、`ushort` 到 `int`、`nint`、`long`、`float`、`double`、`decimal`。
+- 从 `ushort` 到 `uint`、`nuint`、`ulong`。
+- 从 `int`、`uint` 到 `nint`、`long`、`float`、`double`、`decimal`。
+- 从 `uint` 到 `nuint`、`ulong`。
+- 从 `nint` 到 `long`、`float`、`double`、`decimal`。
+- 从 `nuint` 到 `ulong`、`float`、`double`、`decimal`。
 - 从 `long`、`ulong` 到 `float`、`double`、`decimal`。
-- 从 `char` 到 `ushort`、`short`、`uint`、`int`、`ulong`、`long`、`float`、`double`、`decimal`。
+- 从 `char` 到 `ushort`、`short`、`uint`、`int`、`nint`、`nuint`、`ulong`、`long`、`float`、`double`、`decimal`。
 - 从 `float` 到 `double`。
 
 从整型到浮点数的转换可能会导致精度损失，但是不会导致范围损失。
@@ -2106,7 +2105,6 @@ long? nlnum = num;  // S to T?
 int? n_num = num;
 long? n_lnum = n_num;  // S? to T?
 ```
-
 
 #### null 的转换
 
@@ -2158,7 +2156,7 @@ int i     = d;  // Compiles but fails at run-time -- no conversion exists
 #### 隐式常量表达式转换
 
 隐式常量表达式的转换允许：
-- `int` 类型的常量表达式可以转换为 `sbyte`、`byte`、`short`、`ushort`、`uint`、`ulong` 类型，前提是该常量值在目标类型的范围内。
+- `int` 类型的常量表达式可以转换为 `sbyte`、`byte`、`short`、`ushort`、`uint`、`nint`、`nuint`、`ulong` 类型，前提是该常量值在目标类型的范围内。
 - `long` 类型的常量表达式可以转换为 `ulong` 类型，前提是非负值。
 
 #### 涉及类型参数的隐式转换
@@ -2197,7 +2195,7 @@ int i     = d;  // Compiles but fails at run-time -- no conversion exists
 
 #### 默认值转换
 
-存在从 `dafault` 到任何类型的隐式转换，此转换将生成推断类型的默认值。
+存在从 `default` 到任何类型的隐式转换，此转换将生成推断类型的默认值。
 
 #### 隐式抛出转换
 
@@ -2226,6 +2224,8 @@ int num2 = (int)obj;       // 显式强制转换
 - 从 `ushort` 到 `sbyte`、`byte`、`short`、`char`
 - 从 `int` 到 `sbyte`、`byte`、`short`、`ushort`、`uint`、`ulong`、`char`。
 - 从 `uint` 到 `sbyte`、`byte`、`short`、`ushort`、`int`、`char`。
+- 从 `nint` 到 `sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`nuint`、`ulong`、`char`。
+- 从 `nuint` 到 `sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`nint`、`long`、`char`。
 - 从 `long` 到 `sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`ulong`、`char`。
 - 从 `ulong` 到 `sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`long`、`char`。
 - 从 `char` 到 `sbyte`、`byte`、`short`。
