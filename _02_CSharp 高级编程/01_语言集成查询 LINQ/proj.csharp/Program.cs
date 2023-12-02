@@ -1,38 +1,15 @@
-﻿class A
-{
-    ~A() => System.Console.WriteLine("Destruct instance of A");
-}
+﻿using System.Runtime.CompilerServices;
 
-class B
+[CollectionBuilder(typeof(MyCollectionBuilder), "Build")]
+public class MyCollection
 {
-    object Ref;
+    public readonly int[] Values;
+    public MyCollection(int[] arr) => Values = arr;
+    public IEnumerator<int> GetEnumerator() => Values.AsEnumerable().GetEnumerator();
 
-    public B(object o)
+    internal class MyCollectionBuilder
     {
-        Ref = o;
-    }
-
-    ~B() => Console.WriteLine("Destruct instance of B");
-}
-class Test
-{
-    static void CollectTest()
-    {
-        B b = new B(new A());
-        b = null;
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-    }
-    static void Main()
-    {
-        CollectTest();
-        Console.ReadKey();
+        internal static MyCollection Build(ReadOnlySpan<int> arr) => new MyCollection(arr.ToArray());
     }
 }
-/** Output maybe
-    Destruct instance of A
-    Destruct instance of B
-*** or    
-    Destruct instance of B
-    Destruct instance of A
- */
+

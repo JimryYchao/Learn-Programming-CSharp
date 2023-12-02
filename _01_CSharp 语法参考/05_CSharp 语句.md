@@ -87,6 +87,22 @@ void DisplayMeasurements(int a, int b)
 }
 ```
 
+直接在 `case` 段中声明的变量被添加到 `switch` 块的局部变量声明空间中，而不是添加到声明 `case` 段中。例如，尽管声明出现在 `case 0` 的 `switch` 段中，但对于默认情况，局部变量 `y` 在 `switch` 某 `case` 或 `default` 段中的作用域内。
+
+```csharp
+int x = 1;
+switch (x)
+{
+    case 0:
+        int y;
+        break;
+    default:
+        y = 10;
+        Console.WriteLine(x + y);
+        break;
+}
+```
+
 ---
 ## 迭代语句
 
