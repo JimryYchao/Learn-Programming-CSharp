@@ -622,6 +622,7 @@ struct Sample<T>()
             sizeof(int*),              sizeof(int?*),     // 8,8
             sizeof(double*),           sizeof(double?*),  // 8,8
             sizeof(decimal*),          sizeof(decimal?*), // 8,8
+            sizeof(string*),           sizeof(object*),   // 8,8
             sizeof(delegate* <void>),                   // 8
             sizeof(delegate* unmanaged<void>),          // 8
             sizeof(delegate* managed<int, void>),       // 8
