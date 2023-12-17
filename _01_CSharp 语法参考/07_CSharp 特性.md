@@ -246,7 +246,7 @@ public sealed class InterrogateHelpUrls
 
 >---
 
-### AttributeUsage
+### AttributeUsage 特性使用范围
 
 特性 `AttributeUsage` 用于描述可以使用特性类的方式。
 
@@ -299,7 +299,7 @@ class Derived : Base
 
 >---
 
-### Conditional 
+### Conditional 条件编译
 
 `Conditional` 指示编译器应忽略方法调用或属性，除非定义了指定的条件编译符号。可以声明条件方法和条件特性类。
 
@@ -384,7 +384,7 @@ class Example
 
 >---
 
-### Obsolete
+### Obsolete 过时
 
 特性 `Obsolete` 用于标记不应再使用的类型和类型成员。如果程序使用了用 `Obsolete` 属性修饰的类型或成员，编译器将发出警告或错误。
 
@@ -441,13 +441,13 @@ using System.Runtime.CompilerServices;
 class Sample
 {
     static void Expression(object expr,
-        [CallerArgumentExpression("expr")] string argu = "",
+        [CallerArgumentExpression("expr")] string arg = "",
         [CallerFilePath] string path = "",
         [CallerLineNumber] int line = -1,
         [CallerMemberName] string caller = "")
     {
         Console.WriteLine(
-            $"The expression {argu} = {expr}\n " +
+            $"The expression {arg} = {expr}\n " +
                   $"    at {caller} in {path}:{line}" );
     }
     static void Main(string[] args)
@@ -975,7 +975,41 @@ class DerivedClass : BaseClass
 ```
 
 >---
+### Experimental 实验性 API（C#12）
 
+`ExperimentalAttribute` 特性可以应用于程序集中的任何内容，以表明类型、成员或程序集是实验性的。当任何用户使用被标记的目标时，编译器会在调用点发出一个诊断错误，以表明用户正在使用一个将来可能会改变或被删除的内容。
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+
+[Experimental("experimental")]
+static void ExperimentalMethod()
+{
+    Console.WriteLine("ExperimentalMethod");
+}
+static void Test()
+{
+    ExperimentalMethod(); // Compiler error here
+}
+```
+
+该错误可以通过将自己的代码标记为 `[Experimental]` 来绕过诊断，或者通过编译器 `#pragma warning disable 'diagnosticId'` 显式允许实验代码通过编译：
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+
+[Experimental(diagnosticId: "Experimental", UrlFormat = "https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.codeanalysis.experimentalattribute")]
+static void ExperimentalMethod()
+{
+    Console.WriteLine("ExperimentalMethod");
+}
+static void Test()
+{
+#pragma warning disable Experimental
+    ExperimentalMethod(); // This now compiles, thanks to the pragma warning disable directives.
+#pragma warning restore Experimental
+}
+```
 
 ---
 ## 程序集特性

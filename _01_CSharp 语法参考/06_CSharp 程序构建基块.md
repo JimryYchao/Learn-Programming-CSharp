@@ -628,9 +628,63 @@ class Entity{
 
 #### 方法参数
 
-方法的参数可以是值参数（无参数修饰）、输入参数（`in`）、引用参数（`ref`）、输出参数（`out`）、参数数组（`params`）。
+方法的参数可以是值参数（无参数修饰）、输入参数（`in`）、引用参数（`ref`）、输出参数（`out`）、只读参数（`ref readonly`）、参数数组（`params`）。`scoped` 注释的参数的安全转义范围（`ref struct` 类型的参数）或引用转义范围（`ref`、`in`、`ref readonly` 参数）是当前方法，`[UnscopedRef]` 注释的参数的安全转义范围或引用转义范围比默认的类别高一级。
 
-在 C# 中，实参可以按值或按引用传递给形参。按值传递是将变量副本传递给方法，按引用传递（使用 `in`、`ref`、`out` 修饰方法参数）是将对变量的访问传递给方法。
+在 C# 中，实参可以按值或按引用传递给形参。按值传递是将变量副本传递给方法，按引用传递（使用 `in`、`ref`、`out`、`ref readonly` 修饰方法参数）是将对变量的访问传递给方法。
+
+> 参数调用点使用规则
+
+- 参数修饰符
+
+| CallSite annotation | `ref` parameter | `ref readonly` parameter | `in` parameter | `out` parameter |
+| ------------------- | --------------- | ------------------------ | -------------- | --------------- |
+| `ref`               | Allowed         | **Allowed**              | **Warning**    | Error           |
+| `in`                | Error           | **Allowed**              | Allowed        | Error           |
+| `out`               | Error           | **Error**                | Error          | Allowed         |
+| No annotation       | Error           | **Warning**              | Allowed        | Error           |
+
+```csharp
+class Sample
+{
+    void Fun(in int v, ref int v2, ref readonly int v3, out int v4)
+    {
+        v4 = default(int);
+    }
+    void Test(int v)
+    {
+        // ref-readonly: 'ref v'
+        Fun(in v, ref v, ref v, out v);  
+        // in/ref-readonly: 'v'
+        Fun(v, ref v,  v, out v);    
+        // in: 'ref v'; ref-readonly: 'in v'
+        Fun(ref v, ref v, in v, out v);  
+    }
+}
+```
+
+- 实参表达式
+
+| Value kind | `ref` parameter | `ref readonly` parameter | `in` parameter | `out` parameter |
+| ---------- | --------------- | ------------------------ | -------------- | --------------- |
+| *Rvalue*     | Error           | **Warning**              | Allowed        | Error           |
+| *Lvalue*     | Allowed         | **Allowed**              | Allowed        | Allowed         |
+
+```csharp
+class Sample
+{
+    void Fun(in int v, ref int v2, ref readonly int v3, out int v4)
+    {
+        v4 = default(int);
+    }
+    void Test(int v)
+    {
+        // All paramters are Lvalue
+        Fun(in v, ref v,  ref v, out v); 
+        // in, ref-readonly are Rvalue
+        Fun(10010, ref v,  10086, out v); 
+    }
+}
+```
 
 > 参数传递方式
 
@@ -725,9 +779,11 @@ static void Change(ref int[] pArray)
 
 #### 方法参数修饰符
 
-- `ref` 指定此参数由引用传递：必须明确分配 `ref` 参数的自变量。被调用的方法可以重新分配该参数。
-- `in` 指定此参数由引用传递：必须明确分配 `in` 参数的自变量。被调用的方法无法修改参数的状态，可以 `= ref` 重新分配对象引用。
-- `out` 指定此参数由引用传递：无需明确分配 `out` 参数的自变量。被调用的方法必须分配该参数。
+- `ref` 指定此实参表达式为引用传递：传递的 *Lvalue* 必须明确分配。方法内可以重新赋值。
+- `in` 指定此实参表达式为引用传递：传递的值（可以是左值或右值表示式）必须明确分配。方法内无法重新赋值。
+- `out` 指定此实参表达式为引用传递：传递的 *Lvalue* 无需明确分配。方法内必须分配该变量的值。
+- `ref readonly` 指定此实参表达式为引用传递：传递的值（可以是左值或右值表示式）必须明确分配。方法内无法重新赋值。
+- 引用传递参数都可以通过 `= ref` 重新分配引用。
 - `params` 指定此参数采用可变数量的参数，可变参数只能是参数列表中的最后一位。
 
 ```csharp

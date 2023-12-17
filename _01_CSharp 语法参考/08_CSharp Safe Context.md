@@ -1,4 +1,0 @@
-# CSharp：Safe Escape
-
----
-
