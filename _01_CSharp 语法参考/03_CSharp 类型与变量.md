@@ -4474,7 +4474,7 @@ static class Ext
 }
 ```
 
-`scoped` 将 `ref struct` 局部变量的 *safe-context* 或 `ref` 局部变量的 *ref-safe-context* 限制为 *function-member*，而不考虑初始化项的生存期。``
+`scoped` 将 `ref struct` 局部变量的 *safe-context* 或 `ref` 局部变量的 *ref-safe-context* 限制为 *function-member*，而忽略初始化项的生存期。
 
 ```csharp
 Span<int> ScopedLocalExamples()
@@ -4525,12 +4525,12 @@ struct Sample
 
 > ScopedRef 特性
 
-包含 `scoepd` 注释的参数将通过特性 `ScopedRefAttribute` 发送到元数据中。该特性由编译器使用并生成，在编译单元中无法使用。编译器将对带 `scoped` 语法的参数发出此属性。只有当语法导致值与其默认状态不同时，才会触发此行为。例如，`scoped out` 将导致不发出任何特性。
+包含 `scoped` 注释的参数将通过特性 `ScopedRefAttribute` 发送到元数据中。该特性由编译器使用并生成，在编译单元中无法使用。编译器将对带 `scoped` 语法的参数发出此属性。只有当语法导致值与其默认状态不同时，才会触发此行为。例如，`scoped out` 将不发出任何特性。
 
 #### UnscopedRef 特性
 
 可以为结构实例方法、结构实例属性（不能是 `init` 属性）、引用传递的参数标记 `UnscopedRefAttribute` 特性，以提供与 `scoped` 注释相反的注释，这可以应用于任何 `ref`，并将标记对象的 *ref-safe-context* 更改为比默认值更宽的一级。例如：
-- 如果应用于结构的实例方法或属性，`UnscopedRef` 将修改隐式 `scoped ref this` 参数的 *ref-safe-context* 为 *return-only*。
+- 如果应用于结构的实例方法或属性，`[UnscopedRef]` 将修改隐式 `scoped ref this` 参数的 *ref-safe-context* 为 *return-only*。
   
   ```csharp
   ref struct RSample
@@ -4581,7 +4581,6 @@ struct Sample
   }
   ```
 
-<br>
 
 `UnscopedRef` 特性不能用于：
 - 非结构体上声明的成员。
@@ -4590,543 +4589,101 @@ struct Sample
 - 没有隐式作用域（即 *caller-context*）的引用传递参数。
 
 >---
-### ref 重引用分配原则
+### 变量与方法返回的安全分配原则
+#### 赋值操作与方法返回
+
+对于变量的分配操作 `e1 = e2`，`e2` 的 *safe-context* 范围至少要和 `e1` 的 *safe-context* 范围一样大。
+
+```csharp
+class Sample
+{
+    void Fun(out Span<int> v)  // return-only
+    {   
+        Span<int> span = stackalloc int[10];  // function-member
+        v = span;  // err, scoped : v > span
+    }
+}
+```
+
+对于方法返回 `return e`，`e` 的 `safe-context` 至少为 *return-only*。
+  
+```csharp
+class Sample
+{
+    Span<int> Fun()  // return : return-only at least 
+    {
+        Span<int> span = stackalloc int[10];  // function-member
+        return span; // err, scoped: return-only > span
+    }
+}
+```
+
+#### ref 引用重赋值和 ref 方法返回
 
 `= ref` 操作的左操作数必须是绑定到一个局部变量、一个 `ref` 参数（非 `this`），一个 `out` 参数或一个 `ref` 字段。对于形式为 `e1 = ref e2` 引用重赋值，必须满足：
 - `e2` 的 *ref-safe-context* 至少与 `e1` 的 *ref-safe-context* 相同，即 `ref e1 <= ref e2`。
 - `e1` 必须具有与 `e2` 相同的 *safe-context*。
 
 ```csharp
+/**
+*  caller-context    $cm
+*  return-only       $ro
+*  function-member   $local
+*  $cm > $ro > $local
+*  RC : ref-safe-context
+*  SC : safe-context
+*  [UnscopedRef] : unscoped
+*/
 void Test(                                          // safe-context      ref-safe-context
     ref int v,                                      //  $cm                $ro
     ref Span<int> s,                                //  $cm                $ro
     out Span<int> os)                               //  $ro                $local
 {
-    os = default;        
+    os = default;
     Span<int> ls0 = s;                              //  $cm                $local
     Span<int> ls1 = default;                        //  $cm                $local
     Span<int> ls2 = new Span<int>(reference: ref v);//  $ro                $local
     Span<int> ls3 = stackalloc int[1];              //  $local             $local 
 
-    s = ref ls1;  // err;  safe-context 相同, 但是 s 的 ref 是 return-only, ls1 是 function-member
-    s = ref ls2;  // err;  s 的 ref 是 return-only, ls2 是 function-member
+    s = ref ls1;  // err;  SC 相同, 但是 RC(s:$ro) > RC(ls1:$local)
+    s = ref ls2;  // err;  RC(s:$ro) > RC(ls2:$local)
 
-    s = ls1;      // okay; e1 = e2 ==> $cm = $cm
-    s = ls2;      // err;  e1 > e2 ==> $cm > $ro
+    s = ls1;      // okay; SC both $cm
+    s = ls2;      // err;  SC(e1:$cm) > SC(e2:$ro)
 
-    ref var rls = ref ls1;   // rls : safe-context = $cm, ref-safe-context = $local
+    ref var rls = ref ls1;   // rls : SC = $cm, RC = $local
     rls = s;      // okay; both $cm
-    rls = ls2;    // err;  e1 > e2 ==> $cm > $ro
-    rls = ref s;  // okay; ref e1 < ref e2 ==> $local < $ro, safe-context ==> both $cm
-    rls = ref ls3;// err;  ref e1 = ref e2 ==> both $local, but e1 != e2 ==> $cm != $local
+    rls = ls2;    // err;  $cm > $ro
+    rls = ref s;  // okay; RC: $local < $ro, SC: both $cm
+    rls = ref ls3;// err;  RC: both $local, SC: $cm != $local
 
     ref var rls2 = ref ls2;  // rls2: safe-context = $ro, ref-safe-context = $local
     rls2 = s;     // okay;
-    rls2 = ls3;   // err; $ro > $local
-    rls2 = ref s;   // err;  $local < $ro, but safe-context: $ro != $cm
-    rls2 = ref os;  // okay; $local = $local, and safe-context: both $ro
+    rls2 = ls3;   // err; SC: $ro > $local
+    rls2 = ref s;   // err; RC: $local < $ro, SC: $ro != $cm
+    rls2 = ref os;  // okay; RC: $local = $local, SC: both $ro
 }
 ```
 
-### 方法参数匹配原则
-
-当调用一个方法时，其中有一个 `out` 或 `ref` 参数是 `ref struct` 类型，那么所有的 `ref struct` 参数需要具有相同的生命周期。当 `ref` 形参是 `ref struct` 类型时，它们有可能会发生数据交换，因此在调用点必须确保所有潜在的交换都是兼容的。若语言没有强制要求参数匹配，则可能会发生：
+对于方法返回 `return ref e`，`e` 的 `ref-safe-context` 至少为 *return-only*。结构类型实例方法中的 `this` 及其字段的安全上下文是 *function-member*，若要通过 `return ref` 方式返回值的引用，需要将实例方法标记为 `[UnscopedRef]`。
 
 ```csharp
-void Fun(ref Span<int> s1)
+struct Sample
 {
-    Span<int> s2 = stackalloc int[1];
-    Swap(ref s1, ref s2);   //err; 这会导致将 stackalloc 分配给 s1, 并被允许转义到 Fun 的调用方
-}
-void Swap(ref Span<int> s1, ref Span<int> s2)
-{
-    s1 = ref s2;
-}
-```
-
-对 `ref` 的参数（`ref struct` 类型）的分析包括实例方法中的接收方，由于它可以用来存储作为参数传入的值，像 `ref` 参数一样。
-
-```csharp
-void Broken(ref S s)
-{
-    Span<int> span = stackalloc int[1];
-
-    // The result of a stackalloc is stored in s.Span
-    // and escaped to the caller of Broken
-    s.Set(span);  // err; s 作为接收方可能会存储 span
-}
-ref struct S
-{
-    public Span<int> Span;
-    public void Set(Span<int> span)
+    int value;
+    ref int Fun(ref int v1, out int v2)
     {
-        Span = span;
+        // v1 ref scoped: return-only
+        // v2 ref scoped: function-member
+        // this ref scoped: function-member
+        v2 = 0;
+        return ref v2;  // err
+        return ref value;  // err
+        return ref v1;  // okay
     }
-}
-```
 
-如果接收方是 `readonly ref struct` 结构体，则将其参数视为 `in`，而不是 `ref`。在这种情况下，接收方 `s` 不能用于存储来自其他参数的值。因此 `s` 为 `readonly` 时，`s.Set(span)` 是合法的，因为 `span` 不会被存储到 `s` 的任何地方。
-
-```csharp
-void Broken(ref S s)
-{
-    Span<int> span = stackalloc int[1];
-    s.Set(span);  // okay; 接收方不能存储 span
-}
-readonly ref struct S
-{
-    public readonly Span<int> Span;
-    public void Set(Span<int> span)
-    {
-        //Span = span;
-    }
-}
-```
-
-对于不包含任何方法调用 `e.M(p1,p2,...)`：
-- 返回值的 *safe-context* `E` 是以下上下文中最窄的：
-  - *caller-context*。
-  - 所有参数的 *safe-context*。
-  - 所有非 `scoped` 的引用（`ref`、`in`、`out`）参数的实参表达式的 *ref-safe-context*。
-- 所有类型是 `ref struct` 的 `out` 参数必须由处于 `E` 范围的安全上下文的值赋值。
-
-编译器在以下情况下分析并报告使用方法时（包括重写方法、接口实现、委托转换）的不安全的参数组合：
-- 方法返回一个 `ref struct` 类型或 `ref/ref readonly` 返回时，或者该方法包含一个 `ref struct` 类型的 `ref` 或 `out` 参数。
-- 并且该方法至少有一个额外的 `ref`、`in`、`out` 参数，或一个 `ref struct` 的参数（或 `ref`）。
-
-上述规则不包含 `ref struct` 结构的 `this`，因为引用结构类型不能用于重写、接口实现、委托转换。在 `ref struct` 的实例方法中也必须考虑 `this` 对参数组合的影响（方法中的值可以通过 `this` 的 `ref` 字段转义）。如果不匹配的签名使用 C#11 的 *ref-safe-context* 规则，则将不匹配问题报告为错误，否则为警告。
-
-> 非 *ref struct* 方法匹配分析
-
-```csharp
-
-```
-
-> *ref struct* 中的方法匹配分析
-
-```csharp
-ref struct RSample
-{
-    /**
-    *  caller-context    $cm
-    *  return-only       $ro
-    *  function-member   $local
-    *  $cm > $ro > $local
-    */
-    Span<int> span;   // safe-context : $cm,   ref : $local
-
-    // s 的 safe-conetxt 是 $cm
-    Span<int> Fun1(ref Span<int> s) => default;
-    // s 的 safe-conetxt 是 $cm, s2 不考虑
-    Span<int> Fun2(scoped ref Span<int> s, out Span<int> s2) { s2 = default; return default; }
-    // s 的 safe-context 是 $cm, s2 不考虑
-    Span<int> Fun3(ref Span<int> s, out Span<int> s2) { s2 = default; return default; }
-    // s 的 safe-context 是 $cm, s2 不考虑
-    Span<int> Fun4(Span<int> s, out Span<int> s2) { s2 = default; return default; }
-    // s, s2 都是和 `this` 相同的 safe-context: $cm
-    Span<int> Fun5(Span<int> s, ref Span<int> s2) { s2 = default; return default; }
-
-    Span<int> Test(                                     // safe-context      ref-safe-context
-        ref int v,                                      //  $cm                $ro
-        ref Span<int> s,                                //  $cm                $ro
-        out Span<int> os)                               //  $ro                $local
-    {
-        os = default;
-        Span<int> ls0 = s;                              //  $cm                $local
-        Span<int> ls1 = default;                        //  $cm                $local
-        Span<int> ls2 = new Span<int>(reference: ref v);//  $ro                $local
-        Span<int> ls3 = stackalloc int[1];              //  $local             $local 
-
-        var rt = Fun1(ref s);
-        // $ro, 实参表达式的 ref-safe-context 可以是大于等于 $local 且 safe-context 是 $cm（与 `this` 的 safe-context 相同）
-        // 
-        s = rt;        // err;  e1 > e2 ==> $cm > $ro
-        os = rt;       // okay; e1 = e2 ==> $ro >= $ro
-        return rt;     // okay; $ro
-
-        var rt2 = Fun1(ref span);  // $local
-        rt2 = Fun1(ref ls1);  // $local
-        rt2 = ls3;     // okay; $local <= $local
-
-        var rt3 = Fun1(ref ls3);  // mismatch; ls3 的 safe-context 是 $local, this 的 safe-context 是 $cm
-
-        var rt4 = Fun2(ref s, out ls3);  // 要求第一个参数是是 $cm, 因此可以使用 s, ls0, ls1, 结果是 $cm
-        return rt4;
-
-        var rt5 = Fun3(ref s, out ls3);  // $cm, 第一个参数可以是任意的 $cm 参数
-        return rt5;
-
-        var rt6 = Fun4(s, out ls3);  // $cm, 第一个参数可以是任意的 $cm 参数
-        return rt6;
-
-        var rt7 = Fun5(s, ref ls1);  // 要求每个参数的 safe-context 是 $cm,
-                                         // ref ls1 是 $local, 因此 rt7 的 safe-context 是 $local
-        return rt7;  // err
-        rt7 = ls3;   // okay
-    }
-}
-```
-
->---
-### 变量的安全分配原则
-
-- 对于变量的分配操作 `e1 = e2`，`e2` 的 *safe-context* 范围至少要和 `e1` 的 *safe-context* 范围一样大。
-
-  ```csharp
-  class Sample
-  {
-      void Fun(out Span<int> v)  // return-only
-      {   
-          Span<int> span = stackalloc int[10];  // function-member
-          v = span;  // err, scoped : v > span
-      }
-  }
-  ```
-
-- 对于引用变量的引用分配操作 `e1 = ref e2`，`e2` 的 *ref-safe-context* 范围至少和 `e1` 的 *ref-safe-context* 范围一样大，且 `e1` 必须和 `e2` 具有相同的 *safe-context*。
-  
-  ```csharp
-  readonly ref struct Span<T>
-  {
-      readonly ref T _field;
-      readonly int _length;
-  
-      public Span(ref T value)
-      {
-          // Falls into the `x.e1 = ref e2` case, where `x` is the implicit `this`. The 
-          // safe-context of `this` is *return-only* and ref-safe-context of `value` is 
-          // *caller-context* hence this is legal.
-          _field = ref value;
-          _length = 1;
-      }
-  }
-  ```
-
-- 对于方法返回 `return e`，`e` 的 `safe-context` 至少为 *return-only*。
-  
-  ```csharp
-  class Sample
-  {
-      Span<int> Fun()  // return : return-only at least 
-      {
-          Span<int> span = stackalloc int[10];  // function-member
-          return span; // err, scoped: return-only > span
-      }
-  }
-  ```
-
-- 对于方法返回 `return ref e`，`e` 的 `ref-safe-context` 至少为 *return-only*。
-
-  ```csharp
-  class Sample
-  {
-      ref int Fun(ref int v1, out int v2)
-      {
-          // v1 ref scoped: return-only
-          // v2 ref scoped: function-member
-          v2 = 0;
-          return ref v2;  // err
-          return ref v1;  // okay
-      }
-  }
-  ```
-
->---
-### 变量的安全上下文由让它的声明方式决定
-
-变量的声明方式决定了它的安全上下文。
-
-#### 方法参数
-
-使用方法参数的 *Lvalue* 表达式表示的 *ref-safe-context*：
-- 如果是 `ref` 或 `in` 参数，则其 *ref-safe-context* 是 *return-only*。（C#11，在此之前为 *caller-context*）
-- 如果是一个 `in` 参数，它不能作为可写 `ref` 返回，但也可以作为 `ref readonly` 返回。
-- 如果是一个 `out` 参数，它的 *ref-safe-context* 是 *function-member*。（C#11，在此之前为 *caller-context*）
-- 结构类型的 `this` 在其实例方法中被视为隐式 `scoped ref` 参数传递。`this` 及其字段的 *ref-safe-context* 是 *function-member*。
-- 如果是一个值形参，则它的 *ref-safe-context* 是 *function-member*。
-
-使用方法参数的 *Rvalue* 表达式具有 *caller-context* 的 *safe-context*，例如方法返回、字段赋值。
-
-#### 局部变量
-
-使用局部变量的 *Lvalue* 表达式的 *ref-safe-context*：如果变量是 `ref` 引用变量，它的 *ref-safe-context* 与其初始化表达式的 *ref-safe-context* 相同。否则它的 *ref-safe-context* 是 *declaration-block*。
-
-使用局部变量的 *Rvalue* 表达式的 *safe-context*：
-- 如果不是 `ref struct` 类型的变量，它的 *safe-context* 为 *caller-context*。
-- 如果变量是 `foreach` 循环的迭代变量，则该变量的 *safe-context* 与 `foreach` 循环体的 *safe-context* 相同。
-- `ref struct` 类型的局部变量具有：
-  - 如果变量声明时未初始化，那么它的 *safe-Context* 为 *caller-context*。
-  - 如果变量声明有初始化项，那么它的 *safe-Context* 与该初始化项的 *safe-Context* 相同。
-
-#### 成员字段
-
-使用字段 `e.F` 的 *Lvalue* 表达式 `ref e.F` 的 *ref-safe-context*：
-- 如果 `e` 是 `ref struct` 类型且 `F` 是一个 `ref` 字段，它的 *ref-safe-context* 是 `e` 的 *safe-context*。
-  
-  ```csharp
-  ref struct RSample
-  {
-      ref int _refField;
-      int _field;
-  
-      public ref int Prop1 => ref _refField; // caller-context
-      public ref int Prop2 => ref _field;  // err: function-member
-  }
-  ```
-
-- 如果 `e` 是引用类型，则 `F` 的 *ref-safe-context* 就是 *caller-context*。
-- 如果 `e` 是值类型，则 `F` 的 *ref-safe-context* 与 `e` 的 *ref-safe-context* 相同。
-
-使用字段 `e.F` 的 *Rvalue* 表达式，`F` 的 *safe-context* 与 `e` 的 *safe-context* 相同。
-
-#### 函数成员调用
-
-在计算调用方法返回值的 *safe-context* 或 *ref-safe-context* 时，由于 `scoped` 注释的参数 `p` 的影响，对于传递给形参 `p` 的给定实参 `expr`：
-- 若 `p` 是 `scoped ref`、`scoped in` 参数，在计算返回值的 *ref-safe-context* 时不考虑 `expr` 提供的 *ref-safe-context*。
-- 若 `p` 是 `scoped` 参数，在计算返回值的 *safe-context* 时不考虑 `expr` 提供的 *safe-context*。
-- 若 `p` 是 `out` 参数，不考虑 `expr` 提供的 *safe-context* 或 *ref-safe-context*。
-
-<br>
-
-对于方法调用 `var rt = e.M(e1,e2,...)` 产生的值 `rt`，当 `M()` 方法不是 `return ref ref-struct` 时，方法调用产生的 *Rvalue* 结果的 *safe-context* 与以下上下文中最窄的相同：
-- *caller-context*。
-- 当返回类型是 `ref struct` 时，由所有参数表达式提供的 *safe-context*。
-- 当返回类型是 `ref struct` 时，由所有 `ref`、`in` 参数提供提供的 *ref-safe-context*。
-
-```csharp
-ref struct Sample
-{
-    Span<int> Span;  // caller-context;
-    Span<int> Fun1(int v, ref int v2) => default(Span<int>);
-    Span<int> Fun2(int v, ref int v2, scoped ref int v3) => default(Span<int>);
-    Span<int> Fun3(int v, in int v2, scoped in int v3) => default(Span<int>);
-    Span<int> Create(ref int v)
-    {
-        int lv = 0;
-
-        // 'ref lv' is function-menber
-        return Fun1(lv, ref lv);  // method return is function-member
-
-        // 'ref v' is return-only
-        return Fun1(lv, ref v); //  method return is return-only
-        Span = Fun1(lv, ref v); // err; Span is caller-context > return-only
-
-        // 'ref lv' is function-member, 'scoped ref lv' does not contribute ref-safe-context
-        return Fun2(lv, ref lv, ref lv);   // rt is function-member
-
-        // 'ref v' is return-only, 'scoped ref lv' does not contribute ref-safe-context
-        return Fun2(lv, ref v, ref lv);
-        Span = Fun2(lv, ref v, ref lv);  // err; 
-
-        // 'in lv' is function-member, 'scoped in lv' does not contribute ref-safe-context
-        return Fun3(lv, lv, lv);  // rt is function-member
-
-        // 'in v' is return-only, 'scoped in lv' does not contribute ref-safe-context
-        return Fun3(lv, v, lv);  // rt is return-only
-        Span = Fun3(lv, v, lv);
-    }
-}
-```
-
-对于方法调用 `var rt = e.M(e1,e2,...)` 产生的值 `rt`，`M()` 方法是 `return ref ref-struct` 返回时，方法调用产生的 *Rvalue* 结果的 *safe-context* 与所有类型为 `ref struct` 的 `ref`、`in` 参数的 *safe-context* 相同。若方法 `M` 的多个参数之间具有不同的 *safe-context* 则会发生编译错误（[方法参数必须匹配](#方法参数匹配原则) 和 [ref 重分配原则](#ref-重引用分配原则)）。
-
-```csharp
-
-```
-
-
-对于方法调用 `var rt = e.M(e1,e2,...)` 产生的值 `rt`，当 `M()` 不是 `return ref ref-struct` 返回时，方法调用产生的 *Rvalue* 结果的 *safe-context* 与以下上下文中最窄的相同：
-- *caller-context*。
-- 当返回类型是 `ref struct` 时，由所有参数表达式提供的 *safe-context*。
-- 当返回类型是 `ref struct` 时，由所有 `ref`、`in` 参数提供提供的 *ref-safe-context*。
-
-
-
-
-对于由一个 `return ref` 返回的方法（不返回）调用（`e.M(v1,v2,...)`）产生的 *Lvalue* 表达式，它的 *ref-safe-context* 与以下所有上下文中最窄的范围相同:
-- *caller-context*
-- 所有非 `scoped` 注释的 `ref` 参数 `p` 的 *ref-safe-context*（不包括接收方）。
-- 对于方法的每个 `in` 参数，实参是 *Lvalue* 的 *ref-safe-context*（非 *Lvalue* 的 *ref-safe-context* 是 *caller-context*）。
-- 对于方法的每个 `out` 参数或 `scoped ref` 参数，不考虑它的 *ref-safe-context*。
-- 所有参数的 *safe-context*（包括接收方）。
-
-```csharp
-
-```
-
-
-
-
-
-- 若 `p` 是 `out` 参数，在计算方法返回值的 *ref-safe-context* 或 *safe-context* （转义安全范围）时不考虑它的 *ref-safe-context* 或 *safe-context*。
-
-- 对于传递给形参 `p` 的给定实参 `expr`：
-- 若 `p` 是 `scoped` 参数，在计算方法返回值的 *ref-safe-context* 时不考虑它的 *ref-safe-context*。
-
-
-对于由一个具有 `return` 返回的方法调用（`e.M(v1,v2,...)`）产生的 *Rvalue* 表达式，它的 *safe-context* 与以下所有上下文中最窄的范围相同：
-- *caller-context*。
-- 对于方法的每个 `out` 参数或 `scoped` 注释的参数，不考虑它的 *safe-context*。
-- 所有参数表达式的 *safe-context*（包括接收方）。
-
-属性调用（`get` 或 `set`）被视为对底层方法的方法调用。调用构造函数的 `new` 表达式被视为对正在构造类型的方法调用，如果存在初始化项，则它的 *safe-context* 不能大于对象初始化项的所有参数和操作数中最窄的 *safe-context*。用户定义的运算符操作被视为方法调用。
-
-```csharp
-class Sample
-{
-    ref int Fun1(ref int p)
-    {
-        return ref p;
-    }
-    ref int Fun2()
-    {
-        int v = 5;
-        // Not valid.
-        // ref-safe-context of "v" is block.
-        // Therefore, ref-safe-context of the return value of Fun1() is block.
-        ref int rv = ref Fun1(ref v);
-        return ref rv;   //err
-    }
-    ref int Rv
-    {
-        get
-        {
-            int v = 0;
-            return ref Fun1(ref v);  //err
-        }
-    }
-}
-```
-
-
-方法调用的 *ref-safe-context* 规则将以几种方式更新。首先是 `scoped` 对参数的影响。
-
-<br>
-
-对于方法调用 `v = M(e1,e2 ...)` 的返回值：
-- 若 `M()` 是非 `ref return ref-struct` 返回时，具有以下安全上下文中的最窄的 *safe-context*：
-  - *caller-context*。
-  - 当返回类型是 `ref struct` 时，它的 *safe-context* 由所有的实参表达式提供。
-  - 当返回类型是 `ref struct` 时，它的 *ref-safe-context* 由所有的 `ref` 参数提供。
-- 若 `M()` 是 `ref return ref-struct` 返回时，则它的 *safe-context* 与所有为 `ref ref-struct` 的参数均具有相同的 *safe-context*。如果有多个参数具有不同的安全上下文，则会产生错误，因为实参必须满足 ***方法参数匹配***。
-
-对于方法调用 `rv = ref M(e1,e2 ...)` 的返回值：
-- 若 `ref M()` 是非 `ref return ref-struct` 返回时，具有以下引用安全上下文中的最窄的 *ref-safe-context*：
-  - *caller-context*。
-  - 所有实参表达式结果的 *safe-context*。
-  - 返回值的 *ref-safe-context* 由所有的 `ref` 参数提供。
-- 若 `ref M()` 是 `ref return ref-struct` 返回时，它的 *ref-safe-context* 是所有 `ref ref-struct` 的参数的 *ref-safe-context* 中最窄的转义范围。
- 
-```csharp
-Span<int> Ref(ref int value)
-{
-    // Okay: That is the *caller-context* for `value` hence this is legal.
-    return new Span<int>(ref value);
-}
-Span<int> ScopedRef(scoped ref int value)
-{
-    // Error: The safe-context of return ref-struct is limited to the ref-safe-context of
-    // the ref argument. That is the *function-member* for `value` hence this is not allowed.
-    return new Span<int>(ref value);
-}
-Span<int> Out(out Span<int> span)
-{
-    span = default;
-    return span;
-}
-Span<int> Ref_RefStruct(scoped ref Span<int> span)
-{
-    // Okay: the safe-context of `span` is *caller-context* hence this is legal.
-    return span;
-
-    // Okay: the local `refLocal` has a ref-safe-context of *function-member* and a safe-context of *caller-context*.  
-    // In the call below it is passed to a parameter that is `scoped ref` which means it does not contribute ref-safe-context.
-    // It only contributes its safe-context hence the returned rvalue ends up as safe-context of *caller-context*
-    Span<int> local = default;
-    ref Span<int> refLocal = ref local;
-    return Ref_RefStruct(ref refLocal);  // caller-context
-
-    // Error: the safe-context of `stackLocal` is *function-member* hence this is illegal
-    Span<int> stackLocal = stackalloc int[42];
-    return Ref_RefStruct(ref stackLocal);
-
-    // okay: the 
-  return  Out(out span);
-    Out(out refLocal);
-    Out(out stackLocal);
-}
-```
-
-
-
-
-
-
-
-#### 运算符和表达式
-
-对于产生右值的运算符结果（例如 `e1 + e2` 或 `c ? e1 : e2`），结果的 *safe-context* 范围与运算符所有操作数中最窄的 *safe-context* 相同。因此一元运算符的结果和运算符操作数的 *safe-context*。
-
-使用运算符结果的 *Lvalue* 表达式（例如 `c? ref e1 : ref e2`），结果的 *ref-safe-context* 范围是所有操作数中最窄的 *ref-safe-context* 相同。对于运算符的操作数 `e1` 和 `e2`，要求它们的 *safe-context* 必须一致。
-
-`stackalloc` 表达式的值是一个 *Rvalue*，它的 *safe-context* 是 *function-member*，可以安全地转义到方法堆栈的上层调用，而无法从该方法转义到调用方。
-
-`default` 表达式的 *safe-context* 是 *caller-context*。
-
-
-
-
-```csharp
-static Span<int> CreateSpanExample1(ref int i)
-{
-    var result = new Span<int>(ref i);
-    return result;
-}
-static Span<int> CreateSpanExample2(ref int i)
-{
-    Span<int> result;
-    result = new Span<int>(ref i); // Fails to compile on this line
-    return result;
-}
-static Span<int> CreateSpanExample3(ref int i)
-{
-    Span<int> result = stackalloc int[0];
-    result = new Span<int>(ref i);
-    return result; // Fails to compile on this line
-}
-```
-
-#### 推断声明表达式的安全上下文
-
-具有输出参数的方法 `M(x, out var y)` 或解构函数 `(var x, var y) = M()` 的推断声明表达式的 *safe-context* 与以下上下文中最窄的相同：
-- *caller-context*。
-- 如果 `out` 变量的实参标记为 `out scoped var x`，则是 *declaration-block*。
-- 如果 `out` 变量的类型是 `ref struct` 类型，则考虑包含调用的所有参数，且包含接收方：
-  - 任何参数的 *safe-context*，该参数不包含 `out` 且它的 *safe-context* 至少为 *return-only*。
-  - 任何参数的 *ref-safe-context*，且它的 *ref-safe-context* 至少为 *return-only*。
-
-由 `scoped` 修饰符产生的局部上下文是可能用于变量的最窄的上下文，任何更窄的上下文都意味着表达式引用的变量只能在比表达式更窄的上下文中声明。
-
-```csharp
-ref struct RSample
-{
-    public RSample(ref int x) { } // assumed to be able to capture 'x'
-    static void M0(RSample input, out RSample output) => output = input;
-    static void M1()
-    {
-        var i = 0;
-        var rs1 = new RSample(ref i); // safe-context of 'rs1' is function-member
-        M0(rs1, out var rs2); // safe-context of 'rs2' is function-member
-    }
-    static void M2(RSample rs1)
-    {
-        M0(rs1, out var rs2); // safe-context of 'rs2' is function-member
-    }
-    static void M3(RSample rs1)
-    {
-        M0(rs1, out scoped var rs2); 
-        // 'scoped' modifier forces safe-context of 'rs2' to the current local context (function-member or narrower).
-    }
+    [UnscopedRef] ref int RefValue() => ref value;
+    [UnscopedRef] ref Sample RefThis() => ref this;
 }
 ```
 
@@ -5354,330 +4911,956 @@ ref struct S<out $this>
 ```
 
 
+
 >---
 
-### ref 变量约束
+### 方法参数匹配原则
 
-为确保 `ref` 局部变量或 `ref struct` 类型的变量指向不再使用的堆栈内存或变量，在 C# 的语言设计中有以下限制：
-- 引用传递参数（`ref`、`in`、`out`）、`ref` 局部变量、`ref struct` 类型的参数或局部变量，都不能被 Lambda 函数、匿名函数、局部函数捕获。
-- 异步方法的参数不能是引用传递参数、`ref struct` 类型的参数，也不能在异步方法内声明 `ref` 变量或 `ref struct` 类型的变量。
-- 迭代器方法的参数不能是引用传递参数，也不能在迭代器方法中声明 `ref` 变量。
-- `yield return` 语句或 `await` 表达式的结果是 `ref struct` 类型的局部变量。
-- `ref struct` 类型不能用作类型参数，也不能是元组类型、数组类型的元素。
-- `ref struct` 类型不能用作另一个非 `ref struct` 类型的字段。
-- `ref struct` 类型值无法被装箱，因此没有从 `ref struct` 到 `object` 或 `System.ValueType` 的任何转换，`ref struct` 也不能实现任何的接口。`ref struct` 类型无法通过 `base` 调用任何隐式继承的实例方法，但是可以 `override` 隐式继承的方法。`ref struct` 类型的实例方法也不能转换为委托。
-- 对于 `e1 = ref e2` 赋值，`e2` 的 *ref-safe-context* 至少与 `e1` 的 *ref-safe-context* 范围一样宽。对于 `return ref e1` 返回，`e1` 的 *ref-safe-context* 至少为 *return-only*。 
-- 对于 `e1 = e2` 赋值，如果 `e1` 是一个 `ref struct` 类型，则 `e2` 的 *safe-context* 至少与 `e1` 的 *safe-context* 一样宽。对于 `return e1` 返回，`e1` 的 *safe-context* 至少为 *return-only*。
-- 对于一个方法调用，若有一个 `ref struct` 类型的 `ref` 或 `out` 参数（包括接收方，除非它是 `readonly`）并具有 *safe-context* 的范围 `E1`，那么参数 
+从 C#11 开始可以在 `ref struct` 声明 `ref` 字段，变量的值可以通过 `ref struct` 类型参数的引用或返回进行转义。其中有一个 `out` 或 `ref` 参数是 `ref struct` 类型，那么所有的 ***ref-likes*** 参数需要具有相同的生命周期。例如，当 `ref` 形参是 `ref struct` 类型时，它们有可能会发生数据交换，因此在调用点必须确保所有潜在的交换都是兼容的。若语言没有强制要求参数匹配，则可能会发生：
 
+```csharp
+void Fun(ref Span<int> s1)
+{
+    Span<int> s2 = stackalloc int[1];
+    Swap(ref s1, ref s2);   //err; 这会导致将 stackalloc 分配给 s1, 并被允许转义到 Fun 的调用方
+}
+void Swap(ref Span<int> s1, ref Span<int> s2)
+{
+    s1 = ref s2;
+}
+```
 
+对 `ref` 的参数（`ref struct` 类型）的分析包括实例方法中的接收方，由于它可以用来存储作为参数传入的值，像 `ref` 参数一样。
 
+```csharp
+void Broken(ref S s)
+{
+    Span<int> span = stackalloc int[1];
+
+    // The result of a stackalloc is stored in s.Span
+    // and escaped to the caller of Broken
+    s.Set(span);  // err; s 作为接收方可能会存储 span
+}
+ref struct S
+{
+    public Span<int> Span;
+    public void Set(Span<int> span)
+    {
+        Span = span;
+    }
+}
+```
+
+如果接收方是 `readonly ref struct` 结构体，则将其参数视为 `in`，而不是 `ref`。在这种情况下，接收方 `s` 不能用于存储来自其他参数的值。因此 `s` 为 `readonly` 时，`s.Set(span)` 是合法的，因为 `span` 不会被存储到 `s` 的任何地方。
+
+```csharp
+void Broken(ref S s)
+{
+    Span<int> span = stackalloc int[1];
+    s.Set(span);  // okay; 接收方不能存储 span
+}
+readonly ref struct S
+{
+    public readonly Span<int> Span;
+    public void Set(Span<int> span)
+    {
+        //Span = span;
+    }
+}
+```
+
+在计算调用方法返回值的 *safe-context* 或 *ref-safe-context* 时，由于 `scoped` 或 `[UnscopedRef]` 注释的参数 `p` 的影响（包括 `ref struct` 中隐式传递的 `this`），对于传递给形参 `p` 的给定实参 `expr`：
+- 若 `p` 是 `scoped ref`、`scoped in` 参数，在计算返回值的 *ref-safe-context* 时不考虑 `expr` 提供的 *ref-safe-context*。
+- 若 `p` 是 `scoped` 参数，在计算返回值的 *safe-context* 时不考虑 `expr` 提供的 *safe-context*。
+- 若 `p` 是 `out` 参数，在计算返回值的上下文时不考虑 `expr` 提供的 *safe-context* 或 *ref-safe-context*。
+- 若 `p` 是 `[UnscopedRef]` 注释 `out` 参数，在计算返回值的 *safe-context* 时不考虑 `expr` 提供的 *safe-context*。
+- 对于结构类型的 `[UnscopedRef]` 实例方法，`this` 视为 `ref` 参数，其他任意类型的实例方法中，`this` 视为 `scoped ref` 参数。
+
+**方法参数必须匹配** 可以解释为：在调用方法时，所有非 `scoped` 的 `ref struct` 类型的参数的 *safe-context*、`ref` 参数的 *ref-safe-context*、`[UnscopedRef] out` 参数的 *ref-safe-context* 必须大于或等于所有 `ref ref-struct` 参数的 *safe-context*。
+
+对于任何方法调用 `e.M(p1,p2,...)`
+- 返回值的 *safe-context* `E` 是以下上下文中最窄的：
+  (1) *caller-context*。
+  (2) 所有参数的 *safe-context*。
+  (3) 所有非 `scoped` 的引用（`ref`、`in`、`[UnscopedRef] out`）参数的实参表达式的 *ref-safe-context*。
+- 所有类型是 `ref struct` 的 `out` 参数必须由处于该 *safe-context* 范围的值赋值。
+
+上述规则不包含 `ref struct` 结构的 `this`，由于在 `ref struct` 的实例方法中总会涉及一个 `ref struct` 类型的 `this`，因此调用 `ref struct` 的实例方法总是要考虑 “方法参数必须匹配” 的原则。计算 `ref struct` 实例方法返回值的 *safe-context* 时：
+- `scoped ref this` 不贡献 *ref-safe-context*，贡献 *safe-context*。
+- `[UnscopedRef] ref this` 贡献 *ref-safe-context*，
+
+如果不匹配的签名使用 C#11 的 *ref-safe-context* 规则，则将不匹配问题报告为错误，否则为警告。
+
+编译器在以下情况下分析并报告使用方法时（包括重写方法、接口实现、委托转换）的不安全的参数组合：
+- 方法返回一个 `ref struct` 类型或 `ref/ref readonly` 返回时，并且该方法至少有一个额外的 `ref`、`in`、`out` 参数，或一个 `ref struct` 的参数
+- 或者该方法包含一个 `ref struct` 类型的 `ref` 或 `out` 参数，并且该方法至少有一个额外的 `ref`、`in`、`out` 参数（`ref struct` 实例方法中的 `this` 被视为 `ref` 传递），或一个 `ref struct` 的参数。
+
+> *ref struct* 中的方法匹配分析
+
+```csharp
+
+using System.Diagnostics.CodeAnalysis;
+
+ref struct RSample
+{
+    /**
+    *  caller-context    $cm
+    *  return-only       $ro
+    *  function-member   $local
+    *  $cm > $ro > $local
+    *  RC : ref-safe-context
+    *  SC : safe-context
+    *  [UnscopedRef] : unscoped
+    */
+    // 忽略以下方法的实现
+    Span<int> Fun1(ref Span<int> S1) => throw new Exception();
+    Span<int> Fun2(scoped ref Span<int> S1, out Span<int> S2) => throw new Exception();
+    Span<int> Fun3(scoped ref Span<int> S1, [UnscopedRef] out Span<int> S2) => throw new Exception();
+    [UnscopedRef] Span<int> Fun4(ref Span<int> S1, out Span<int> S2) => throw new Exception();
+    Span<int> Fun5(Span<int> S1, out Span<int> S2) => throw new Exception();
+    Span<int> Fun6(Span<int> S1, ref Span<int> S2) => throw new Exception();
+    Span<int> Fun7(ref Span<int> S1, [UnscopedRef] out Span<int> S2) => throw new Exception();
+    Span<int> Fun8(scoped Span<int> S1, out Span<int> S2) => throw new Exception();
+
+    Span<int> span;  // SC: SC(this), RC: SC(this)
+    ref int RValue;  // SC: $cm, RC: RC(this)
+    int value;  // SC: $cm, RC: SC(this)
+
+    Span<int> Test(
+           // scoped ref this.span           // SC: $cm   RC: $local
+           // unscoped ref this.span         // SC: $cm   RC: $ro
+           ref Span<int> s1,                 // SC: $cm   RC: $ro
+           out Span<int> s2,                 // SC: $ro   RC: $local
+           [UnscopedRef] out Span<int> s3,   // SC: $ro   RC: $ro
+           scoped Span<int> s4,              // SC: $local RC: $local
+           scoped ref Span<int> s5)          // SC: $cm,  RC: $local
+    {
+
+        s2 = default(Span<int>);
+        s3 = default(Span<int>);
+        Span<int> ls1 = default(Span<int>);    // SC: $cm, RC: $local 
+        Span<int> ls2 = new Span<int>(ref value);  // SC: $local, RC: $local
+        Span<int> ls3 = new Span<int>(ref RValue); // SC: $cm, RC: $local
+        Span<int> ls4 = stackalloc int[1];     // SC: $local, RC: $local
+
+        // Fun1 分析：参数列表为 `scoped ref this`,`ref S1`
+        //      this: SC = $cm, 不贡献 RC
+        //      S1: 要求 SC 是 $cm
+        //      return: SC 是 RC(S1)
+        // 其中 $cm 参数包含: this.span,s1,s5,ls1,ls3
+        Fun1(S1: ref this.span);  // SC(return) = RC(this.span) = $local
+        return Fun1(S1: ref s1);  // SC = RC(s1) = $ro
+        Fun1(S1: ref s5);   // $local
+        Fun1(S1: ref ls1);  // $local
+        Fun1(S1: ref ls3);  // $local
+
+        // Fun2 分析: `scoped ref this`,`scoped ref S1`,`out S2`
+        //      this: SC = $cm, 不贡献 RC
+        //      S1: 要求 SC 是 $cm, 不贡献 RC
+        //      S2: 不贡献 RC 和 SC, 可以是 $cm 范围内的任何左值
+        //      return: SC 是 $cm, 因此 out 参数可以是任意 $cm 范围内的值
+        return Fun2(S1: ref this.span, S2: out s1);
+        return Fun2(S1: ref s1, S2: out s4);
+        return Fun2(S1: ref ls3, S2: out ls4);
+
+        // Fun3 分析: `scoped ref this`,`scoped ref S1`,`unscoped out S2`
+        //      this: SC = $cm, 不贡献 RC
+        //      S1: 要求 SC 是 $cm, 不贡献 RC
+        //      S2: 不贡献 SC, 可以是 $cm 下的任意左值
+        //      return: SC 是 RC(S2)
+        Fun3(S1: ref s1, S2: out s2);  // $local
+        return Fun3(S1: ref s5, S2: out s1);  // $ro
+        return Fun3(S1: ref ls3, S2: out s3); // $ro
+
+        //// Fun4 分析: `unscoped ref this`,`ref S1`,`out S2`
+        ////      this: SC = $cm, 贡献 RC
+        ////      S1: SC 必须是 $cm
+        ////      S2: 不贡献 RC 和 SC
+        ////      return: SC 是 RC(this), RC(S1) 中的最小值 $local, 因此 out 参数只能是 $local
+        Fun4(S1: ref this.span, out s4);  // $local
+        Fun4(S1: ref s1, out _);     // $local
+        Fun4(S1: ref ls3, out ls4);  // $local
+
+        // Fun5 分析: `scoped ref this`,`S1`,`out S2`
+        //      this: SC = $cm, 不贡献 RC
+        //      S1: 要求 SC 是 $cm, 不贡献 RC
+        //      S2: 不贡献 RC 和 SC, 可以是 $cm 范围内的任何左值
+        //      return: SC 是 $cm
+        return Fun5(S1: this.span, S2: out ls4);
+        return Fun5(S1: s1, S2: out ls4);
+        return Fun5(S1: ls3, S2: out s1);
+
+        // Fun6 分析: `scoped ref this`,`S1`,`ref S2`
+        //      this: SC = $cm, 不贡献 RC
+        //      S1: 要求 SC 是 $cm, 不贡献 RC
+        //      S2: 要求 SC 是 $cm
+        //      return: SC 是 RC(S2)
+        return Fun6(S1: ls3, S2: ref s1); // $ro
+        Fun6(S1: ls3, S2: ref s5);        // $local
+
+        // Fun7 分析: `scoped ref this`,`ref S1`,`unscoped out s2`
+        //      this: SC = $cm, 不贡献 RC
+        //      S1: 要求 SC 是 $cm
+        //      S2: 不贡献 SC, SC(S2) 的范围不超过 RC(return)
+        //      return: SC 是 S1,S2 中最窄的 RC
+        // 这类情况限制 RC(S1) >= SC(S2) >= RC(S2), SC(return) = Min{RC(S1), RC(S2)}, SC(S2) <= SC(return)
+        // 因此, SC(S2) == RC(S2), SC(return) == RC(S2)
+        Fun7(S1: ref s1, S2: out ls2);         // $local
+        Fun7(S1: ref this.span, S2: out ls4);  // $local
+        Fun7(S1: ref s5, S2: out _);     // $local
+
+        // Fun8 分析: `scoped ref this`,`scoped S1`, `out S2`
+        //      this: SC = $cm, 不贡献 RC
+        //      S1: 要求 SC 是 $cm, 不贡献 RC
+        //      S2: 不贡献 RC 和 SC, 可以是 $cm 范围内的任何左值
+        //      return: SC 是 $cm
+        return Fun8(S1: this.span, S2: out ls4);
+        return Fun8(S1: s1, S2: out ls4);
+        return Fun8(S1: ls3, S2: out s1);
+    }
+}
+```
+
+> 非 *ref struct* 方法匹配分析
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+class Sample
+{
+    /**
+    *  caller-context    $cm
+    *  return-only       $ro
+    *  function-member   $local
+    *  $cm > $ro > $local
+    *  RC : ref-safe-context
+    *  SC : safe-context
+    *  [UnscopedRef] : unscoped
+    */
+    Span<int> Fun1(ref Span<int> s) => s;
+    Span<int> Fun2(scoped ref Span<int> s, out Span<int> s2) { s2 = s; return default; }
+    Span<int> Fun3(scoped ref Span<int> s, [UnscopedRef] out Span<int> s2) { s2 = s; return default; }
+    Span<int> Fun4(ref Span<int> s, out Span<int> s2) { s2 = s; return default; }
+    Span<int> Fun5(Span<int> s, out Span<int> s2) { s2 = s; return default; }
+    Span<int> Fun6(Span<int> s, ref Span<int> s2) { s2 = s; return default; }
+    Span<int> Fun7(ref Span<int> s, [UnscopedRef] out Span<int> s2) { s2 = s; return default; }
+
+    Span<int> Test(                                     // safe-context      ref-safe-context
+        ref int v,                                      //  $cm                $ro
+        ref Span<int> s,                                //  $cm                $ro
+        out Span<int> os)                               //  $ro                $local
+    {
+        os = default;
+        Span<int> ls0 = s;                              //  $cm                $local
+        Span<int> ls1 = default;                        //  $cm                $local
+        Span<int> ls2 = new Span<int>(reference: ref v);//  $ro                $local
+        Span<int> ls3 = stackalloc int[1];              //  $local             $local 
+
+        var rt = Fun1(s: ref s);
+        // Fun1 分析：参数列表为 `ref s`
+        //      s: 任何 $cm 范围的值
+        //      return: SC 和 s 的 RC 相同  
+        return Fun1(s: ref s);    // SC: $ro
+        Fun1(s: ref ls3);  // SC: $local
+
+        // Fun2 分析: `scoped ref s`,`out s2`
+        //      s: 任何 $cm 范围的值, 不贡献 RC
+        //      s2: 不贡献 RC 和 SC, SC 是 SC(s) 范围内的任何值 
+        //      return: SC 是所有提供 SC 参数的 SC 中最小的, 因此 SC 和 s 相同
+        Fun2(s: ref ls3, s2: out ls3);    // s:$local, 因此 s2 只能是 $local, return:$local
+        return Fun2(s: ref os, s2: out os /* ls2,ls3 */);   // s:$ro, SC(s2) <= $ro, return:$ro
+        return Fun2(s: ref ls2, s2: out os /* ls2,ls3 */);  // s:$ro,  SC(s2) <= $ro, return:ro 
+
+        // Fun3 分析: `scoped ref s`,`unscoped out s2`
+        //      s: 任何 $cm 范围的值, 不贡献 RC
+        //      s2: 不贡献 SC, SC 是 SC(s) 范围内的任何值 
+        //      return: SC 是 RC(s2) 
+        Fun3(s: ref ls3, s2: out ls3);  // SC(ls3):$local, 因此 s2 只能是 $local, return: $local
+        Fun3(s: ref os, s2: out ls2);   // SC(os):$ro, SC(s2) <= $ro, return:RC(s2) $local
+
+        // Fun4 分析: `ref s`,`out s2`
+        //      s: 任何 $cm 范围的值
+        //      s2: 不贡献 RC 和 SC
+        //      return: SC 是 RC(s), SC(s2) 是 RC(s) 范围内的任何值
+        Fun4(s: ref ls1, s2: out ls3);   // return:RC(ls1) = $local
+        return Fun4(s: ref s, s2: out os /* ls2,ls3 */);   // return:RC(s) = $ro, SC(s2) <= $ro
+
+        // Fun5 分析: `s`,`out s2`
+        //      s: 任何 $cm 范围的值, 不贡献 RC
+        //      s2: 不贡献 RC 和 SC
+        //      return: SC 是 SC(s), s2 是 SC(s) 范围的任何值
+        Fun5(s: ls3, s2: out ls3);       // return:$local
+        return Fun5(s: ls2, s2: out os); // SC(s2) <= SC(s) , return:$ro
+
+        // Fun6 分析: `s`,`ref s2`
+        //      s: 任何 $cm 范围的值, 不贡献 RC
+        //      s2: SC <= SC(s) 
+        //      return: SC 与 RC(s2) 相同
+        Fun6(s: ls3, s2: ref ls3);      // return:$local
+        Fun6(s: s, s2: ref os);         // return:$local
+        return Fun6(s: s, s2: ref s);   // return:$ro
+
+        // Fun7 分析: `ref s`,`unscoped out s2`
+        //      s: 任何 $cm 范围的值
+        //      s2: 不贡献 SC, SC(s2) <= RC(s) 
+        //      return: SC 是 RC(s2)
+        Fun7(s: ref ls3, s2: out ls3);  // return:$local
+        Fun7(s: ref s, s2: out os);     // return:$local
+    }
+}
+```
+
+>---
+### 变量的安全上下文由让它的声明方式决定
+
+#### 方法参数
+
+使用方法参数的 *Lvalue* 表达式表示的 *ref-safe-context*：
+- 如果是 `ref` 或 `in` 参数，它的 *ref-safe-context* 是：
+  - 默认的 *return-only*。
+  - `scoped` 注释的 *function-member*。
+  - `[UnscopedRef]` 注释的 *caller-context*。
+- 如果是一个 `out` 参数，它的 *ref-safe-context* 是：
+  - 隐式 `scoped` 的 *function-member*。
+  - 显式 `[UnscopedRef]` 的 *return-only*。
+- 结构类型实例方法中的 `this` 被视为 `scoped ref` 参数传递：
+  - `this` 的 *ref-safe-context* 是 *function-member*。
+  - 结构类型中 `[UnscopedRef]` 标记的实例方法中，`this` 的 *ref-safe-context* 是 *return-only*。
+- 类类型实例方法中的 `this` 被视为 `scoped ref` 参数传递，它的 *ref-safe-context* 是 *function-member*。
+- 如果是一个值形参，则它的 *ref-safe-context* 是 *function-member*。
+
+使用方法参数的 *Rvalue* 表达式的 *safe-context* 是：
+- `ref struct` 类型的 `out` 参数具有 *return-only* 的 *safe-context*。
+- 否则，它的 *safe-context* 是 *caller-context*。
+
+#### 局部变量
+
+使用局部变量的 *Lvalue* 表达式的 *ref-safe-context*：
+- 如果变量是非 `scoped` 注释的 `ref` 引用变量，它的 *ref-safe-context* 与其初始化项的 *ref-safe-context* 相同。
+- `scoped` 注释的 `ref` 变量或 `ref scoped` 类型的变量，它的 *ref-safe-context* 为 *function-context*，并忽略其初始化项的 *ref-safe-context*（如果有）。 
+- 否则它的 *ref-safe-context* 是 *declaration-block*。
+
+使用局部变量的 *Rvalue* 表达式的 *safe-context*：
+- 如果不是 `ref struct` 类型，它的 *safe-context* 为 *caller-context*。
+- 如果变量是 `foreach` 循环的迭代变量，则该变量的 *safe-context* 与 `foreach` 循环体的 *safe-context* 相同。
+- 未被 `scoped` 注释的 `ref struct` 类型的局部变量具有：
+  - 如果变量声明时未初始化，那么它的 *safe-Context* 为 *caller-context*。
+  - 如果变量声明有初始化项，那么它的 *safe-Context* 与该初始化项的 *safe-Context* 相同。
+  - 当变量被 `scoped` 注释时，它的 *safe-context* 为 *function-member*。
+
+#### 成员字段
+
+使用字段 `e.F` 的 *Lvalue* 表达式 `= ref e.F` 的 *ref-safe-context*：
+- 如果 `e` 是 `ref struct` 类型且 `F` 是一个 `ref` 字段，它的 *ref-safe-context* 是 `e` 的 *safe-context*。
   
+  ```csharp
+  /**
+   * SC = safe-context, RC = ref-safe-context 
+   * $cm = caller-context
+   * $local = function-member
+   * $ro = return-only
+   */
+  ref struct RS
+  {
+      public ref int RefField; // SC: $cm, RC: SC(this)
+  }
+  class Sample
+  {
+      void GetRef(
+          ref RS rs,    // SC: $cm, RC: $ro
+          out RS rs2)   // SC: $ro, RC: $local
+      {
+          rs2 = default(RS);
+          RS lrs1 = default(RS);        // SC: $cm, RC: $local
+          scoped RS lrs2 = default(RS); // SC: $local, RC: $local
+  
+          rs.RefField = ref lrs2.RefField;  // err; RC(LHS:$cm) > RC(RHS:$local)
+          lrs2.RefField = ref rs.RefField;  // okay
+  
+          rs2.RefField = ref lrs2.RefField;   // err; RC(LHS:$ro) > RC(RHS:$local)
+          lrs2.RefField = ref rs2.RefField;   // okay
+  
+          lrs1.RefField = ref lrs2.RefField;  // err; RC(LHS:$cm) > RC(RHS:$local)
+          lrs2.RefField = ref lrs1.RefField;  // okay
+  
+          lrs1.RefField = ref rs2.RefField;  // err; RC(LHS:$cm) > RC(RHS:$ro)
+          rs2.RefField = ref lrs1.RefField;  // okay
+      }
+  }
+  ```
 
+- 如果 `e` 是引用类型，则 `F` 的 *ref-safe-context* 是 *caller-context*。
 
+  ```csharp
+  ref struct RSample
+  {
+      ref int RefValue;
+      class Sample { public int Value; }
+  
+      void GetRef(ref Sample s1, Sample s2, scoped ref Sample s3)
+      {
+          Sample ls = new Sample();
+  
+          // RC both are $cm
+          RefValue = ref s1.Value;
+          RefValue = ref s2.Value;
+          RefValue = ref s3.Value;
+          RefValue = ref ls.Value;
+      }
+  }
+  ```
 
+- 如果 `e` 是值类型，则 `F` 的 *ref-safe-context* 与 `e` 的 *ref-safe-context* 相同。`[UnscopedRef]` 标记后的结构实例方法中，`this` 及其字段的 *ref-safe-context* 提升为 *return-only*。     
 
+  ```csharp
+  /**
+   * SC = safe-context, RC = ref-safe-context 
+   * $cm = caller-context
+   * $local = function-member
+   * $ro = return-only
+   */
+  using System.Diagnostics.CodeAnalysis;
+  using Span = System.Span<int>;
+  struct Sample
+  {
+      int Value;  // SC: $cm, RC: RC(this)
+  
+      ref struct RS
+      {
+          // ==== Ref non-ref-struct Field ====
+          public ref int RefValue;  // SC: $cm, RC: SC(this)
+          ref int GetIntRef(
+              // scoped ref this     // SC: $cm, RC: $local
+              ref int rValue,        // SC: $cm, RC: $ro
+              ref Sample s1,         // SC: $cm, RC: $ro
+              Sample s2,             // SC: $cm, RC: $local
+              scoped ref Sample s3,  // SC: $cm, RC: $local
+              out Sample s4)         // SC: $cm, RC: $local
+          {
+              s4 = default(Sample);
+              Sample ls = new Sample();  // SC: $cm, RC: $local
+  
+              // SC both $cm
+              RefValue = ref s1.Value;  // err; RC(LHS:$cm) > RC(RHS:$ro)
+              RefValue = ref s2.Value;  // err; RC(LHS:$cm) > RC(RHS:$local)
+              RefValue = ref s3.Value;  // err; RC(LHS:$cm) > RC(RHS:$local)
+              RefValue = ref s4.Value;  // err; RC(LHS:$cm) > RC(RHS:$local)
+              RefValue = ref ls.Value;  // err; RC(LHS:$cm) > RC(RHS:$local)
+  
+              rValue = ref s1.Value;  // okay; RC(LHS:$ro) == RC(RHS:$ro)
+              rValue = ref s2.Value;  // err;  RC(LHS:$ro) > RC(RHS:$local)
+              rValue = ref ls.Value;  // err;  RC(LHS:$ro) > RC(RHS:$local)
+  
+              int lv = 0;
+              ref int lrValue = ref lv;  // SC: $cm, RC: $local
+              lrValue = ref ls.Value;    // okay; RC both local
+  
+              ref int lrValue2 = ref s1.Value;  // SC: $cm, RC = RC(s1.Value) = $ro
+              lrValue2 = ref rValue;   // okay;
+              lrValue2 = ref lrValue;  // err; RC(LHS:$ro) > RC(RHS:$local)
+  
+              // $ro return okay
+              return ref rValue;
+              return ref s1.Value;
+              return ref lrValue2;
+              return ref this.RefValue;  // RC: $cm
+  
+              // err return;
+              return ref s2.Value;  // RC: $local
+              return ref s3.Value;  // RC: $local
+              return ref lrValue;   // RC: $local
+          }
+  
+          // ==== Ref ref-struct Field ====
+          Span<int> span;  // SC: $cm, RC: SC(this)
+                           // using Span = System.Span<int> at file start
+          ref Span<int> RefSpan(
+               // scoped ref this     // SC: $cm, RC: $local
+               ref Span<int> rValue,  // SC: $cm, RC: $ro
+               ref RS s1,             // SC: $cm, RC: $ro
+               RS s2,                 // SC: $cm, RC: $local
+               scoped ref RS s3,      // SC: $cm, RC: $local
+               out RS s4,             // SC: $ro, RC: $local
+               out Span<int> sp,      // SC: $ro, RC: $local
+               [UnscopedRef] out Span<int> sp2,  // SC: $ro, RC: $ro
+               [UnscopedRef] out RS s5)          // SC: $ro, RC: $ro
+          {
+              sp = default(Span);
+              sp2 = default(Span);
+              s4 = default(RS);
+              s5 = default(RS);
+              Span ls1 = default(Span);     // SC: $cm, RC: $local
+              Span ls2 = stackalloc int[1]; // SC: $local, $RC: local
+  
+              // SC: $cm, RC: $local
+              ref Span rs = ref span;  // SC: SC(this) = $cm, RC = RC(this) = $local
+              rs = ref rValue;   // okay; same SC AND RC(LHS) < RC(RHS)
+              rs = ref s1.span;  // okay; same SC AND RC(LHS:local) < RC(RHS:$ro)  
+              rs = ref s2.span;  // okay; same SC AND RC both $local
+              rs = ref sp;       // err; SC(LHS:$cm) != SC(RHS:$ro)
+              rs = ref ls1;      // okay; same SC AND RC(LHS:local) == RC(RHS:$local)  
+              rs = ref ls2;      // err; SC(LHS:$cm) != SC(RHS:$local)
+  
+              // SC: $cm, RC: $ro
+              ref Span rs2 = ref rValue;  // SC: $cm, RC: $ro
+              rs2 = ref s1.span;  // RC == RC(RHS:$ro)  
+              rs2 = ref sp2;      // same RC, but different SC
+              rs2 = ref s2.span;  // RC > RHS:$local
+  
+              // SC: $ro, RC: $local
+              ref Span rs3 = ref sp;
+              rs3 = ref ls2;  // SC(ls2) = $local
+              rs3 = ref sp2;  // okay; SC both $ro, RC(LHS:$local) < RC(RHS:$ro)
+              rs3 = ref s5.span;  // okay
+  
+              // SC: $local, RC: $local
+              ref Span rs4 = ref ls2;
+              // .... 任意 span 无法转换为 rs4
+  
+              // okay return 
+              return ref s1.span;  // RC: $ro
+              return ref sp2;      // RC: $ro
+              return ref s5.span;  // RC: $ro
+              return ref rValue;
+  
+              // err return
+              return ref span;  // RC(Field) = $RC(this) = $local, 若是 [UnscopedRef] 则 $RC(this) = $ro
+              return ref s2.span;  
+              return ref ls1;
+              return ref sp;
+              return ref s4.span;  // RC: $local
+          }
+      }
+      // ====  Ref This ====
+      ref int NonRefThisField() => ref Value;  // err; RC(Field) = RC(this) = $local
+      [UnscopedRef] ref int RefThisField() => ref this.Value;  // okay; RC(this) = $ro
+      [UnscopedRef] ref Sample RefThis() => ref this;
+  }
+  ```
 
-
-
-
-### ref-safe-context
-
-
-
-
-
-有三种 *ref-safe-context*：
-- *declaration-block* 声明块：对局部变量的变量引用的 *ref-safe-context* 是该局部变量的作用域，并包括该作用域中的任何嵌套嵌入语句。只有当引用变量在该变量的 *ref-safe-context* 中声明时，对局部变量的变量引用才是引用变量的有效引用。
-
-* *function-member* 函数成员：在函数中，对下列任何类型的变量的变量引用都有一个 *ref-safe-context*：
-  - 函数成员声明的值形参，包括类成员函数的隐式 `this` 和结构成员函数的隐式引用（`ref`）形参 `this` 及其字段。
-  - 带有 *function-member* 的 *ref-safe-context* 的变量引用，只有在引用变量在同一函数成员中声明时才是有效的引用。
-
-- *caller-context* 调用方上下文：在函数中，对下列任何一种类型的变量都有一个名为 *caller-context* 的 *ref-safe-context*：`ref` 引用参数（非结构成员函数的隐式 `this`）、这些引用参数的成员字段和元素、类类型参数的成员字段、数组类型参数的元素。
-  - 具有 *caller-context* 的 *ref-safe-context* 的变量引用可以是 `ref return` 的返回引用。
-
-这些变量形成了从最窄（声明块）到最宽（调用方上下文）的嵌套关系。每个嵌套块代表一个不同的上下文。
-
-```csharp
-public class C
-{
-    // ref-safe-context of arr is "caller-context". 
-    // ref-safe-context of arr[i] is "caller-context".
-    private int[] arr = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-
-    // ref-safe-context of r1 is "caller-context"
-    public ref int M1(ref int r1)
-    {
-        return ref r1; // r1 is safe to ref return
-    }
-
-    // ref-safe-context of v1 is "function-member"
-    public ref int M2(int v1)
-    {
-        return ref v1; // error: v1 isn't safe to ref return
-    }
-
-    public ref int M3()
-    {
-        int v2 = 5;
-        return ref arr[v2]; // arr[v2] is safe to ref return
-    }
-
-    // ref-safe-context of p is function-member
-    public void M4(int p)
-    {
-        // ref-safe-context of v3 is declaration-block
-        int v3 = 6;
-
-        // context of r2 is declaration-block,
-        ref int r2 = ref p;
-
-        // context of r3 is declaration-block,
-        ref int r3 = ref v3;
-
-        // context of r4 is declaration-block,
-        // ref-safe-context of arr[v3] is caller-context
-        ref int r4 = ref arr[v3];
-    }
-}
-```
-
-对于结构类型的函数实例成员中，隐式 `this` 形参作为 `ref` 形参传递。作为函数成员的结构类型的字段的 *ref-safe-context* 防止通过 `ref return` 返回这些字段。
-
-```csharp
-public struct S
-{
-    private int n;
-    // Disallowed: returning ref of a field.
-    public ref int GetN() => ref n;  // err
-}
-class Test
-{
-    public ref int M()
-    {
-        S s = new S();
-        ref int numRef = ref s.GetN();
-        return ref numRef; // reference to local variable 'numRef' returned
-    }
-}
-```
-
-
-
-
-
-
-#### 运算符
-
-条件运算符 `c ? ref e1 : ref e2` 和引用赋值 `= ref` 将引用变量作为操作数并产生一个引用变量。对于这些操作符，结果的 *ref-safe-context* 是所有 `ref` 操作数的 *ref-safe-context* 中最窄的上下文。
-
-
-#### 变量
-
-变量的 *ref-safe-context* 是它最近的封闭上下文。
-
-
-#### 对引用变量的限制
-
-- Lambda 表达式或局部函数不能捕获引用形参、输出形参、输入形参、`ref` 局部变量或 `ref struct` 类型的局部。
-- 引用形参、输出形参、输入形参和 `ref struct` 结构类型的形参都不能作为迭代器方法或异步方法的实参。
-- `ref` 局部变量和 `ref struct` 类型的局部变量，都不能出现在 `yield return` 语句或 `await` 表达式的上下文中。
-- 对于 `ref` 重赋值 `e1 = ref e2`，`e2` 的 *ref-safe-context* 至少与 `e1` 的 *ref-safe-context* 一样宽。
-- 对于一个 `ref return` 方法的语句 `return ref`，`ref` 的 *ref-safe-context* 是 *caller-context*。
-
->---
-
-### safe-context
-
-在编译时，每个表达式都与一个上下文相关联，在这个上下文中，该实例及其所有字段都可以被安全访问，即它的安全上下文 *safe-context*。 *safe-context* 是一个包含表达式的上下文，将值转义到该表达式是安全的。一个变量的 *ref-safe-context* 不会大于它本身的 *safe-context*。
-
-任何编译时类型不是 `ref struct` 的表达式都有一个调用上下文 *caller-context* 的 *safe-context*。对于任何类型的 `default` 表达式，都有一个*caller-context* 的 *safe-context*。
-
-*safe-context* 记录了值可以复制到哪个上下文。给定从具有安全上下文 `S1` 的表达式 `E1` 到具有安全上下文 `S2`  的表达式 `E2` 的赋值，如果 `S2` 具有比 `S1` 更宽的上下文，则会发生错误。
-
-有三种不同的 *safe-context* 含义，与引用变量的引用安全上下文 *ref-safe-context* 含义相同：声明块 *declaration-block*，方法成员 *function-member*，和调用方上下文 *caller-context*。表达式的 *safe-context* 对其使用的限制如下：
-- 对于 `return` 语句 `return E1`，`E1` 的安全上下文至少为 *return-only*。
-- 对于赋值操作 `E1 = E2`，`E2` 至少具有与 `E1` 相同宽度的安全上下文。
-
-对于方法调用，如果存在 `ref`、`in` 或 `out` 参数为 `ref` 结构类型（包括接收者，除非该类型为 `readonly`），且具有安全上下文 `S1`，则任何参数（包括接收者）都不能具有比 `S1` 更窄的 *safe-context*。
-
-```csharp
-ref struct Sample
-{
-    ref int b;
-    ref int Fun(ref int a)
-    {
-        b = ref a;  // a 具有更窄的语义（上下文），只能通过 return 返回对 a 进行转义 
-        return ref a;
-    }
-    ref int Fun2(scoped ref int a)
-    {
-        b = ref a;  // a 具有更窄的语义（上下文）且仅作用于当前函数体，
-        return ref a;  // 也不能通过 return 返回对 a 进行转义 
-    }
-}
-```
-
-
-#### 运算符
-
-用户定义的运算符的调用被视为方法调用。对于产生值的运算符（如 `e1+e2`、`c?e1:e2`），结果的 *safe-context* 则是运算符操作数中 *safe-context* 中最窄的上下文。
-
-#### 方法和属性调用
+使用字段 `e.F` 的 *Rvalue* 表达式 `= e.F`：
+- 字段的类型是 `ref struct` 的 *safe-context* 与 `e` 的 *safe-context* 相同。
+- 否则，它的 *safe-context* 是 *caller-context*。
  
-`t.M(e1, ...)` 方法调用产生的右值的 *safe-context* 是以下上下文中最小的安全上下文：
-- *caller-context*
-- 所有的参数表达式提供的安全上下文
-- 当返回为 `ref struct` 类型时，则由所有的 `ref`
+```csharp
+/**
+ * SC = safe-context, RC = ref-safe-context 
+ * $cm = caller-context
+ * $local = function-member
+ * $ro = return-only
+ */
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using Span = System.Span<int>;
 
-属性调用被视为对底层方法的调用。
+ref struct RS
+{
+    // ==== ref-struct Field ====
+    Span<int> span;  // SC: SC(this), RC: SC(this)
+                     // using Span = System.Span<int> at file start
+    Span<int> RefSpan(
+         // scoped ref this     // SC: $cm
+         ref Span<int> rValue,  // SC: $cm
+         ref RS s1,             // SC: $cm
+         RS s2,                 // SC: $cm
+         out RS s3,             // SC: $ro
+         out Span<int> sp,      // SC: $ro
+         scoped Span<int> span1)  // SC: $local
+    {
+        sp = default(Span);
+        s3 = default(RS);
+        Span ls1 = default(Span);     // SC: $cm
+        Span ls2 = stackalloc int[1]; // SC: $local
 
-#### stackalloc
+        // SC: $cm, SC(span) = $cm
+        span = rValue;   // okay; both $cm
+        span = s1.span;  // okay;
+        span = s2.span;  // okay; 
+        span = s3.span;  // err; SC(LHS:$cm) > SC(RHS:$ro)
+        span = sp;       // err; SC(LHS:$cm) > SC(RHS:$ro)
+        span = ls1;      // okay; 
+        span = ls2;      // err; SC(LHS:$cm) > SC(RHS:$local)
+        span = span1;    // err; SC(RHS:$local)
 
-`stackalloc` 表达式的结果具有 *function-member* 的 *safe-context*。 
+        // SC: $ro, SC(s3.span) = $ro
+        s3.span = span;  // okay
+        s3.span = sp;    // okay; both $ro
+        s3.span = ls2;   // err; SC(ls2) = $local
 
-#### 构造函数调用
+        // SC: $local
+        scoped Span lspan = span;  // SC: $local
+        lspan = ls2;  // okay; SC: $local
+        sp = lspan;   // err;  SC(sp) = $ro
+        lspan = span1;  // okay;
+        sp = span1;   // err;  SC(RHS) = $local
 
-调用构造函数的 `new` 表达式遵循与方法调用相同的规则，构造函数的调用被视为返回正在构造的类型的方法的调用。如果存在任何的初始化项，则 *safe-context* 是所有对象初始化项表达式中最窄的。
+        // okay return 
+        return span;     // $cm
+        return s1.span;  // $cm
+        return rValue;   // $cm
+        return s3.span;  // $ro
+        return sp;       // $ro
 
+        // err return
+        return ls2;    // $local
+        return lspan;  // $local
+        return span1;  // $local
+    }
+}
+```
 
->---
-### Return-only 安全上下文
+#### 推断声明表达式的安全上下文
 
-
-
----
-## 结构性能改进（C#11）
-
-C#11 新增 `ref` 字段和覆盖生命周期默认值（`scoped`）的能力，为底层结构改进创建一个单一的总体特性集。
-
-
-
-
->---
-
-
-
->---
-
-
-
->---
-### 方法参数匹配
-
-C#11 起，`ref` 参数可以作为字段存储在 `ref struct` 的类型参数中，`ref struct` 结构中允许声明 `ref` 字段。
-
-对于任何方法调用 `t.M(e1,e2,...)` 在计算安全上下文时选择以下中最窄的：
+具有输出参数的方法 `M(x, out var y)` 或解构函数 `(var x, var y) = M()` 的推断声明表达式 `var 'Rvalue'` 的 *safe-context* 是：
 - *caller-context*。
-- 方法中所有参数的 *safe-context*。
-- 方法中所有
+- 如果 `out` 参数的类型是 `ref struct`：
+  - 如果 `out` 变量的实参标记为 `out scoped var x`，它的安全上下文是 *function-member* 或更窄的 *declaration-block*。
+  - 否则需要考虑方法中包含调用的其他所有参数，且包含接收方，它的安全上下文是以下最窄的：
+    - 任何非 `out` 参数的 *safe-context*。 
+  - 任何参数的 *ref-safe-context*。
 
+由 `scoped` 修饰符产生的局部上下文是可能用于变量的最窄的上下文，任何更窄的上下文都意味着表达式引用的变量只能在比表达式更窄的上下文中声明。
+
+```csharp
+ref struct RSample
+{
+    public RSample(ref int x) { } // assumed to be able to capture 'x'
+    static void Fun(RSample input, out RSample output) => output = input;
+    static RSample FunLocal(ref int v)
+    {
+        var i = 0;
+        var lrs = new RSample(ref i);  // safe-context of 'lrs' is function-member
+        Fun(lrs, out var rs_out); // safe-context of 'rs_out' is function-member
+        return rs_out;  // err;  
+
+        var lrs2 = new RSample(ref v);  // safe-context of 'lrs2' is return-only
+        Fun(lrs2, out var rs_out2);  // safe-context of 'rs_out2' is return-only
+        return rs_out2;  // okay
+    }
+    static RSample FunCm(RSample rs)
+    {
+        Fun(rs, out var rs_out); // safe-context of 'rs' is caller-context
+        return rs_out;  // okay
+    }
+    static RSample FunScoped(RSample rs)
+    {
+        // 'scoped' modifier forces safe-context of 'rs2' to the current local context (function-member or narrower).
+        Fun(rs, out scoped var rs_scoped);  // scoped out var is function-context
+        return rs_scoped; // err;
+    }
+}
+```
+
+#### 函数成员调用
+
+属性调用（`get` 或 `set`）被视为对底层方法的方法调用。调用构造函数的 `new` 表达式被视为对正在构造类型的方法调用，如果存在初始化项，则它的 *safe-context* 不能大于对象初始化项的所有参数和操作数中最窄的 *safe-context*。用户定义的运算符操作被视为方法调用。实例方法中包含隐式参数 `ref this`，构造函数包含隐式参数 `out this`。
+
+对于方法调用 `var rt = e.M(e1,e2,...)` 产生的值 `rt`，当 `M()` 方法不返回 `return ref ref-struct` 时，方法返回值的 *safe-context* 与以下上下文中最窄的相同：
+- *caller-context*。
+- 当返回类型是 `ref struct` 时，由所有参数表达式提供的 *safe-context*。
+- 当返回类型是 `ref struct` 时，由所有非 `scoped` 注释的 `ref` 参数、`[UnscopedRef] this` 隐式参数、`in` 参数、`[UnscopedRef] out` 参数提供提供的 *ref-safe-context*。
+- 一般而言参数的 *safe-context* 大于等于它的 *ref-safe-context*，因此引用传递的参数只考虑它的 *ref-safe-context*。
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+ref struct RSample
+{
+    Span<int> Span;  // SC: caller-context;
+    Span<int> Fun1(int v, ref int v2) => default(Span<int>);
+    Span<int> Fun2(int v, ref int v2, scoped ref int v3) => default(Span<int>);
+    [UnscopedRef] Span<int> Fun3(int v, ref int v2) => default(Span<int>);
+    Span<int> Fun4(int v, ref int v2, out int v3) => throw new Exception();
+    Span<int> Fun5(int v, ref int v2, [UnscopedRef] out int v3) => throw new Exception();
+    Span<int> Fun6(Span<int> s, ref int v2, [UnscopedRef] out int v3) => throw new Exception();
+
+    Span<int> Create(ref int v,             // SC: $cm,  RC: $ro
+        [UnscopedRef] ref int v_unscoped,   // SC: $cm,  RC: $cm
+        scoped ref int v_scoped)            // SC: $cm,  RC: $local
+    {
+        // Fun1 分析: 参数列表为 `scoped ref this`,`v`,`ref v2`
+        // return 的 SC 是 SC(this),SC(v:$cm),RC(v2) 中最窄的
+        var Fun1_rt1 = Fun1(v, ref v);  // $ro
+        var Fun1_rt2 = Fun1(v, ref v_scoped);  // $local
+        var Fun1_rt3 = Fun1(v, ref v_unscoped); // $cm
+        return Fun1_rt1;  // okay
+        return Fun1_rt3;  // okay
+        Fun1_rt1 = Fun1_rt2; // err; SC(LHS) > SC(RHS) : $ro > $local
+        Fun1_rt3 = Fun1_rt1; // err; SC(LHS) > SC(RHS) : $cm > $ro
+
+        // Fun2 分析: `scoped ref this`,`v`,`ref v2`,`scoped ref v3`
+        // return 的 SC 是 SC(this),SC(v:$cm),RC(v2),SC(v3) 中最窄的
+        return Fun2(v, ref v_unscoped, ref v_scoped); // $cm
+        return Fun2(v_scoped, ref v, ref v_scoped); // $ro
+        return Fun2(v_scoped, ref v_scoped, ref v_scoped); // $local
+
+        // Fun3 分析: `unscoped ref this`,`v`,`ref v2`
+        // return 的 SC 是 RC(this),SC(v:$cm),RC(v2) 中最窄的
+        Fun3(v_scoped, ref v);  // $local; RC(this) = $local in this context, but in Fun3 RC(Fun3.this) is $ro
+
+        // Fun4 分析: `scoped ref this`,`v`,`ref v2`,`out v3`
+        // return 的 SC 是 SC(this),SC(v),RC(v2) 中最窄的
+        return Fun4(v_scoped, ref v, out v_scoped);  // $ro
+        return Fun4(v_scoped, ref v_unscoped, out v_scoped);  // $cm
+        return Fun4(v_scoped, ref v_scoped, out v_scoped);  // $local
+
+        // Fun5 分析: `scoped ref this`,`v`,`ref v2`,`unscoped out v3`
+        // return 的 SC 是 SC(this),SC(v),RC(v2),RC(v3) 中最窄的
+        return Fun5(v_scoped, ref v_unscoped, out v_scoped);  // $local
+        return Fun5(v_scoped, ref v_unscoped, out v);  // $ro
+        return Fun5(v_scoped, ref v_unscoped, out v_unscoped);  // $cm
+        return Fun5(v_scoped, ref v_scoped, out v_unscoped);  // $local
+        return Fun5(v_scoped, ref v, out v_unscoped);  // $ro
+
+        // Fun6 分析: `scoped ref this`,`s`,`ref v2`,`unscoped out v3`
+        // return 的 SC 是 SC(this),SC(s),RC(v2),RC(v3) 中最窄的
+        return Fun6(new Span<int>(ref v), ref v_unscoped, out v_unscoped); // $ro
+        return Fun6(new Span<int>(ref v_scoped), ref v_unscoped, out v_unscoped); // $local
+        return Fun6(new Span<int>(ref v_scoped), ref v_unscoped, out v_unscoped); // $local
+        return Fun6(new Span<int>(ref v_unscoped), ref v_unscoped, out v_unscoped); // $cm
+        return Fun6(new Span<int>(ref v_unscoped), ref v_unscoped, out _); // $local
+        // 弃元被视为局部变量，它的 RC 是 $local
+    }
+}
+```
+
+对于方法调用 `var rt = e.M(e1,e2,...)` 产生的值 `rt`，当 `M()` 方法返回 `return ref ref-struct` 时，方法返回值的 *safe-context* 与所有类型 是 `ref struct` 的 `ref` 参数、`in` 参数、（如果是）`ref struct` 结构的实例方法中的 `this` 的 *safe-context* 相同。
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+struct Sample
+{
+    ref Span<int> Fun1(Span<int> v, ref Span<int> v2) => throw new Exception();
+    ref Span<int> Fun2(Span<int> v, ref Span<int> v2, scoped ref Span<int> v3) => throw new Exception();
+    ref Span<int> Fun3(Span<int> v, ref Span<int> v2, out Span<int> v3) => throw new Exception();
+    ref Span<int> Fun4(Span<int> v, ref Span<int> v2, [UnscopedRef] out Span<int> v3) => throw new Exception();
+
+    Span<int> Create(ref Span<int> r,             // SC: $cm,  RC: $ro
+        [UnscopedRef] ref Span<int> r_unscoped,   // SC: $cm,  RC: $cm
+        scoped ref Span<int> r_scoped,            // SC: $cm,  RC: $local
+        out Span<int> o_scoped,                   // SC: $ro,  RC: $local
+        [UnscopedRef] out Span<int> o_unscoped,   // SC: $ro,  RC: $ro
+        scoped Span<int> v_scoped)                // SC: $local, RC: $local
+    {
+        // 上下文范围降序 r_unscoped > r > r_scoped > o_unscoped > o_scoped > v_scoped
+        o_scoped = default;
+        o_unscoped = default;
+        // Fun1 分析: 类型为 ref struct 的 ref-likes 参数为 `ref v2`
+        // return 的 SC 与 SC(v2) 相同, v 的 SC >= SC(v2)
+        return Fun1(v: r, v2: ref r_scoped);  // $cm
+        return Fun1(v: r_scoped, v2: ref o_scoped);   // $ro
+        return Fun1(v: o_unscoped, v2: ref o_unscoped); // $ro
+        Fun1(v: r_unscoped, v2: ref v_scoped); // $local
+        Fun1(v: v_scoped, v2: ref v_scoped);   // $local
+
+        // Fun2 分析: `ref v2`,`scoped ref v3`
+        // return 的 SC 与 SC(v2), SC(v3) 相同, SC(v) must >= SC(return) 
+        return Fun2(v: r, ref r_scoped, ref r_scoped); // $cm
+        return Fun2(v: o_scoped, ref o_unscoped, ref o_scoped);  // $ro
+        Fun2(v: r_unscoped, v2: ref v_scoped, v3: ref v_scoped); // $local
+        Fun2(v: v_scoped, v2: ref v_scoped, v3: ref v_scoped); // $local
+
+        // Fun3 分析: `ref v2`,`out v3`
+        // return 的 SC 与 SC(v2) 相同, MUST: SC(v) >= SC(return) >= SC(out), RC(ref) >= RC(out)
+        return Fun3(r_unscoped, ref r_unscoped, out r_unscoped);  // $cm
+        return Fun3(o_scoped, ref o_scoped, out v_scoped);  // $ro
+        Fun3(v_scoped, ref v_scoped, out v_scoped);  // $local
+
+        // Fun4 分析: `ref v2`,`unscoped out v3`
+        // return 的 SC 与 SC(v2) 相同, MUST: SC(v) >= SC(return) >= SC(out), RC(ref) >= RC(out)
+        return Fun4(r_unscoped, ref r_unscoped, out r_unscoped);  // $cm
+        return Fun4(r_unscoped, ref o_scoped, out v_scoped);  // $ro
+        Fun4(v_scoped, ref v_scoped, out v_scoped);  // $local
+    }
+}
+```
+
+对于方法调用 `= ref e.M(e1,e2,...)` 产生的 *Lvalue*，当 `M()` 方法不返回 `return ref ref-struct` 时，方法返回值的 *ref-safe-context* 是以下上下文中最窄的：
+- *caller-context*。
+- 所有参数的 *safe-context*。
+- 所有非 `scoped` 注释的 `ref`、`in`、`[UnscopedRef] out`、参数的 *ref-safe-cotext*，如果是 `[UnscopedRef]` 方法，则包含 `ref this` 的 *ref -safe-context*。
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+struct Sample
+{
+    ref int Fun1(int v, ref int v2) => throw new Exception();
+    ref int Fun2(int v, ref int v2, scoped ref int v3) => throw new Exception();
+    [UnscopedRef] ref int Fun3(int v, ref int v2) => throw new Exception();
+    ref int Fun4(Span<int> v, int v2) => throw new Exception();
+    ref int Fun5(Span<int> v, ref int v2, [UnscopedRef] out int v3) => throw new Exception();
+
+    int Value; // SC: $cm, RC: RC(this)
+    ref int Create(
+         // scoped ref this.Value               // SC: $cm,  RC: local
+         // unscoped ref this.Value             // SC: $cm,  RC: $ro
+         ref int rv,                            // SC: $cm,  RC: $ro
+         scoped ref int rv_scoped,              // SC: $cm,  RC: $local
+         [UnscopedRef] ref int rv_unscoped)     // SC: $cm,  RC: $cm
+    {
+        // Fun1 分析: 参数列表为 `scoped ref this`,`v`,`ref v2`
+        // return 的 RC 是 SC(this),SC(v:$cm),RC(v2) 中最窄的
+        return ref Fun1(Value, ref rv); // $ro
+        _ = ref Fun1(Value, ref rv_scoped); // $local
+        return ref Fun1(Value, ref rv_unscoped); // $cm
+
+        // Fun2 分析: `scoped ref this`,`v`,`ref v2`,`scoped ref v3`
+        // return 的 RC 是 SC(this),SC(v:$cm),RC(v2),SC(v3) 中最窄的
+        return ref Fun2(Value, ref rv_unscoped, ref rv); // $cm
+        return ref Fun2(Value, ref rv, ref rv_scoped); // $ro
+        _ = ref Fun2(Value, ref rv_scoped, ref rv_unscoped); // $local
+
+        // Fun3 分析: `unscoped ref this`,`v`,`ref v2`
+        // return 的 RC 是 RC(this), RC(this) = $local
+        _ = ref Fun3(Value, ref rv);  // $local
+        _ = ref Fun3(Value, ref rv_scoped); // $local; 
+
+        // Fun4 分析: `scoped ref this`,`v`
+        // return 的 RC 是 SC(this),SC(v) 中最窄的
+        return ref Fun4(new Span<int>(ref rv), Value);  // $ro
+        _ = ref Fun4(new Span<int>(ref rv_scoped), Value);  // $local
+        return ref Fun4(new Span<int>(ref rv_unscoped), Value);  // $cm
+
+        // Fun5 分析: `scoped ref this`,`v`,`ref v2`,`unscoped out v3`
+        // return 的 RC 是 SC(this),SC(v),RC(v2),RC(v3) 中最窄的
+        _ = ref Fun5(new Span<int>(ref rv_unscoped), ref rv_unscoped, out rv_scoped);  // $local
+        return ref Fun5(new Span<int>(ref rv_unscoped), ref rv_unscoped, out rv);  // $ro
+        return ref Fun5(new Span<int>(ref rv_unscoped), ref rv_unscoped, out rv_unscoped);  // $cm
+        _ =  ref Fun5(new Span<int>(ref rv_unscoped), ref rv_unscoped, out _); // $local
+    }
+}
+```
+
+对于方法调用 `= ref e.M(e1,e2,...)` 产生的 *Lvalue*，当 `M()` 方法返回 `return ref ref-struct` 时，方法返回值的 *ref-safe-context* 与所有类型是 `ref struct` 的 `ref` 参数、`in` 参数、`[UnscopedRef] out`、（方法如果是）`ref struct` 结构的实例方法中的 `this` 的 *ref-safe-context* 中最窄的。
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+struct Sample
+{
+    ref Span<int> Fun1(Span<int> v, ref Span<int> v2) => throw new Exception();
+    ref Span<int> Fun2(Span<int> v, ref Span<int> v2, scoped ref Span<int> v3) => throw new Exception();
+    ref Span<int> Fun3(Span<int> v, ref Span<int> v2, out Span<int> v3) => throw new Exception();
+    ref Span<int> Fun4(Span<int> v, ref Span<int> v2, [UnscopedRef] out Span<int> v3) => throw new Exception();
+
+    ref Span<int> Create(ref Span<int> r,             // SC: $cm,  RC: $ro
+         [UnscopedRef] ref Span<int> r_unscoped,      // SC: $cm,  RC: $cm
+         scoped ref Span<int> r_scoped,               // SC: $cm,  RC: $local
+         out Span<int> o_scoped,                      // SC: $ro,  RC: $local
+         [UnscopedRef] out Span<int> o_unscoped,      // SC: $ro,  RC: $ro
+         scoped Span<int> v_scoped)                   // SC: $local, RC: $local
+    {
+        // 上下文范围降序 r_unscoped > r > r_scoped > o_unscoped > o_scoped > v_scoped
+        o_scoped = default;
+        o_unscoped = default;
+        // Fun1 分析: 类型为 ref struct 的 ref-likes 参数为 `ref v2`
+        // return ref 的 RC 是 RC(v2) 
+        return ref Fun1(v: r, v2: ref r_unscoped);  // $cm
+        return ref Fun1(v: r_scoped, v2: ref r);    // $ro
+        return ref Fun1(v: o_unscoped, v2: ref o_unscoped); // $ro
+        return ref Fun1(v: r_unscoped, v2: ref r_scoped); // $local
+        return ref Fun1(v: v_scoped, v2: ref v_scoped);   // $local
+
+        // Fun2 分析: `ref v2`,`scoped ref v3`
+        // return ref 的 RC 与 RC(v2) 相同, SC(v) must >= SC(return) 
+        return ref Fun2(v: r, ref r_scoped, ref r_scoped); // $local
+        return ref Fun2(v: r_scoped, ref r_unscoped, ref r_unscoped);  // $cm
+        return ref Fun2(v: o_scoped, ref o_unscoped, ref o_scoped);  // $ro
+        return ref Fun2(v: r_unscoped, v2: ref v_scoped, v3: ref v_scoped); // $local
+        return ref Fun2(v: v_scoped, v2: ref v_scoped, v3: ref v_scoped); // $local
+
+        // Fun3 分析: `ref v2`,`out v3`
+        // return ref 的 RC 与 RC(v2) 相同, MUST: SC(v) >= SC(return) >= RC(out), RC(ref) >= RC(out)
+        return ref Fun3(r_unscoped, ref r_unscoped, out r_unscoped);  // $cm
+        return ref Fun3(o_scoped, ref o_unscoped, out v_scoped);  // $ro
+        return ref Fun3(v_scoped, ref v_scoped, out v_scoped);  // $local
+
+        // Fun4 分析: `ref v2`,`unscoped out v3`
+        // return ref 的 RC 是 RC(v2),RC(v3) 中最窄的, MUST: SC(v) >= SC(return) >= RC(out), RC(ref) >= RC(out)
+        return ref Fun4(r_unscoped, ref r_unscoped, out r_unscoped);  // $cm
+        return ref Fun4(r_unscoped, ref r, out o_unscoped);  // $ro
+        return ref Fun4(r_unscoped, ref o_unscoped, out v_scoped);  // $local
+        return ref Fun4(r_unscoped, ref o_unscoped, out o_unscoped);  // $ro
+        return ref Fun4(v_scoped, ref v_scoped, out v_scoped);  // $local
+    }
+}
+```
+
+#### 运算符和表达式
+
+对于产生右值的运算符结果（例如 `e1 + e2` 或 `c ? e1 : e2`），结果的 *safe-context* 范围与运算符所有操作数中最窄的 *safe-context*。因此一元运算符的结果和运算符操作数的 *safe-context*。
+
+使用运算符结果的 *Lvalue* 表达式（例如 `c? ref e1 : ref e2`），结果的 *ref-safe-context* 范围是所有操作数中最窄的 *ref-safe-context*。对于运算符的操作数 `e1` 和 `e2`，要求它们的 *safe-context* 必须一致。
+
+`stackalloc` 表达式的值是一个 *Rvalue*，它的 *safe-context* 是 *function-member*，可以安全地转义到方法堆栈的上层调用，而无法从该方法转义到调用方。
+
+`default` 表达式的 *safe-context* 是 *caller-context*。
+
+
+```csharp
+static Span<int> CreateSpanExample1(ref int i)
+{
+    var result = new Span<int>(ref i);
+    return result;
+}
+static Span<int> CreateSpanExample2(ref int i)
+{
+    Span<int> result;
+    result = new Span<int>(ref i); // Fails to compile on this line
+    return result;
+}
+static Span<int> CreateSpanExample3(ref int i)
+{
+    Span<int> result = stackalloc int[0];
+    result = new Span<int>(ref i);
+    return result; // Fails to compile on this line
+}
+```
 
 >---
+### 附录 
 
-
-
->---
-
-### 变量的转义范围汇总
-
-#### 安全转义范围：safe-context
-
-> *declaration-block*
-
-- 
-
-
-> *function-member*
-
-
-
-
-> *caller-context*
-
-
-
-> *return-only*
-
-
-#### 引用安全转义范围：ref-safe-context
-
-> *declaration-block*
-
-- 函数成员的局部变量引用。
-- 只有当引用变量在该变量的 ref-safe-context 中声明时，对局部变量的变量引用才是引用变量的有效引用。
-
-
-> *function-member*
-
-
-
-
-> *caller-context*
-
-
-
-> *return-only*
-
-
-
-预定义 `rs` 为 `ref struct` 类型的变量，`v` 为非 `ref struct` 的变量。`out` 参数隐式 `scoped`。
+预定义：
+- `rs` 为 `ref struct` 类型的变量。
+- `v` 为非 `ref struct` 的变量。
+- `unscopd` 为 `[UnscopedRef]`。
+- `EInit` 为初始化设定项。 
 
 > 参数
 
-| Parameter       | ref-safe-context  | safe-context     |
-| --------------- | ----------------- | ---------------- |
-| `rs`            | *function-member* | *caller-context* |
-| `ref rs`        | *function-member* | *caller-context* |
-| `in rs`         | *function-member* | *caller-context* |
-| `out rs`        | *function-member* | *caller-context* |
-| `scoped rs`     | *function-member* | *caller-context* |
-| `scoped ref rs` | *function-member* | *caller-context* |
-| `v`             | *function-member* | *caller-context* |
-| `ref v`         | *function-member* | *caller-context* |
-| `in v`          | *function-member* | *caller-context* |
-| `out v`         | *function-member* | *caller-context* |
-| `scoped ref v`  | *function-member* | *caller-context* |
+| Parameter            | safe-context       | ref-safe-context  |
+| -------------------- | ------------------ | ----------------- |
+| `rs`                 | *caller-context*   | *function-member* |
+| `scoped rs`          | *function-context* | *function-member* |
+| `ref/in rs`          | *caller-context*   | *return-only*     |
+| `scoped ref/in rs`   | *caller-context*   | *function-member* |
+| `unscoped ref/in rs` | *caller-context*   | *caller-context*  |
+| `out rs`             | *return-only*      | *function-member* |
+| `unscoped out rs`    | *return-only*      | *return-only*     |
+| `v`                  | *caller-context*   | *function-member* |
+| `ref/in v`           | *caller-context*   | *return-only*     |
+| `scoped ref/in v`    | *caller-context*   | *function-member* |
+| `unscoped ref/in v`  | *caller-context*   | *caller-context*  |
+| `out v`              | *caller-context*   | *function-member* |
+| `unscoped out v`     | *caller-context*   | *return-only*     |
 
 > 局部变量
 
-| Local           | ref-safe-context  | safe-context     |
-| --------------- | ----------------- | ---------------- |
-| `rs`            | *function-member* | *caller-context* |
-| `ref rs`        | *function-member* | *caller-context* |
-| `scoped rs`     | *function-member* | *caller-context* |
-| `scoped ref rs` | *function-member* | *caller-context* |
-| `v`             | *function-member* | *caller-context* |
-| `ref v`         | *function-member* | *caller-context* |
-| `scoped ref v`  | *function-member* | *caller-context* |
+| Local                | safe-context      | ref-safe-context  |
+| -------------------- | ----------------- | ----------------- |
+| `rs = EInit`         | *SC of EInit*     | *function-member* |
+| `ref rs = ref EInit` | *SC of EInit*     | *RC of EInit*     |
+| `scoped rs`          | *function-member* | *function-member* |
+| `scoped ref rs`      | *function-member* | *function-member* |
+| `v`                  | *caller-context*  | *function-member* |
+| `ref v = ref EInit`  | *caller-context*  | *RC of EInit*     |
+| `scoped ref v`       | *caller-context*  | *function-member* |
 
 > 字段
 
-| Field   | ref-safe-context  | safe-context     |
-| ------- | ----------------- | ---------------- |
-| `rs`    | *function-member* | *caller-context* |
-| `v`     | *function-member* | *caller-context* |
-| `ref v` | *function-member* | *caller-context* |
+| Field                 | safe-context     | ref-safe-context |
+| --------------------- | ---------------- | ---------------- |
+| `struct.Field`        | *caller-context* | *RC of struct*   |
+| `class.Field`         | *caller-context* | *caller-context* |
+| `rs.ref-struct_Field` | *SC of rs*       | *RC of struct*   |
+| `rs.Ref_Field`        | *caller-context* | *RC of rs*       |
 
-> 函数方法返回
-
-| Field    | ref-safe-context  | safe-context     |
-| -------- | ----------------- | ---------------- |
-| `rs`     | *function-member* | *caller-context* |
-| `ref rs` | *function-member* | *caller-context* |
-| `v`      | *function-member* | *caller-context* |
-| `ref v`  | *function-member* | *caller-context* |
-
-----
-
-
-
-
-
-
-
-
-
-
-
+---
