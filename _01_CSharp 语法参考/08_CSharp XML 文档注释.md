@@ -72,119 +72,222 @@ class SeeExample;
 | E    | `event`     | 成员事件                                                                      |
 | !    | 错误字符串  | 字符串的其余部分提供有关错误的信息。C# 编译器将生成无法解析的链接的错误信息。 |
 
-ID 后面紧随成员的完全限定名称。`.` 分隔项目名称、封闭类型和命名空间，成员名本身包含 `.` 时使用 `#` 标记替换（例如 `.ctor` 替换为 `#ctor`）。
+ID 后面紧随成员的完全限定名称。`.` 分隔项目名称、封闭类型和命名空间，成员名本身包含 `.` 时使用 `#` 标记替换（例如 `.ctor` 替换为 `#ctor`）。泛型类型的限定名称后有一个附带的 `'` 并紧跟类型参数的数目。方法中的引用传递参数在其类型名后有一个 `@`，值参数没有后缀。
+
+> 类型 IDs
 
 ```csharp
-namespace MyNamespace
+enum Color { Red, Blue, Green }
+namespace Acme
 {
-    /// <summary>
-    /// Enter description here for class X.
-    /// ID string generated is "T:MyNamespace.MyClass".
-    /// </summary>
-    public unsafe class MyClass
+    interface IProcess { ... }
+    struct ValueType { ... }
+    class Widget : IProcess
     {
-        /// <summary>
-        /// Enter description here for the first constructor.
-        /// ID string generated is "M:MyNamespace.MyClass.#ctor".
-        /// </summary>
-        public MyClass() { }
-
-        /// <summary>
-        /// Enter description here for the second constructor.
-        /// ID string generated is "M:MyNamespace.MyClass.#ctor(System.Int32)".
-        /// </summary>
-        /// <param name="i">Describe parameter.</param>
-        public MyClass(int i) { }
-
-        /// <summary>
-        /// Enter description here for field message.
-        /// ID string generated is "F:MyNamespace.MyClass.message".
-        /// </summary>
-        public string? message;
-
-        /// <summary>
-        /// Enter description for constant PI.
-        /// ID string generated is "F:MyNamespace.MyClass.PI".
-        /// </summary>
-        public const double PI = 3.14;
-
-        /// <summary>
-        /// Enter description for method func.
-        /// ID string generated is "M:MyNamespace.MyClass.func".
-        /// </summary>
-        /// <returns>Describe return value.</returns>
-        public int func() { return 1; }
-
-        /// <summary>
-        /// Enter description for method someMethod.
-        /// ID string generated is "M:MyNamespace.MyClass.someMethod(System.String,System.Int32@,System.Void*)".
-        /// </summary>
-        /// <param name="str">Describe parameter.</param>
-        /// <param name="num">Describe parameter.</param>
-        /// <param name="ptr">Describe parameter.</param>
-        /// <returns>Describe return value.</returns>
-        public int someMethod(string str, ref int nm, void* ptr) { return 1; }
-
-        /// <summary>
-        /// Enter description for method anotherMethod.
-        /// ID string generated is "M:MyNamespace.MyClass.anotherMethod(System.Int16[],System.Int32[0:,0:])".
-        /// </summary>
-        /// <param name="array1">Describe parameter.</param>
-        /// <param name="array">Describe parameter.</param>
-        /// <returns>Describe return value.</returns>
-        public int anotherMethod(short[] array1, int[,] array) { return 0; }
-
-        /// <summary>
-        /// Enter description for operator.
-        /// ID string generated is "M:MyNamespace.MyClass.op_Addition(MyNamespace.MyClass,MyNamespace.MyClass)".
-        /// </summary>
-        /// <param name="first">Describe parameter.</param>
-        /// <param name="second">Describe parameter.</param>
-        /// <returns>Describe return value.</returns>
-        public static MyClass operator +(MyClass first, MyClass second) { return first; }
-
-        /// <summary>
-        /// Enter description for property.
-        /// ID string generated is "P:MyNamespace.MyClass.prop".
-        /// </summary>
-        public int prop { get { return 1; } set { } }
-
-        /// <summary>
-        /// Enter description for event.
-        /// ID string generated is "E:MyNamespace.MyClass.OnHappened".
-        /// </summary>
-        public event Del? OnHappened;
-
-        /// <summary>
-        /// Enter description for index.
-        /// ID string generated is "P:MyNamespace.MyClass.Item(System.String)".
-        /// </summary>
-        /// <param name="str">Describe parameter.</param>
-        /// <returns></returns>
-        public int this[string s] { get { return 1; } }
-
-        /// <summary>
-        /// Enter description for class Nested.
-        /// ID string generated is "T:MyNamespace.MyClass.Nested".
-        /// </summary>
-        public class Nested { }
-
-        /// <summary>
-        /// Enter description for delegate.
-        /// ID string generated is "T:MyNamespace.MyClass.Del".
-        /// </summary>
-        /// <param name="i">Describe parameter.</param>
+        public class NestedClass { ... }
+        public interface IMenuItem { ... }
         public delegate void Del(int i);
-
-        /// <summary>
-        /// Enter description for operator.
-        /// ID string generated is "M:MyNamespace.MyClass.op_Explicit(MyNamespace.MyClass)~System.Int32".
-        /// </summary>
-        /// <param name="myParameter">Describe parameter.</param>
-        /// <returns>Describe return value.</returns>
-        public static explicit operator int(MyClass myParameter) { return 1; }
+        public enum Direction { North, South, East, West }
+    }
+    class MyList<T>
+    {
+        class Helper<U, V> { ... }
     }
 }
+/** --- IDs --------------------------------------
+"T:Color"
+"T:Acme.IProcess"
+"T:Acme.ValueType"
+"T:Acme.Widget"
+"T:Acme.Widget.NestedClass"
+"T:Acme.Widget.IMenuItem"
+"T:Acme.Widget.Del"
+"T:Acme.Widget.Direction"
+"T:Acme.MyList`1"
+"T:Acme.MyList`1.Helper`2"
+*/
+```
+
+> 字段 IDs
+
+```csharp
+namespace Acme
+{
+ struct ValueType
+    {
+        private int total;
+    }
+    class Widget : IProcess
+    {
+        public class NestedClass
+        {
+            private int value;
+        }
+        private string message;
+        private static Color defaultColor;
+        private const double PI = 3.14159;
+        protected readonly double monthlyAverage;
+        private long[] array1;
+        private Widget[,] array2;
+        private unsafe int* pCount;
+        private unsafe float** ppValues;
+    }
+}
+/** --- IDs --------------------------------------
+"F:Acme.ValueType.total"
+"F:Acme.Widget.NestedClass.value"
+"F:Acme.Widget.message"
+"F:Acme.Widget.defaultColor"
+"F:Acme.Widget.PI"
+"F:Acme.Widget.monthlyAverage"
+"F:Acme.Widget.array1"
+"F:Acme.Widget.array2"
+"F:Acme.Widget.pCount"
+"F:Acme.Widget.ppValues"
+*/
+```
+
+> 构造函数 IDs
+
+```csharp
+namespace Acme
+{
+    class Widget : IProcess
+    {
+        static Widget() { ... }
+        public Widget() { ... }
+        public Widget(string s) { ... }
+    }
+}
+/** --- IDs --------------------------------------
+"M:Acme.Widget.#cctor"
+"M:Acme.Widget.#ctor"
+"M:Acme.Widget.#ctor(System.String)"
+*/
+```
+
+> 终结器 IDs
+
+```csharp
+namespace Acme
+{
+    class Widget : IProcess
+    {
+        ~Widget() { ... }
+    }
+}
+/** --- IDs --------------------------------------
+"M:Acme.Widget.Finalize"
+*/
+```
+
+> 方法 IDs
+
+```csharp
+namespace Acme
+{
+    struct ValueType
+    {
+        public void M(int i) { ... }
+    }
+    class Widget : IProcess
+    {
+        public class NestedClass
+        {
+            public void M(int i) { ... }
+        }
+        public static void M0() { ... }
+        public void M1(char c, out float f, ref ValueType v, in int i) { ... }
+        public void M2(short[] x1, int[,] x2, long[][] x3) { ... }
+        public void M3(long[][] x3, Widget[][,,] x4) { ... }
+        public unsafe void M4(char* pc, Color** pf) { ... }
+        public unsafe void M5(void* pv, double*[][,] pd) { ... }
+        public void M6(int i, params object[] args) { ... }
+    }
+    class MyList<T>
+    {
+        public void Test(T t) { ... }
+    }
+    class UseList
+    {
+        public void Process(MyList<int> list) { ... }
+        public MyList<T> GetValues<T>(T value) { ... }
+    }
+}
+/** --- IDs --------------------------------------
+"M:Acme.ValueType.M(System.Int32)"
+"M:Acme.Widget.NestedClass.M(System.Int32)"
+"M:Acme.Widget.M0"
+"M:Acme.Widget.M1(System.Char,System.Single@,Acme.ValueType@,System.Int32@)"
+"M:Acme.Widget.M2(System.Int16[],System.Int32[0:,0:],System.Int64[][])"
+"M:Acme.Widget.M3(System.Int64[][],Acme.Widget[0:,0:,0:][])"
+"M:Acme.Widget.M4(System.Char*,Color**)"
+"M:Acme.Widget.M5(System.Void*,System.Double*[0:,0:][])"
+"M:Acme.Widget.M6(System.Int32,System.Object[])"
+"M:Acme.MyList`1.Test(`0)"
+"M:Acme.UseList.Process(Acme.MyList{System.Int32})"
+"M:Acme.UseList.GetValues``1(``0)"
+*/
+```
+
+> 属性或索引器 IDs
+
+```csharp
+namespace Acme
+{
+    class Widget : IProcess
+    {
+        public int Width { get { ... } set { ... } }
+        public int this[int i] { get { ... } set { ... } }
+        public int this[string s, int i] { get { ... } set { ... } }
+    }
+}
+/** --- IDs --------------------------------------
+"P:Acme.Widget.Width"
+"P:Acme.Widget.Item(System.Int32)"
+"P:Acme.Widget.Item(System.String,System.Int32)"
+*/
+```
+
+> 事件 IDs
+
+```csharp
+namespace Acme
+{
+    class Widget : IProcess
+    {
+        public event Del AnEvent;
+    }
+}
+/** --- IDs --------------------------------------
+"E:Acme.Widget.AnEvent"
+*/
+```
+
+> 运算符 IDs
+
+- 一元运算符的保留名称：`op_UnaryPlus`、`op_UnaryNegation`、`op_LogicalNot`、`op_OnesComplement`、`op_Increment`、`op_Decrement`、`op_True`、`op_False`。
+- 二元运算符的保留名称：`op_Addition`、`op_Subtraction`、`op_Multiply`、`op_Division`、`op_Modulus`、`op_BitwiseAnd`、`op_BitwiseOr`、`op_ExclusiveOr`、`op_LeftShift`、`op_RightShift`、`op_Equality`、`op_Inequality`、`op_LessThan`、`op_LessThanOrEqual`、`op_GreaterThan`、`op_GreaterThanOrEqual`。
+- 用户定义转换的保留名称：`op_Explicit`、`op_Implicit`。
+
+```csharp
+namespace Acme
+{
+    class Widget : IProcess
+    {
+        public static Widget operator +(Widget x) { ... }
+        public static Widget operator +(Widget x1, Widget x2) { ... }
+        public static explicit operator int(Widget x) { ... }
+        public static implicit operator long(Widget x) { ... }
+
+    }
+}
+/** --- IDs --------------------------------------
+"M:Acme.Widget.op_UnaryPlus(Acme.Widget)"
+"M:Acme.Widget.op_Addition(Acme.Widget,Acme.Widget)"
+"M:Acme.Widget.op_Explicit(Acme.Widget)~System.Int32"
+"M:Acme.Widget.op_Implicit(Acme.Widget)~System.Int64"
+*/
 ```
 
 ---
@@ -197,7 +300,7 @@ namespace MyNamespace
 <summary>description</summary>
 ```
 
-`<summary>` 标记中用于描述类型或类型成员，唯一表明类型的信息源。可以使用 `<remarks>` 针对某个类型说明添加补充信息，使用 `<cref>` 启用文档工具（如 [DocFx]() 和 [Sandcastle]()）来创建指向代码元素的文档页的内部超链接。IntelliSense 会将 `<summary>` 的信息显示在对象浏览器中。
+`<summary>` 标记中用于描述类型或类型成员，唯一表明类型的信息源。可以使用 `<remarks>` 针对某个类型说明添加补充信息，使用 `cref` 启用文档工具（如 [DocFx]() 和 [Sandcastle]()）来创建指向代码元素的文档页的内部超链接。IntelliSense 会将 `<summary>` 的信息显示在对象浏览器中。
 
 ```csharp
 namespace MyNamespace
@@ -325,6 +428,31 @@ class MyClass
 {
     /// <value>Integer of zero.</value>
     public static int Zero => 0;
+}
+```
+
+<br>
+
+#### permission
+
+```xml
+<permission cref="member">description</permission>
+```
+
+`<permission>` 标记成员的允许使用的安全访问范围。
+
+```csharp
+public class MyClass
+{
+    /// <permission cref="MyClass.Test">
+    /// Allowable scope of use for inline_Fun.
+    /// </permission>
+    static void inline_Fun() { }
+
+    public static void Test()
+    {
+         inline_Fun();
+    }
 }
 ```
 
@@ -631,7 +759,7 @@ class SeeExample;
 <seealso href="link">Link Text</seealso>
 ```
 
-使用 `<seealso>` 标记，可以指定想要在 “另请参阅” 部分中显示的文本。
+使用 `<seealso>` 标记，可以指定想要在 “*See Also*” 部分中显示的文本。使用 `<see>` 在文本中指定链接。
 
 ```csharp
 /// <summary>
