@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>00_CLI 附录.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="cli%E9%99%84%E5%BD%95">CLI：附录</h1>
+<hr>
+<h2 id="%E6%9C%AF%E8%AF%AD%E4%B8%8E%E5%AE%9A%E4%B9%89">术语与定义</h2>
+<ul>
+<li><strong>ANSI character</strong>：ANSI 字符，来自实现定义的 8 位字符集的字符，其前 128 个码位与 ISO/IEC-10646 的码位完全对应。</li>
+<li><strong>ANSI string</strong>：由 ANSI 字符组成的字符串，最后一个字符的值为 <em>all-bits-zero</em>。</li>
+<li><strong>argument</strong>：实参，在调用方法时为形参提供的表达式。</li>
+<li><strong>assembly</strong>：程序集，一组配置好的可加载代码模块和其他资源，它们共同实现一个功能单元。</li>
+<li><strong>attribute</strong>：特性，类型与其成员包含描述性信息的特征。常见的特性是预定义的，并且在与它们关联的元数据中具有特定的编码。用户定义的特性也可以添加到元数据中。</li>
+<li><strong>behavior, implementation-specific</strong>：特定于实现的行为，需要在语言规范中具体记录基于实现的定义行为。</li>
+<li><strong>behavior, unspecific</strong>：未指定行为，对于格式良好的程序结构和正确的数据，取决于实现的行为。实现的定义行为不需要记录在它的语言规范中。</li>
+<li><strong>behavior, undefined</strong>：未定义行为，在使用错误的程序结构或错误的数据时可能出现的行为。</li>
+<li><strong>boxing</strong>：装箱，将具有某种值类型的值转换为引用类型 <code>System.object</code> 的新实例。</li>
+<li><strong>Common Intermediate Language (CIL)</strong>：通用中间语言，VES 能够理解的指令集。</li>
+<li><strong>Common Language Infrastructure (CLI)</strong>：公共语言基础，可执行代码格式的规范，以及可以执行该代码的运行环境。</li>
+<li><strong>Common Language Specification (CLS)</strong>：公共语言规范，语言设计者和框架（类库）设计者之间的协议，它指定了 CTS 的一个子集和一组使用协定。</li>
+<li><strong>Common Type System (CTS)</strong>：公共类型系统，由编译器、工具和 CLI 本身共享的统一类型系统。该模型定义了 CLI 在声明、使用和管理类型时遵循的规则。CTS 建立就了一个支持跨语言集成、类型安全和高性能代码执行的框架。</li>
+<li><strong>delegate</strong>：委托是一种引用类型，它的实例可以在调用列表中封装一个或多个方法。给定一个委托实例和一组适当的参数，就可以用这组参数调用委托调用列表中的所有方法</li>
+<li><strong>event</strong>: 事件，使对象或类能够提供通知的成员。</li>
+<li><strong>Execution Engine</strong>：执行引擎，虚拟执行系统。</li>
+<li><strong>field</strong>：字段，指定在程序中存储某些数据的类型化内存位置的成员。</li>
+<li><strong>garbage collection</strong>：垃圾收集，为托管数据分配和释放内存的过程。</li>
+<li><strong>generic argument</strong>：泛型实参，用于实例化特定泛型类型或泛型方法的实际类型。例如，在 <code>List&lt;string&gt;</code> 中，<code>string</code> 是泛型类型定义 <code>List&lt;T&gt;</code> 中的泛型形参对应的泛型实参。</li>
+<li><strong>generic parameter</strong>：泛型参数，泛型类型或泛型方法定义中的参数，用作泛型实参的占位符。例如，在泛型类型定义 <code>List&lt;T&gt;</code> 中，<code>T</code> 是一个泛型参数。</li>
+<li><strong>generic</strong>：泛型，允许定义类型和方法的特性，使它们可以用一个或多个泛型参数进行参数化。</li>
+<li><strong>library</strong>：类库，一组类型的存储库，这些类型被分组到一个或多个程序集中。库还可以包含对其他库中定义的类型的修改。例如，库可以包含其他库中定义的类型的附加方法、接口和异常。</li>
+<li><strong>managed code</strong>：托管代码，包含足够信息以允许 CLI 提供一组核心服务的代码。例如，给定代码中某个方法的地址，CLI 必须能够定位描述该方法的元数据。它还必须能够遍历堆栈、处理异常以及存储和检索安全信息。</li>
+<li><strong>managed data</strong>：托管数据，由 CLI 通过称为垃圾收集的进程自动分配和释放的数据。</li>
+<li><strong>manifest</strong>：信息清单，程序集的一部分，指定有关该程序集的版本、名称、区域性和安全要求等信息；指示哪些其他文件（如果有）属于该程序集，以及每个文件的加密散列；指示在该程序集的其他文件中定义的哪些类型将从该程序集导出；以及（可选的）清单本身的数字签名和用于计算它的公钥。</li>
+<li><strong>member</strong>：成员，一个类型的任何字段、数组元素、方法、属性和事件。</li>
+<li><strong>metadata</strong> 元数据，描述和引用 CTS 定义的类型的数据。元数据以一种独立于任何特定编程语言的方式存储。因此，元数据为操作程序的工具（如编译器和调试器）之间以及这些工具和 VES 之间提供了一种通用的交换机制。</li>
+<li><strong>method</strong>：方法，描述可对精确类型的值执行的操作的成员。</li>
+<li><strong>method, generic</strong>：泛型方法，在类型中定义的方法（静态、实例或虚拟），其签名包括一个或多个泛型参数，而不是在类型定义本身中出现。封闭类型本身可能是泛型的，也可能不是。例如，在泛型类型 <code>List&lt;T&gt;</code> 中，泛型方法 <code>ConvertTo&lt;s&gt;()</code> 是泛型的。</li>
+<li><strong>method, non-generic</strong>：非泛型的方法。</li>
+<li><strong>module</strong>：模块，包含可由 VES 执行的内容的单个文件。</li>
+<li><strong>object</strong>：对象，引用类型的实例。对象不仅仅是一个值。对象是自类型化的；它的类型显式地存储在它的表示中。它有一个区别于所有其他对象的标识，并且它有存储其他实体（可以是对象或值）的槽。虽然可以更改其槽的内容，但对象的标识永远不会更改。</li>
+<li><strong>parameter</strong>：形式参数，在方法的头部和主体中使用的名称，用于引用在调用点提供的实参值。</li>
+<li><strong>profile</strong>：一组库，组合在一起形成一个一致的整体，提供一个固定的级别。</li>
+<li><strong>property</strong>：属性，定义命名值和访问该值的方法的成员。属性定义了对该值的访问契约。因此，属性定义指定存在哪些访问方法以及它们各自的方法契约。</li>
+<li><strong>signature</strong>：签名，可以被检查和自动执行的部分。签名是通过向类型和其他签名添加约束而形成的。约束是对值或位置的使用或允许的操作的限制。</li>
+<li><strong>type, generic</strong>：泛型类型，其定义由一个或多个其他类型参数化的类型。例如，<code>List&lt;T&gt;</code>，其中 <code>T</code> 是泛型参数。CLI 支持创建和使用泛型类型的实例。例如，<code>List&lt;int32&gt;</code> 或 <code>List&lt;string&gt;</code>。</li>
+<li><strong>type, reference</strong>：引用类型，它的实例包含对其数据的引用。</li>
+<li><strong>type, value</strong>：值类型，它的实例直接包含它的所有数据。</li>
+<li><strong>unboxing</strong>：拆箱，对具有 <code>system.object</code> 类型的值进行的转换。其运行时类型为值类型，转换为值类型实例。</li>
+<li><strong>unmanaged code</strong>：未托管代码。</li>
+<li><strong>unmanaged data</strong>：未托管数据。</li>
+<li><strong>value</strong>：整数或浮点数的简单位模式。每个值都有一个类型，该类型既描述了它所占用的存储空间，也描述了它的表示形式中 bits 的含义，还描述了在该表示形式上可以执行的操作。值用于表示编程语言中的简单类型和非对象。</li>
+<li><strong>verification</strong>：验证，检查 CIL 及其相关元数据，以确保 CIL 代码序列不允许访问程序逻辑地址空间以外的内存。与验证测试一起，验证可确保程序不能访问未授予其访问权限的内存或其他资源。</li>
+<li><strong>Virtual Execution System (VES)</strong>：虚拟执行系统，该系统实现并执行 CTS 模型。VES 负责加载和运行 CLI 编写的程序。它提供了执行托管代码和数据所需的服务，使用元数据在运行时将单独生成的模块连接在一起。VES 也被称为执行引擎。</li>
+</ul>
+<hr>
+<h2 id="cls-rules">CLS Rules</h2>
+<p>这里收集了完整的 CLS 规则集以供参考。这些规则只适用于在程序集 “外部可见” 的项目类型，以及那些具有 <code>public</code>、<code>family</code> 或 <code>family-or-assembly</code> 可访问性的类型的成员。此外，可以使用 <code>System.CLSCompliantAttribute</code> 显式地将项目标记为 CLS 兼容或不兼容。CLS 规则仅适用于标记为 CLS 兼容的项目。</p>
+<p><a href="01_CLI%20%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%92%8C%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84.md?R1"><strong>CLS Rule 1:</strong></a> CLS rules apply only to those parts of a type that are accessible or visible outside of the defining assembly. <a href=""></a></p>
+<p><a href="01_CLI%20%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%92%8C%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84.md#R2"><strong>CLS Rule 2:</strong></a> Members of non-CLS compliant types shall not be marked CLS-compliant. (§<a href="i.7.3.1-marking-items-as-cls-compliant.md">I.7.3.1</a>)</p>
+<p><strong>CLS Rule 3:</strong> Boxed value types are not CLS-compliant. (§<a href="i.8.2.4-boxing-and-unboxing-of-values.md">I.8.2.4</a>.)</p>
+<p><strong>CLS Rule 4:</strong> Assemblies shall follow Annex 7 of Technical Report 15 of the Unicode Standard 3.0 governing the set of characters permitted to start and be included in identifiers, available on-line at http://www.unicode.org/unicode/reports/tr15/tr15-18.html. Identifiers shall be in the canonical format defined by Unicode Normalization Form C. For CLS purposes, two identifiers are the same if their lowercase mappings (as specified by the Unicode locale-insensitive, one-to-one lowercase mappings) are the same. That is, for two identifiers to be considered different under the CLS they shall differ in more than simply their case. However, in order to override an inherited definition the CLI requires the precise encoding of the original declaration be used. (§<a href="i.8.5.1-valid-names.md">I.8.5.1</a>)</p>
+<p><strong>CLS Rule 5:</strong> All names introduced in a CLS-compliant scope shall be distinct independent of kind, except where the names are identical and resolved via overloading. That is, while the CTS allows a single type to use the same name for a method and a field, the CLS does not. (§<a href="i.8.5.2-assemblies-and-scoping.md">I.8.5.2</a>)</p>
+<p><strong>CLS Rule 6:</strong> Fields and nested types shall be distinct by identifier comparison alone, even though the CTS allows distinct signatures to be distinguished.  Methods, properties, and events that have the same name (by identifier comparison) shall differ by more than just the return type, except as specified in CLS Rule 39. (§<a href="i.8.5.2-assemblies-and-scoping.md">I.8.5.2</a>)</p>
+<p><strong>CLS Rule 7:</strong> The underlying type of an enum shall be a built-in CLS integer type, the name of the field shall be &quot;value__&quot;, and that field shall be marked RTSpecialName. (§<a href="i.8.5.2-assemblies-and-scoping.md">I.8.5.2</a>)</p>
+<p><strong>CLS Rule 8:</strong> There are two distinct kinds of enums, indicated by the presence or absence of the <code>System.FlagsAttribute</code> (see [Partition IV Library] ) custom attribute. One represents named integer values; the other represents named bit flags that can be combined to generate an unnamed value.  The value of an enum is not limited to the specified values. (§<a href="i.8.5.2-assemblies-and-scoping.md">I.8.5.2</a>)</p>
+<p><strong>CLS Rule 9:</strong> Literal static fields (see §<a href="i.8.6.1-signatures.md">I.8.6.1</a>) of an enum shall have the type of the enum itself. (§<a href="i.8.5.2-assemblies-and-scoping.md">I.8.5.2</a>)</p>
+<p><strong>CLS Rule 10:</strong> Accessibility shall not be changed when overriding inherited methods, except when overriding a method inherited from a different assembly with accessibility family-or-assembly.  In this case, the override shall have accessibility family. (§<a href="i.8.5.3.2-accessibility-of-members-and-nested-types.md">I.8.5.3.2</a>)</p>
+<p><strong>CLS Rule 11:</strong> All types appearing in a signature shall be CLS-compliant. All types composing an instantiated generic type shall be CLS-compliant. (§<a href="i.8.6.1-signatures.md">I.8.6.1</a>)</p>
+<p><strong>CLS Rule 12:</strong> The visibility and accessibility of types and members shall be such that types in the signature of any member shall be visible and accessible whenever the member itself is visible and accessible. For example, a public method that is visible outside its assembly shall not have an argument whose type is visible only within the assembly. The visibility and accessibility of types composing an instantiated generic type used in the signature of any member shall be visible and accessible whenever the member itself is visible and accessible. For example, an instantiated generic type present in the signature of a member that is visible outside its assembly shall not have a generic argument whose type is visible only within the assembly. (§<a href="i.8.6.1-signatures.md">I.8.6.1</a>)</p>
+<p><strong>CLS Rule 13:</strong> The value of a literal static is specified through the use of field initialization metadata (see Partition II Metadata). A CLS-compliant literal must have a value specified in field initialization metadata that is of exactly the same type as the literal (or of the underlying type, if that literal is an enum). (§[I.8.6.1.2] )</p>
+<p><strong>CLS Rule 14:</strong> Typed references are not CLS-compliant. (§[I.8.6.1.3] )</p>
+<p><strong>CLS Rule 15:</strong> The vararg constraint is not part of the CLS, and the only calling convention supported by the CLS is the standard managed calling convention. (§[I.8.6.1.5] )</p>
+<p><strong>CLS Rule 16:</strong> Arrays shall have elements with a CLS-compliant type, and all dimensions of the array shall have lower bounds of zero. Only the fact that an item is an array and the element type of the array shall be required to distinguish between overloads.  When overloading is based on two or more array types the element types shall be named types. (§<a href="i.8.9.1-array-types.md">I.8.9.1</a>)</p>
+<p><strong>CLS Rule 17:</strong> Unmanaged pointer types are not CLS-compliant. (§<a href="i.8.9.2-unmanaged-pointer-types.md">I.8.9.2</a>)</p>
+<p><strong>CLS Rule 18:</strong> CLS-compliant interfaces shall not require the definition of non-CLS compliant methods in order to implement them. (§<a href="i.8.9.4-interface-type-definition.md">I.8.9.4</a>)</p>
+<p><strong>CLS Rule 19:</strong> CLS-compliant interfaces shall not define static methods, nor shall they define fields. (§<a href="i.8.9.4-interface-type-definition.md">I.8.9.4</a>)</p>
+<p><strong>CLS Rule 20:</strong> CLS-compliant classes, value types, and interfaces shall not require the implementation of non-CLS-compliant members. (§[I.8.9.6.4]] )</p>
+<p><strong>CLS Rule 21:</strong> An object constructor shall call some instance constructor of its base class before any access occurs to inherited instance data. (This does not apply to value types, which need not have constructors.) (§[I.8.9.6.6]] )</p>
+<p><strong>CLS Rule 22:</strong> An object constructor shall not be called except as part of the creation of an object, and an object shall not be initialized twice. (§[I.8.9.6.6]] )</p>
+<p><strong>CLS Rule 23:</strong> <code>System.Object</code> is CLS-compliant. Any other CLS-compliant class shall inherit from a CLS-compliant class. (§[I.8.9.9]] )</p>
+<p><strong>CLS Rule 24:</strong> The methods that implement the getter and setter methods of a property shall be marked SpecialName in the metadata. (§[I.8.11.3]] )</p>
+<p><strong>CLS Rule 25:</strong> No longer used. <em>[Note:</em> In an earlier version of this standard, this rule stated &quot;The accessibility of a property and of its accessors shall be identical.&quot; The removal of this rule allows, for example, public access to a getter while restricting access to the setter. <em>end note]</em> (§<a href="i.8.11.3-property-definitions.md">I.8.11.3</a>)</p>
+<p><strong>CLS Rule 26:</strong> A property’s accessors shall all be static, all be virtual, or all be instance. (§<a href="i.8.11.3-property-definitions.md">I.8.11.3</a>)</p>
+<p><strong>CLS Rule 27:</strong> The type of a property shall be the return type of the getter and the type of the last argument of the setter.  The types of the parameters of the property shall be the types of the parameters to the getter and the types of all but the final parameter of the setter.  All of these types shall be CLS-compliant, and shall not be managed pointers (i.e., shall not be passed by reference). (§<a href="i.8.11.3-property-definitions.md">I.8.11.3</a>)</p>
+<p><strong>CLS Rule 28:</strong> Properties shall adhere to a specific naming pattern. See §<a href="i.10.4-naming-patterns.md">I.10.4</a>. The SpecialName attribute referred to in CLS rule 24 shall be ignored in appropriate name comparisons and shall adhere to identifier rules. A property shall have a getter method, a setter method, or both. (§<a href="i.8.11.3-property-definitions.md">I.8.11.3</a>)</p>
+<p><strong>CLS Rule 29:</strong> The methods that implement an event shall be marked SpecialName in the metadata. (§<a href="i.8.11.4-event-definitions.md">I.8.11.4</a>)</p>
+<p><strong>CLS Rule 30:</strong> The accessibility of an event and of its accessors shall be identical. (§<a href="i.8.11.4-event-definitions.md">I.8.11.4</a>)</p>
+<p><strong>CLS Rule 31:</strong> The add and remove methods for an event shall both either be present or absent. (§<a href="i.8.11.4-event-definitions.md">I.8.11.4</a>)</p>
+<p><strong>CLS Rule 32:</strong> The add and remove methods for an event shall each take one parameter whose type defines the type of the event and that shall be derived from <code>System.Delegate</code>. (§<a href="i.8.11.4-event-definitions.md">I.8.11.4</a>)</p>
+<p><strong>CLS Rule 33:</strong> Events shall adhere to a specific naming pattern. See §<a href="i.10.4-naming-patterns.md">I.10.4</a>. The SpecialName attribute referred to in CLS rule 29 shall be ignored in appropriate name comparisons and shall adhere to identifier rules. (§<a href="i.8.11.4-event-definitions.md">I.8.11.4</a>)</p>
+<p><strong>CLS Rule 34:</strong> The CLS only allows a subset of the encodings of custom attributes.  The only types that shall appear in these encodings are (see Partition IV): <code>System.Type</code>, <code>System.String</code>, <code>System.Char</code>, <code>System.Boolean</code>, <code>System.Byte</code>, <code>System.Int16</code>, <code>System.Int32</code>, <code>System.Int64</code>, <code>System.Single</code>, <code>System.Double</code>, and any enumeration type based on a CLS-compliant base integer type. (§<a href="i.9.7-metadata-extensibility.md">I.9.7</a>)</p>
+<p><strong>CLS Rule 35:</strong> The CLS does not allow publicly visible required modifiers (modreq, see <a href="i.9.7-metadata-extensibility.md#cls-rule-35">Partition II</a>), but does allow optional modifiers (modopt, see <a href="i.9.7-metadata-extensibility.md#cls-rule-35">Partition II</a>) it does not understand. (§<a href="i.9.7-metadata-extensibility.md">I.9.7</a>)</p>
+<p><strong>CLS Rule 36:</strong> Global static fields and methods are not CLS-compliant. (§<a href="i.9.8-globals-imports-and-exports.md">I.9.8</a>)</p>
+<p><strong>CLS Rule 37:</strong> Only properties and methods can be overloaded. (§<a href="i.10.2-overloading.md">I.10.2</a>)</p>
+<p><strong>CLS Rule 38:</strong> Properties and methods can be overloaded based only on the number and types of their parameters, except the conversion operators named <code>op_Implicit</code> and <code>op_Explicit</code>, which can also be overloaded based on their return type. (§<a href="i.10.2-overloading.md">I.10.2</a>)</p>
+<p><strong>CLS Rule 39:</strong> If either <code>op_Implicit</code> or <code>op_Explicit</code> is provided, an alternate means of providing the coercion shall be provided. (§<a href="i.10.3.3-conversion-operators.md">I.10.3.3</a>)</p>
+<p><strong>CLS Rule 40:</strong> Objects that are thrown shall be of type <code>System.Exception</code> or a type inheriting from it. Nonetheless, CLS-compliant methods are not required to block the propagation of other types of exceptions. (§<a href="i.10.5-exceptions.md">I.10.5</a>)</p>
+<p><strong>CLS Rule 41:</strong> Attributes shall be of type <code>System.Attribute</code>, or a type inheriting from it. (§<a href="i.10.6-custom-attributes.md">I.10.6</a>)</p>
+<p><strong>CLS Rule 42:</strong> Nested types shall have at least as many generic parameters as the enclosing type. Generic parameters in a nested type correspond by position to the generic parameters in its enclosing type. (§<a href="i.10.7.1-nested-type-parameter-re-declaration.md">I.10.7.1</a>)</p>
+<p><strong>CLS Rule 43:</strong> The name of a generic type shall encode the number of type parameters declared on the non-nested type, or newly introduced to the type if nested, according to the rules defined above. (§<a href="i.10.7.2-type-names-and-arity-encoding.md">I.10.7.2</a>)</p>
+<p><strong>CLS Rule 44:</strong> A generic type shall redeclare sufficient constraints to guarantee that any constraints on the base type, or interfaces would be satisfied by the generic type constraints. (§<a href="i.10.7.3-type-constraint-re-declaration.md">I.10.7.3</a>)</p>
+<p><strong>CLS Rule 45:</strong> Types used as constraints on generic parameters shall themselves be CLS-compliant. (§<a href="i.10.7.4-constraint-type-restrictions.md">I.10.7.4</a>)</p>
+<p><strong>CLS Rule 46:</strong> The visibility and accessibility of members (including nested types) in an instantiated generic type shall be considered to be scoped to the specific instantiation rather than the generic type declaration as a whole. Assuming this, the visibility and accessibility rules of CLS rule 12 still apply. (§<a href="i.10.7.5-frameworks-and-accessibility-of-nested-types.md">I.10.7.5</a>)</p>
+<p><strong>CLS Rule 47:</strong> For each abstract or virtual generic method, there shall be a default concrete (non-abstract) implementation. (§<a href="i.10.7.6-frameworks-and-abstract-or-virtual-methods.md">I.10.7.6</a>)</p>
+<p><strong>CLS Rule 48:</strong> If two or more CLS-compliant methods declared in a type have the same name and, for a specific set of type instantiations, they have the same parameter and return types, then all these methods shall be semantically equivalent at those type instantiations. (§<a href="i.7.2.1-cls-framework.md">I.7.2.1</a>)</p>
+<p><strong>CLS Rule 1</strong>：CLS rules apply only to those parts of a type that are accessible or visible outside of the defining assembly.</p>
+<p><strong>CLS Rule 2</strong>：</p>
+<p><strong>CLS Rule 3</strong>：</p>
+<p><strong>CLS Rule 4</strong>：</p>
+<p><strong>CLS Rule 5</strong>：</p>
+<p><strong>CLS Rule 6</strong>：</p>
+<p><strong>CLS Rule 7</strong>：</p>
+<p><strong>CLS Rule 8</strong>：</p>
+<p><strong>CLS Rule 9</strong>：
+<strong>CLS Rule 10</strong>：
+<strong>CLS Rule 11</strong>：
+<strong>CLS Rule 12</strong>：
+<strong>CLS Rule 13</strong>：
+<strong>CLS Rule 14</strong>：
+<strong>CLS Rule 15</strong>：
+<strong>CLS Rule 16</strong>：
+<strong>CLS Rule 17</strong>：
+<strong>CLS Rule 18</strong>：
+<strong>CLS Rule 19</strong>：
+<strong>CLS Rule 20</strong>：
+<strong>CLS Rule 21</strong>：
+<strong>CLS Rule 22</strong>：
+<strong>CLS Rule 23</strong>：
+<strong>CLS Rule 24</strong>：
+<strong>CLS Rule 25</strong>：
+<strong>CLS Rule 26</strong>：
+<strong>CLS Rule 27</strong>：
+<strong>CLS Rule 28</strong>：
+<strong>CLS Rule 29</strong>：
+<strong>CLS Rule 30</strong>：
+<strong>CLS Rule 31</strong>：
+<strong>CLS Rule 32</strong>：
+<strong>CLS Rule 33</strong>：
+<strong>CLS Rule 34</strong>：
+<strong>CLS Rule 35</strong>：
+<strong>CLS Rule 36</strong>：
+<strong>CLS Rule 37</strong>：
+<strong>CLS Rule 38</strong>：
+<strong>CLS Rule 39</strong>：
+<strong>CLS Rule 40</strong>：
+<strong>CLS Rule 41</strong>：
+<strong>CLS Rule 42</strong>：
+<strong>CLS Rule 43</strong>：
+<strong>CLS Rule 44</strong>：
+<strong>CLS Rule 45</strong>：
+<strong>CLS Rule 46</strong>：
+<strong>CLS Rule 47</strong>：
+<strong>CLS Rule 48</strong>：</p>
+
+</body>
+</html>

@@ -1,0 +1,2452 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>01_CLI 基本概念和体系结构.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="cli%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%92%8C%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84">CLI：基本概念和体系结构</h1>
+<p>[TOC]</p>
+<hr>
+<h2 id="common-language-infrastructure-%E9%80%9A%E7%94%A8%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80%E6%A6%82%E8%BF%B0">Common Language Infrastructure 通用语言基础概述</h2>
+<p>公共语言基础结构 CLI 为可执行代码及其运行的执行环境（虚拟执行系统，VES）提供了规范。可执行代码以模块的形式呈现给 VES。CLI 的核心是一个统一的类型系统，由编译器、工具和 CLI 本身共享的公共类型系统。该模型定义了 CLI 在声明、使用和管理类型时遵从的规则。CTS 建立了一个支持跨语言集成、类型安全和高性能代码执行的框架。</p>
+<p>CLI 主要包含四个方面：</p>
+<ul>
+<li>公共类型系统 (<em>Common Type System</em>，CTS)：CTS 提供了一个丰富的类型系统支持许多编程语言中的类型和操作。CTS 旨在支持各种编程语言的完整实现。</li>
+<li>元数据 (<em>Metadata</em>)：CLI 使用元数据描述和引用 CTS 定义的类型。元数据以一种独立于任何特定编程语言的方式存储（即持久化）。因此，元数据为操作程序的工具（如编译器和调试器）之间以及这些工具和 VES 之间提供了一种通用的数据交换机制。</li>
+<li>公共语言规范 (<em>Common Language Specification</em>，CLS)：CLS 是语言设计者和框架（类库）设计者之间的协议。它指定了 CTS 的一个子集和一组使用协议。语言通过实现至少属于 CLS 的 CTS 部分，为其用户提供了访问框架的最大能力。如果框架的公开导出方面（例如，类、接口、方法和字段）只使用属于 CLS 的一部分并遵守 CLS 协议的类型，那么框架将得到最广泛的利用。</li>
+<li>虚拟执行系统 (<em>Virtual Execution System</em>，VES)：VES 实现并执行 CTS 模型。VES 负责加载和运行为 CLI 编写的程序。它提供执行托管代码和数据所需的服务，使用元数据在运行时将单独生成的模块连接在一起（后期绑定）。</li>
+</ul>
+<p>CLI 的这些方面共同构成了一个统一的基础结构，用于设计、开发、部署和执行分布式组件和应用程序。针对 CLI 的每种编程语言都有 CTS 的适当子集。基于语言的工具彼此通信，并使用元数据与 VES 通信，以定义和引用用于构造应用程序的类型。VES 使用元数据根据需求创建类型的实例，并向 CLI 的其他部分（如远程服务、程序集下载和安全性）提供数据类型信息。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="cli-%E4%B8%8E%E7%B1%BB%E5%9E%8B%E5%AE%89%E5%85%A8%E7%9A%84%E5%85%B3%E7%B3%BB">CLI 与类型安全的关系</h3>
+<p>类型安全通常是根据它所做的事情（如，保证不同对象之间的封装）或根据它所防止的事情（例如，在不应该写的地方写内存损坏）来讨论的。从 CTS 的角度来看，类型安全保证：</p>
+<ul>
+<li><em>References are what they say they are</em> —— 每个引用都是有类型的，被引用的对象或值也有类型，这些类型是赋值兼容的。</li>
+<li><em>Identities are who they say they are</em> —— 无法破坏或欺骗一个对象，对于用户方或安全域也是如此。通过可访问的函数和字段来访问一个对象。对象仍然可能会以一种危及安全性的方式被设计出来。但是，对类、类方法和它使用的内容进行局部分析，而非对类的所有内容进行全局分析，就足以评估其安全漏洞。</li>
+<li><em>Only appropriate operations can be invoked</em> —— 引用类型定义了可访问的函数和字段，并根据引用的位置限制成员可见性。</li>
+</ul>
+<p>CTS 提高了类型安全性，可以选择性地强制类型安全，难点在于如何确定实现是否符合类型安全声明。由于声明携带元数据并与程序编译在一起，因此从公共中间语言 CIL 到本机代码的编译器可以对实现进行类型检查。</p>
+<hr>
+<h3 id="cli-%E4%B8%8E%E6%89%98%E7%AE%A1%E5%85%83%E6%95%B0%E6%8D%AE%E9%A9%B1%E5%8A%A8%E6%89%A7%E8%A1%8C%E7%9A%84%E5%85%B3%E7%B3%BB">CLI 与托管元数据驱动执行的关系</h3>
+<p>元数据通过描述代码定义的类型及其外部引用的类型来描述代码。编译器在生成代码时生成元数据。元数据中存储了足够的信息，以便：</p>
+<ul>
+<li>托管代码执行 (<em>Manage code execution</em>) —— 不仅是加载和执行，还有内存管理和执行状态检查。</li>
+<li>管理代码 (<em>Administer the code</em>) —— 安装、解析和其他服务</li>
+<li>代码中的引用类型 (<em>Reference types in the code</em>) —— 可以导入到其他语言和工具中，以及脚本和自动化支持。</li>
+</ul>
+<p>CTS 假设执行环境是元数据驱动的。使用元数据允许 CLI 以支持：</p>
+<ul>
+<li>多执行模型 (<em>Multiple execution models</em>) —— 元数据允许执行环境处理解释、JIT 编译、本机和遗留代码的混合，并且仍然为调试器和分析器等工具提供统一的服务、一致的异常处理和堆栈展开、可靠的代码访问安全性和高效的内存管理。</li>
+<li>对服务的自动支持 (<em>Auto support for services</em>) —— 由于元数据在执行时可用，因此执行环境和基本库可以自动提供对反射、自动化、序列化、远程对象以及与现有非托管本机代码的互操作性的支持。</li>
+<li>更好的优化 (<em>Better optimization</em>) —— 使用元数据引用而不是物理偏移量、布局和大小，允许 CLI 优化成员和调度表的物理布局。此外允许优化生成的代码以匹配特定的 CPU 或环境。</li>
+<li>降低绑定的脆弱性 (<em>Reduced binding brittleness</em>) —— 通过使用元数据引用，用加载的布局和按名称绑定取代编译时对象布局，降低了版本间的脆弱性。</li>
+<li>灵活的部署解析 (<em>Flexible deployment resolution</em>) —— 由于同时拥有一个类型的引用和定义的元数据，因此可以实现更健壮、更灵活的部署和解析机制。解析意味着通过查找适当的位置集，可以找到最能满足在此上下文中使用的这些需求的实现。包含五个要素：需求和上下文通过元数据提供；在哪里查找、如何找到实现以及如何决定来自于应用程序打包和部署的最佳匹配。</li>
+</ul>
+<h4 id="%E6%89%98%E7%AE%A1%E4%BB%A3%E7%A0%81">托管代码</h4>
+<p>托管代码是提供足够信息的代码，以允许 CLI 提供一组核心服务：</p>
+<ul>
+<li>给定方法代码中的地址，定位描述该方法的元数据。</li>
+<li>堆栈遍历。</li>
+<li>异常处理。</li>
+<li>存储和检索安全信息。</li>
+</ul>
+<p>CLI 指定了一组特定的指令集，CIL 和文件格式，用于存储和传输托管代码。</p>
+<h4 id="%E6%89%98%E7%AE%A1%E6%95%B0%E6%8D%AE">托管数据</h4>
+<p>托管数据是由 CLI 通过垃圾回收的进程自动分配和释放的数据。</p>
+<hr>
+<h2 id="common-language-specification-%E5%85%AC%E5%85%B1%E8%AF%AD%E8%A8%80%E8%A7%84%E8%8C%83">Common Language Specification 公共语言规范</h2>
+<p>CLS 是一组促进语言间互操作性的规范，CLS 遵从性是指在 CLI 实现上执行并生成的类型的特性，这些类型必须符合 CLI 标准。这些附加规则仅适用于在程序集中可见的类型，以及可在程序集中外部访问的成员。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="cls-%E9%81%B5%E4%BB%8E%E6%80%A7%E7%9A%84%E5%88%86%E6%9E%90%E8%A7%92%E5%BA%A6">CLS 遵从性的分析角度</h3>
+<p>CLS 是一组应用于生成程序集的规则，它被设计为支持库和设计用于编写库的高级编程语言间的互操作性。从生成程序集过程中使用的高级语言源代码和工具（如编译器）的角度来考虑 CLS 规则是有用的。</p>
+<h4 id="cls-framework">CLS Framework</h4>
+<p>由符合 CLS 的代码组成的库被称为框架（<em>framework</em>）。框架是为广泛的编程语言和工具（包括 CLS <em>Consumer</em> 和扩展语言）使用而设计的。通过遵守 CLS 规则，库的作者可以确保库可以被更大的工具类使用。</p>
+<p>符合 CLS 的框架应遵循的一般原则：</p>
+<ul>
+<li>避免使用编程语言中常用的关键字名称。</li>
+<li>不要期望框架的用户能够编写嵌套类型。</li>
+<li>假设相同名称和签名的方法在不同接口上的实现是独立的。</li>
+<li>不依赖于基于指定初始化设定项自动执行的值类型初始化。</li>
+<li>假设用户可以实例化和使用泛型类型和方法，但不要求他们定义新的泛型类型或方法，或处理部分构造的泛型类型。</li>
+<li>不应要求用户定义新的泛型类型或方法，或重写现有的泛型方法，或以任何方式处理部分构造的泛型。</li>
+</ul>
+<h4 id="cls-consumer">CLS Consumer</h4>
+<p>CLS <em>Consumer</em> 是一种语言或工具，其设计目的是允许访问符合 CLS 的框架提供的所有特性，但不一定能够实现它们。</p>
+<p>CLS <em>Consumer</em> 工具预计的部分功能支持：</p>
+<ul>
+<li>支持调用任何 CLS 兼容的方法或委托。</li>
+<li>提供一种机制，用于调用其名称为语言关键字的方法。</li>
+<li>支持调用用一种类型支持的不同方法，这些方法具有相同的名称和签名，但实现不同的接口。</li>
+<li>创建任何 CLS 兼容类型的实例。</li>
+<li>读取和修改任何符合 CLS 的字段。</li>
+<li>访问嵌套类型。</li>
+<li>访问任何兼容 CLS 的属性。除了能够调用属性的 <em>getter</em> 和 <em>setter</em> 方法外，不需要其他任何特殊的支持。</li>
+<li>访问任何兼容 CLS 的事件。除了能够调用为实现定义的方法外，不需要其他任何特殊支持。</li>
+<li>具有导入、实例化和使用泛型类型和方法的机制。</li>
+<li>（考虑支持）使用语言定义的匹配规则，对泛型方法进行类型推断。</li>
+<li>（考虑支持）强制转换语法，用于澄清对公共超类型的模糊强制转换。</li>
+</ul>
+<p>CLS <em>Consumer</em> 工具无需支持：</p>
+<ul>
+<li>创建新的类型或接口。</li>
+<li>初始化除静态字面字段以外的字段和参数的元数据。<em>Consumer</em> 可以选择使用初始化元数据，也可以安全地忽略除静态字面字段之外的任何其他元数据。</li>
+</ul>
+<h4 id="cls-extender">CLS Extender</h4>
+<p>CLS <em>extender</em> 是一种语言或工具，旨在允许程序员使用和扩展符合 CLS 的框架。CLS <em>extender</em> 支持 CLS <em>Consumer</em> 所支持的行为的超集（即，适用于 CLS <em>Consumer</em> 的所有内容也适用于 CLS <em>extender</em>）。除了满足用户的要求外，CLS <em>extender</em> 还应支持：</p>
+<ul>
+<li>定义新的 CLS 兼容类型，扩展任何（非密封的）CLS 兼容基类。</li>
+<li>具有某种机制来定义其名称为语言关键字的类型。</li>
+<li>为一个类型支持的所有接口中的所有方法提供独立的实现，CLS 扩展要求单个代码体实现所有具有相同名称和签名的接口方法是不够的。</li>
+<li>实现任何 CLS 兼容的接口。</li>
+<li>在元数据的所有适当元素上注释任何符合 CLS 的自定义特性。</li>
+<li>定义新的 CLS 兼容（非泛型）类型，扩展任何（非密封的）CLS 兼容基类型。有效的基类型包含普通非泛型类型和完全构造的泛型类型。</li>
+<li>（考虑支持）使用语言定义的匹配规则对泛型方法进行类型推断。</li>
+<li>（考虑支持）强制转换语法，用于澄清对公共超类型的模糊强制转换。</li>
+</ul>
+<p>CLS <em>extender</em> 无需支持：</p>
+<ul>
+<li>定义新的 CLS 兼容接口。</li>
+<li>嵌套类型的定义。</li>
+<li>泛型类型和方法的定义。</li>
+<li>重写现有的虚拟泛型方法。</li>
+</ul>
+<blockquote>
+<blockquote>
+<p><a id="R48"></a>CLS Rule 48：如果一个类型中声明的两个或多个符合 CLS 的方法具有相同的名称，并且对于一组特性的类型实例化，它们具有相同的参数和返回类型，那么所有这些方法在这些类型实例化中应该在语义上等效。</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="cls-%E9%81%B5%E4%BB%8E%E6%80%A7">CLS 遵从性</h3>
+<p>CLS 定义了语言互操作规则（从 <em>framework</em>，<em>consumer</em>，<em>extender</em> 三个角度描述），这些规则仅适用于 “外部可见” 的元素。该语言互操作性的 CLS 单元是程序集，在这个单个程序集内，可以使用的元素没有限制。</p>
+<blockquote>
+<blockquote>
+<p><a id="R1"></a>CLS Rule 1：CLS 规则仅适用于那些定义在程序集之外的可访问或可见类型的那些内容。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：没有影响。
+For <em>extender</em>：在编译时进行 CLS 遵从性检查时，请确保仅将规则应用于将导出到程序集外部的信息。
+For <em>framework</em>：CLS 规则不适用于程序集的内部实现。一个公开可访问的内容（在另一个程序集的可执行代码：类型、接口、方法、字段、属性、事件等）要么是只具有符合 CLS 的类型组成的签名，要么被特别标记为不符合 CLS，要么该类型符合 CLS。</p>
+</blockquote>
+</blockquote>
+<p>CLS 指定如何标记程序集的外部可见部分，以指示它们是否符合 CLS 要求。<code>System.CLSCompliantAttribute</code> 指示哪些类型和类型成员是 CLS 兼容的，它可以附加到程序集，以指定程序集包含的所有顶级类型的默认遵从级别。<code>CLSCompliantAttribute</code> 包含一个 <code>Boolean</code> 参数，用于指示与其关联的项是否符合 CLS，这允许显式地将任何项标记为是否符合 CLS。</p>
+<p>确定 CLS 遵从性的一般规则：</p>
+<ul>
+<li>当程序集不显式标记为 <code>[CLSCompliantAttribute]</code> 时，假定它是 <code>[CLSCompliantAttribute(false)]</code>。</li>
+<li>默认情况下，类型继承其封闭类型（嵌套类型）的 CLS 遵从性级别，或者获取附加到其程序集的遵从性级别。</li>
+<li>默认情况下，其他成员（方法、字段、属性、事件）继承其类型的 CLS 遵从性。可以显式 <code>[CLSCompliantAttribute(false)]</code> 标记为不兼容 CLS。</li>
+</ul>
+<blockquote>
+<blockquote>
+<p><a id="R2"></a>CLS Rule 2：不兼容 CLS 的类型的成员不应标记为 <em>CLS-compliant</em>。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：可以使用上述规则忽略任何不符合 CLS 的成员。
+For <em>extender</em>：应该鼓励正确标记新编写的程序集和公开导出的类型和成员。强烈建议在编译时强制执行 CLS 规则。
+For <em>framework</em>：应正确标记所有公开导出的成员的 CLS 遵从性。这里指定的规则可用于最小化所需标记的数量（例如，如果所有类型和成员都符合要求，或者只有少数例外需要标记，则对整个程序集进行标记）。</p>
+</blockquote>
+</blockquote>
+<hr>
+<h2 id="common-type-system-%E5%85%AC%E5%85%B1%E7%B1%BB%E5%9E%8B%E7%B3%BB%E7%BB%9F">Common Type System 公共类型系统</h2>
+<p>类型描述值并指定该类型的所有值都应支持的协议。因为 CTS 支持面向对象编程 OOP 以及函数式和过程式编程语言，所以它处理两种实体：对象（<em><strong>Objects</strong></em>）和值（<em><strong>Values</strong></em>）。</p>
+<p>对于整数和浮点数，值是简单的位模式；每个值都有一个类型，该类型既描述了它所占用的存储空间和它的表示形式中 Bits 的含义，还描述了在该表示形式上可以执行的操作。值用于表示类似 C 等编程语言中对应的简单类型，也用于表示 C++、Java 等语言中的非对象。</p>
+<p>对象具有比值更多的东西。每个对象都是自类型化的，它的类型显式地存储在它的表示中。它有一个区别于所有其他对象的标识，并且它有存储其他实体（可以是对象或值）的槽。虽然可以更改其槽的内容，但对象的标识永远不会更改。</p>
+<p>有几种对象和值，如下面的图表所示：</p>
+<p><img src="./.img/类型系统.png" alt="类型系统"></p>
+<p>泛型特性允许使用一个模式定义一整套类型和方法，其中包括称为泛型参数的占位符。根据需要，这些泛型参数被特定类型替换，以实例化实际需要的实例类型成员。泛型的设计要满足：</p>
+<ul>
+<li>正交性 (<em>OrthogonalityWhere</em>)：泛型类型可以出现在任何可以出现现有 CLI 类型的上下文中。</li>
+<li>语言独立性 (<em>Language independence</em>)：对源语言不做任何假设。但是 CLI 泛型尝试支持尽可能多的语言中现有的类似泛型的特性。此外，这种设计允许对目前缺乏泛型的语言进行纯净扩展。</li>
+<li>实现独立性 (<em>Implementation independence</em>)：CLI 的实现可以根据具体情况对表示和代码进行专门化，或者共享所有表示和代码，也许可以通过装箱和拆箱值来实现这一点。</li>
+<li>实现效率 (<em>Implementation efficiency</em>)：泛型的性能并不比使用 <code>Object</code> 来模拟泛型差；好的实现可以做得更好，避免对引用类型实例化进行强制转换，并为值类型实例化生成专门的代码。</li>
+<li>在定义点静态检查 (<em>Statically checkable at point of definition</em>)：可以独立于其构造实体来验证泛型类型定义。因此，泛型类型是静态可验证的，并且它的方法可以保证对所有有效的构造实体进行 JIT 编译。</li>
+<li>泛型参数的统一行为 (<em>Uniform behavior with respect to generic parameters</em>)：一般来说，参数化类型和泛型方法的行为在所有类型实例化中都是 “相同的”。</li>
+</ul>
+<p>此外，CLI 还支持协变和逆变泛型类型参数，具有以下特点：</p>
+<ul>
+<li>基于静态检查，它是类型安全的。</li>
+<li>特别地，变体（协变或逆变）只允许在泛型接口和泛型委托上出现。</li>
+<li>变体影响从变体接口调用方法的调用指令。对于非变体接口，必须存在与调用指令中指定的类型完全相同的方法，并调用该方法。对于变体接口，调用指令中指定的确切类型的方法不需要存在，只需是该变体的匹配类型。如果存在多个匹配项，则方法的声明顺序和派生决定调用哪一个，即使存在精确匹配项，也可能调用变体匹配项。所有针对 CLI 的语言系统都必须考虑源语言是否支持该特性的差异。</li>
+<li>允许实现一些语言中使用的更复杂的协变方案。</li>
+</ul>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="cts-%E4%B8%8E%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B%E7%9A%84%E5%85%B3%E7%B3%BB">CTS 与面向对象编程的关系</h3>
+<p>在 <em>Value-Oriented</em> 编程中，术语类型通常用于表示数据表示。在面向对象编程中，它通常指的是行为而不是表示。在 CTS 中，类型用于表示：两个程序实体只有在当且仅当它们具有兼容的表示行为时被视为是存在兼容性的类型。因此，在 CTS 中，如果一种类型是从基类型派生的，那么派生类型的实例可以替换为基类型的实例，因为表示和行为都是兼容的。</p>
+<p>与某些 OOP 语言不同，在 CTS 中，具有根本不同表示的两个对象具有不同的类型。一些 OOP 语言使用不同的类型概念。如果两个对象以相同的方式响应同一组消息，则认为它们具有相同的类型。这个概念在 CTS 中通过说对象实现相同的接口来捕获。</p>
+<p>类似地，一些 OOP 语言认为消息传递是计算的基本模型。例如消息传递在 CTS 中对应于调用虚方法，其中虚方法的签名扮演消息的角色。</p>
+<p>CTS 本身并不直接捕捉 “无类型编程” 的概念。也就是说，如果不知道对象的类型，就无法调用非静态方法。然而，无类型编程（如果它被实现的话）可以基于反射包提供的工具来实现。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E5%80%BC%E5%92%8C%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%85%B3%E7%B3%BB">值和类型的关系</h3>
+<p>在计算机编程中，<strong>类型</strong> 用于描述可以存储在变量中、作为参数传递或由函数返回的值。每个值都是类型的一个实例，每个值的使用都需要一个类型。类型定义了类型值支持的允许值和允许操作。所有运算符和函数都有访问或使用的每个值的预期类型。</p>
+<p>每个值都有一个完全描述其类型属性的确切类型。每个值都是其确切类型的实例，也可以是其他类型的实例。特别地，如果一个值是继承自另一个类型的类型的实例，则它也是该另一个类型的实例。</p>
+<h4 id="%E5%80%BC%E7%B1%BB%E5%9E%8B%E5%92%8C%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B">值类型和引用类型</h4>
+<p>CTS 有两种类型，值类型和引用类型：</p>
+<ul>
+<li>值类型 —— 由值类型描述的值是自包含的。</li>
+<li>引用类型 —— 引用类型描述的值表示另一个值的位置。有四种引用类型：
+<ul>
+<li>对象类型 <em>object type</em> 是自我描述值的引用类型。某些对象类型（例如，抽象类）只是值的部分描述。</li>
+<li>一个接口类型总是对一个值的部分描述，可能由许多对象类型支持。</li>
+<li>指针类型是对值的编译时描述，其表示形式是位置的机器地址。指针可以是托管或非托管的。</li>
+<li>内置引用类型。</li>
+</ul>
+</li>
+</ul>
+<p>一个托管指针，或者称为 <strong>byref</strong>，可以指向一个局部变量、参数、复合类型的字段或数组的元素。然而，当一个调用跨越远程边界时，符合规范的实现可以使用 <em>copy-in</em> / <em>copy-out</em> 机制，而不是托管指针。因此，程序不应依赖真正指针的别名行为。托管指针类型只允许用于局部变量和参数签名；它们不能用于字段，或作为数组的元素类型，并且禁止对托管指针类型的值进行装箱。对于方法的返回类型使用托管指针类型是不可验证的。</p>
+<p>出于性能原因，GC 堆上的项目可能不包含对其他 GC 对象内部的引用，这促使对字段和装箱施加限制。返回一个引用本地或参数变量的托管指针可能会导致引用比变量存在的时间更长，因此它是不可验证的。</p>
+<p>基础类库中有三种值类型：<code>System.TypedReference</code>、<code>System.RuntimeArgumentHandle</code> 和 <code>System.ArgIterator</code>。</p>
+<p>值类型 <code>System.TypedReference</code>，或者称为 <strong>typed reference</strong> 或 <strong>typedref</strong>，包含一个指向位置的托管指针和一个可以存储在该位置的类型的运行时表示。<strong>typed references</strong> 具有与 <strong>byref</strong>s 相同的限制。<strong>typed references</strong> 是由 CIL 指令 <code>mkrefany</code> 创建的。</p>
+<p>值类型 <code>System.RuntimeArgumentHandle</code> 和 <code>System.ArgIterator</code>，包含指向 VES 堆栈的指针。它们可以用于局部变量和参数签名。这些类型用于字段、方法返回类型、数组的元素类型或装箱是不可验证的。这两种类型被称为 <strong>byref-like</strong> 类型。</p>
+<h4 id="%E5%86%85%E7%BD%AE%E7%9A%84%E5%80%BC%E7%B1%BB%E5%9E%8B%E5%92%8C%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B">内置的值类型和引用类型</h4>
+<p>以下数据类型是 CTS 的组成部分，并直接由 VES 支持。它们在持久化的元数据中有特殊的编码。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Name in CIL assembler</th>
+<th style="text-align:left">CLS Type?</th>
+<th style="text-align:left">Name in class library</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left">Yes</td>
+<td style="text-align:left"><code>System.Boolean</code></td>
+<td style="text-align:left">True/False value</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>char</code></td>
+<td style="text-align:left">Yes</td>
+<td style="text-align:left"><code>System.Char</code></td>
+<td style="text-align:left">Unicode 16-bit char.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>object</code></td>
+<td style="text-align:left">Yes</td>
+<td style="text-align:left"><code>System.Object</code></td>
+<td style="text-align:left">Object or boxed value type</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Yes</td>
+<td style="text-align:left"><code>System.String</code></td>
+<td style="text-align:left">Unicode string</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>float32</code></td>
+<td style="text-align:left">Yes</td>
+<td style="text-align:left"><code>System.Single</code></td>
+<td style="text-align:left">IEC 60559:1989 32-bit float</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>float64</code></td>
+<td style="text-align:left">Yes</td>
+<td style="text-align:left"><code>System.Double</code></td>
+<td style="text-align:left">IEC 60559:1989 64-bit float</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>int8</code></td>
+<td style="text-align:left">No</td>
+<td style="text-align:left"><code>System.SByte</code></td>
+<td style="text-align:left">Signed 8-bit integer</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>int16</code></td>
+<td style="text-align:left">Yes</td>
+<td style="text-align:left"><code>System.Int16</code></td>
+<td style="text-align:left">Signed 16-bit integer</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>int32</code></td>
+<td style="text-align:left">Yes</td>
+<td style="text-align:left"><code>System.Int32</code></td>
+<td style="text-align:left">Signed 32-bit integer</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>int64</code></td>
+<td style="text-align:left">Yes</td>
+<td style="text-align:left"><code>System.Int64</code></td>
+<td style="text-align:left">Signed 64-bit integer</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>native int</code></td>
+<td style="text-align:left"><code>Yes System.IntPtr</code></td>
+<td style="text-align:left">Signed integer, native size</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>native unsigned int</code></td>
+<td style="text-align:left">No</td>
+<td style="text-align:left"><code>System.UIntPtr</code></td>
+<td style="text-align:left">Unsigned integer, native size</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>typedref</code></td>
+<td style="text-align:left">No</td>
+<td style="text-align:left"><code>System.TypedReference</code></td>
+<td style="text-align:left">Pointer plus exact type</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>unsigned int8</code></td>
+<td style="text-align:left">Yes</td>
+<td style="text-align:left"><code>System.Byte</code></td>
+<td style="text-align:left">Unsigned 8-bit integer</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>unsigned int16</code></td>
+<td style="text-align:left">No</td>
+<td style="text-align:left"><code>System.UInt16</code></td>
+<td style="text-align:left">Unsigned 16-bit integer</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>unsigned int32</code></td>
+<td style="text-align:left">No</td>
+<td style="text-align:left"><code>System.UInt32</code></td>
+<td style="text-align:left">Unsigned 32-bit integer</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>unsigned int64</code></td>
+<td style="text-align:left">No</td>
+<td style="text-align:left"><code>System.UInt64</code></td>
+<td style="text-align:left">Unsigned 64-bit integer</td>
+</tr>
+</tbody>
+</table>
+<h4 id="%E7%B1%BB%E6%8E%A5%E5%8F%A3%E5%92%8C%E5%AF%B9%E8%B1%A1">类、接口和对象</h4>
+<p>如果一个类型能够明确无误地定义值的表示和在该值上定义的操作，那么它就完全描述了一个值。</p>
+<ul>
+<li>对于值类型，定义表示意味着描述构成值表示的位模式。</li>
+<li>对于引用类型，定义表示意味着描述构成值表示的位置和位模式。</li>
+<li>方法描述了可以在精确类型的值上执行的操作。定义允许在精确类型的值上执行的操作集合需要为每个操作指定命名方法。</li>
+</ul>
+<p>有些类型只是部分描述，例如接口类型。这些类型描述了没有实现定义的操作子集，因此，不能是任何值的精确类型。因此，虽然一个值只有一个精确类型，但它也可以是许多其他类型的值。由于精确类型完全描述了值，它也完全指定了精确类型的值可以具有的所有其他类型。</p>
+<p>虽然每个值都有一个精确类型，但并不总是可以通过检查值的表示来确定精确类型。特别是，永远无法确定值类型的值的精确类型。例如两种内置的值类型，32 位有符号和无符号整数。虽然每种类型都是它们各自值的完全规范（即，精确类型），但无法从值的特定 32 位序列中推导出是哪个精确类型。</p>
+<p>对于一些称为对象的值，总是可以从值中确定精确类型。对象的精确类型也被称为对象类型。对象是引用类型的值，但并非所有引用类型都描述对象。例如一个值，它是一个指向 32 位整数的指针，一种引用类型。通过检查指针位无法发现值的类型；因此它不是一个对象。内置的 CTS 引用类型 <code>System.String</code>，这种类型的值的精确类型总是可以通过检查值来确定的，因此 <code>System.String</code> 类型的值是对象，而 <code>System.String</code> 是一个对象类型。</p>
+<h4 id="%E5%80%BC%E7%9A%84%E8%A3%85%E7%AE%B1%E5%92%8C%E6%8B%86%E7%AE%B1">值的装箱和拆箱</h4>
+<p>对于每种值类型，CTS 都定义了一个相应的引用类型，称为装箱类型，反之则不然。一般来说，引用类型没有相应的值类型。装箱类型的值（装箱值）的表示形式是可以存储值类型的值的位置。装箱类型是对象类型，装箱值是对象。</p>
+<p>一个装箱类型不能直接通过名称引用，因此没有这样一个装箱类型的字段或局部变量。装箱枚举值类型最接近的命名基类是 <code>System.Enum</code>；对于所有其他值类型，它是 <code>System.ValueType</code>。类型为 <code>System.ValueType</code> 的字段只能包含 null 值或一个装箱值类型的实例。类型为 <code>System.Enum</code> 的局部变量只能包含 <code>null</code> 值或一个装箱枚举类型的实例。</p>
+<p>所有值类型都有一个名为 <strong>box</strong> 的操作。对任何值类型进行装箱都会产生其装箱值；即，包含原始值的位序列复制的相应装箱类型的值。如果值类型是可空类型 —— 定义为值类型 <code>System.Nullable&lt;T&gt;</code> 的实例化 —— 结果是 <code>null</code> 引用或其 <code>Value</code> 属性的位序列复制，取决于其 <code>HasValue</code> 属性（<code>false</code> 或 <code>true</code>）。所有装箱类型都有一个名为 <strong>unbox</strong> 的操作，该操作会产生一个指向值的位表示的托管指针。</p>
+<p><strong>box</strong> 指令可以应用于不仅仅是值类型的类型；这些类型被称为可装箱类型。如果一个类型满足以下条件之一，那么它就是可装箱的：</p>
+<ul>
+<li>值类型（包括泛型值类型的实例化），但不包括类型引用。装箱一个类似 <strong>byref</strong> 的类型是不可验证的。排除了类型引用，以便 GC 堆中的对象不能包含对其他 GC 对象内部的引用。<em>byref-like</em> 类型包含指向 VES 堆栈条目的嵌入式指针。如果对 <em>byref-like</em> 类型进行装箱，这些嵌入式指针可能会比它们指向的内容存在的时间更长，因此这个操作是不可验证的。</li>
+<li>一个引用类型（包括类、数组、委托和泛型类的实例化），但不包括托管指针 / <strong>byref</strong>s。</li>
+<li>泛型参数（由泛型类型定义或泛型方法定义）。泛型参数的装箱和拆箱会给 CLI 实现增加性能开销。在对由值类型定义的方法进行虚拟分派时，<code>constrained.</code> 前缀可以通过避免装箱值类型来提高性能。</li>
+</ul>
+<p><code>System.Void</code> 类型永远不会被装箱。接口和继承只在引用类型上定义。因此，虽然值类型定义可以指定由值类型实现的接口和它继承的类（<code>System.ValueType</code> 或 <code>System.Enum</code>），但这些只适用于装箱值。</p>
+<blockquote>
+<blockquote>
+<p><a id="R3"></a>CLS Rule 3：装箱的值类型不是 <em>CLS-compliant</em> 的。适当的情况下，可以使用 <code>System.Object</code>，<code>System.ValueType</code> 或 <code>System.Enum</code> 来代替装箱类型。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要导入装箱值类型。
+For <em>extender</em>：不需要提供定义或使用装箱值类型的语法。
+For <em>framework</em>：不能在其公开导出的部分中使用装箱值类型。</p>
+</blockquote>
+</blockquote>
+<h4 id="%E5%80%BC%E7%9A%84-identity-%E5%92%8C-equality">值的 Identity 和 Equality</h4>
+<p>所有的值都定义了两个二元操作：<strong>identity</strong> 等价性和 <strong>equality</strong> 相等性。它们返回一个 <em>Boolean</em> 值，表示数学等价运算：</p>
+<ul>
+<li>自反性：<code>a op a = true</code>。</li>
+<li>对称性：当前仅当 <code>b op a = true</code> 时 <code>a op b = true</code>。</li>
+<li>传递性：如果 <code>a op b = true</code> 且 <code>b op c = true</code> 时，<code>a op c = true</code>。</li>
+</ul>
+<p>虽然 <em>identity</em> 总是意味着 <em>equality</em>，反之则不然。例如考虑三个变量 <code>A,B -&gt; &quot;here's some text&quot;</code> 和 <code>C -&gt; &quot;here's some text&quot;</code>，它们的类型是 <code>System.String</code>，其中箭头意味着 “是对 <code>&quot;here's some text&quot;</code> 的引用”。</p>
+<p>如果字符序列的位置相同（即，实际上在内存中只有一个字符串），那么变量的值是相同的。如果字符序列相同，那么存储在变量中的值是相等的。因此，变量 <code>A</code> 和 <code>B</code> 的值是 <em>identity</em>（指向同一对象），变量 <code>A</code> 和 <code>C</code> 以及 <code>B</code> 和 <code>C</code> 的值不是 <em>identity</em>（指向不同对象），但变量 <code>A</code>、<code>B</code> 和 <code>C</code> 的值内容是相等（<em>equality</em>）的。</p>
+<h5 id="identity"><strong>Identity</strong></h5>
+<p><em>Identity</em> 等价性运算的 CTS 定义：</p>
+<ul>
+<li>如果值具有不同的确切类型，那么它们不是相同的。</li>
+<li>否则，如果它们的确切类型是值类型，那么当且仅当值的位模式逐位相同时，它们才是相同的。</li>
+<li>否则，如果它们的确切类型是引用类型，那么当且仅当值的位置相同时，它们才是相同的</li>
+</ul>
+<p><code>System.Object</code> 类提供了一个名为 <code>ReferenceEquals</code> 的方法，用于确定两个对象引用是否指向内存中的同一位置。</p>
+<h5 id="equality"><strong>Equality</strong></h5>
+<p>对于值类型，等式运算符是确切类型定义的一部分。等式的定义应遵循以下规则：</p>
+<ul>
+<li><em>Equality</em> 应该是一个等价运算符。</li>
+<li><em>Identity</em> 应该隐含 <em>Equality</em>。</li>
+<li>如果操作数中的一个（或两个）是装箱值，那么应该通过以下方式计算等式：
+<ul>
+<li>首先拆箱任何装箱的操作数，然后</li>
+<li>对结果值应用通常的 <em>Equality</em> 规则。</li>
+</ul>
+</li>
+</ul>
+<p><em>Equality</em> 是通过 <code>System.Object.Equals</code> 方法实现的。</p>
+<p>虽然 IEC-60559:1989 定义了两个浮点 <em>NaN</em> 总是比较为不等，但 <code>System.Object.Equals</code> 要求必须重写满足等价运算符的要求。因此当比较两个 <em>NaN</em> 时，<code>System.Double.Equals</code> 和 <code>System.Single.Equals</code> 返回 <code>True</code>，而等式运算符在这种情况下返回 <code>False</code>。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="locations-%E4%BD%8D%E7%BD%AE">Locations 位置</h3>
+<p>值是存储在位置（<em><strong>Location</strong></em>）中的。一个位置一次只能存储一个值，所有的位置都是有类型的。位置的类型体现了存储在该位置的值必须满足的要求。<em>Locations</em> 例子包括局部变量和参数。</p>
+<p>位置的类型指定了对从该位置加载的任何值的使用限制。例如，一个位置可以存储潜在的许多精确类型的值，只要所有的类型都可以赋值给该位置的类型。从位置加载的所有值都被视为该位置的类型。即使存储在位置中的值的精确类型能够进行额外的操作，也只能调用对位置的类型有效的操作。</p>
+<h4 id="assignment-compatible-%E5%85%BC%E5%AE%B9%E8%B5%8B%E5%80%BC">Assignment-compatible 兼容赋值</h4>
+<p>一个值只有在其类型之一与位置的类型兼容时，才能存储在该位置。一个类型总是可以赋值给自身。赋值兼容性通常可以在编译时确定，这样就无需在运行时进行测试。</p>
+<h4 id="coercion-%E5%BC%BA%E5%88%B6%E8%BD%AC%E6%8D%A2">Coercion 强制转换</h4>
+<p>有时希望将一个类型的值（该类型不能赋值给某个位置）转换为可以赋值给该位置类型的值。这是通过对值进行强制转换来实现的。强制转换接受一个特定类型的值和一个期望的类型，并试图创建一个具有与原始值等价含义的期望类型的值。强制转换可能导致表示形式的改变以及类型的改变；因此，强制转换不一定保留对象的原有类型身份信息。</p>
+<p>强制转换有两种：扩大和缩小。扩大永远不会丢失信息，而缩小可能会丢失信息。一个扩大强制转换的例子是将一个 32 位有符号整数的值强制转换为一个 64 位有符号整数的值。一个缩小强制转换的例子是将一个 64 位有符号整数强制转换为一个 32 位有符号整数。</p>
+<p>编程语言通常将扩大强制转换实现为隐式转换，而缩小强制转换通常需要显式转换。</p>
+<p>一些强制转换是直接内置在对内置类型的 VES 操作中的。所有其他的强制转换都应明确请求。对于内置类型，CTS 提供了操作来执行无运行时检查的扩大强制转换和有运行时检查或截断的缩小强制转换，这取决于操作的语义。</p>
+<h4 id="casting-%E8%BD%AC%E6%8D%A2">Casting 转换</h4>
+<p>由于一个值可以有多种类型，所以在使用该值时需要明确识别出正在使用的是哪种类型。由于从已经定义类型的位置读取值，所以使用的值的类型就是从其中读取值的位置的类型。如果要使用不同的类型，那么值会被转换（<em>Cast</em>）为其他类型。</p>
+<p>转换通常是一个编译时操作，但是如果编译器不能静态地知道值是否为目标类型，那么就会进行运行时的转换检查。与强制转换（<em>Coercion</em>）不同，转换并不会改变对象的实际类型，也不会改变它的表示。转换保留了对象的 <em>Identity</em>。</p>
+<p>例如，当从一个定义为持有特定接口值的位置对读取的值进行转换时，可能需要进行运行时检查。因为接口是对值的不完全描述，所以将该值转换为不同的接口类型通常会导致运行时的转换检查。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E7%B1%BB%E5%9E%8B%E6%88%90%E5%91%98">类型成员</h3>
+<p>类型定义了该类型的值可以具有的值和支持的操作。如果该类型的可允许的值有子结构，那么该子结构是通过该类型的字段或数组元素来描述的。如果有属于该类型的操作，那么这些操作是通过该类型的方法来描述的。字段、数组元素和方法被称为该类型的成员。属性和事件也是类型的成员。</p>
+<h4 id="%E5%AD%97%E6%AE%B5%E5%92%8C%E6%95%B0%E7%BB%84">字段和数组</h4>
+<p>一个值的表示（除了内置类型）可以被细分为子值。这些子值要么被命名，此时它们被称为字段，要么通过索引表达式访问，此时它们被称为数组元素。描述由数组元素组成的值的类型是数组类型。描述由字段组成的值的类型是复合类型。一个值不能同时包含字段和数组元素，尽管复合类型的一个字段可以是数组类型，而一个数组元素可以是复合类型。</p>
+<p>数组元素和字段都是有类型的，这些类型永远不会改变。数组中的所有元素都应该具有相同的类型。复合类型的每个字段可以有不同的类型。</p>
+<h4 id="%E6%96%B9%E6%B3%95">方法</h4>
+<p>一个类型可以将操作与该类型或该类型的每个实例关联起来，这样的操作被称为方法。一个方法有一个名称，并且有一个签名，该签名指定了其所有参数和返回值（如果有）的允许类型。</p>
+<p>一个只与类型本身（而不是类型的特定实例）关联的方法被称为静态方法。</p>
+<p>与类型的实例关联的方法要么是实例方法，要么是虚方法。当它们被调用时，实例方法和虚方法都会传递一个实例，这个实例就是此次调用要操作的对象（被称为 <strong>this</strong> 或者 <strong>this pointer</strong>）。</p>
+<p>实例方法和虚方法的基本区别在于如何定位实现。通过指定一个类和该类中的实例方法来调用实例方法。除了泛型类型的实例方法的情况外，作为 <strong>this</strong> 传递的对象可以是 <code>null</code> 或者是任何从定义该方法的类继承的类型的实例。虚方法也可以以这种方式被调用。例如，当一个虚方法的实现希望调用其基类提供的实现时，就会发生这种情况。CTS 允许在虚方法的主体内部将 <strong>this</strong> 设为 <code>null</code>。</p>
+<p>允许使用非虚拟调用来调用虚拟方法，这消除了对 “<em>call super</em>” 指令的需要，并允许在虚拟方法和非虚拟方法之间进行版本更改。如果不希望空的 <strong>this pointer</strong> 传递到被调用的方法，那么就需要 CIL 生成器插入对空指针的显式测试。</p>
+<p>一个虚拟方法或实例方法也可以通过另一种机制来调用，即虚拟调用。任何从定义了虚拟方法的类型继承的类型都可以提供该方法的自己的实现，根据对象的运行时类型来决定调用哪个实现。</p>
+<h4 id="%E9%9D%99%E6%80%81%E5%AD%97%E6%AE%B5%E5%92%8C%E6%96%B9%E6%B3%95">静态字段和方法</h4>
+<p>类型可以声明与类型本身而不是类型的任何特定值相关联的字段，这样的字段是类型的静态字段。静态字段声明了一个由类型的所有值共享的位置。就像非静态（实例）字段一样，静态字段是有类型的，这个类型永远不会改变。静态字段总是限制在单个应用程序域的基础上，但它们也可以按线程分配。</p>
+<p>同样，类型也可以声明与类型本身而不是类型的值关联的方法。这样的方法是类型的静态方法。由于静态方法的调用没有与之关联的值，因此在静态方法中没有可用的 <strong>this pointer</strong>。</p>
+<h4 id="%E8%99%9A%E6%96%B9%E6%B3%95">虚方法</h4>
+<p>一个对象类型可以将其任何方法声明为虚方法。与其他方法不同，实现该类型的每个确切类型都可以提供虚方法的自己的实现。虚方法可以通过普通的方法调用机制来调用，该机制使用静态类型、方法名和参数类型来选择实现，在这种情况下，<strong>this pointer</strong> 可以为 <code>null</code>。</p>
+<p>另外，虚方法还可以通过一种特殊的机制（虚调用）来调用，该机制根据用于进行虚调用的实例的动态检测类型，而不是在编译时静态已知的类型来选择实现。虚方法可以被标记为 <strong>final</strong>。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E5%91%BD%E5%90%8D">命名</h3>
+<p>类型系统的实体被赋予名称，以便可以被类型系统的其他部分或类型的实现引用。类型、字段、方法、属性和事件都有名称。在类型系统中，值、局部变量和参数没有名称。类型系统的实体被赋予一个单一的名称。</p>
+<h4 id="%E6%9C%89%E6%95%88%E7%9A%84%E5%90%8D%E7%A7%B0">有效的名称</h4>
+<p>所有的名称比较都是按字节进行的（区分大小写，独立于地区设置）。在使用名称来访问内置的 VES 提供的功能（例如，类初始化方法）时，定义中总是有相应的指示，以避免构建任何一组保留的名称。</p>
+<blockquote>
+<blockquote>
+<p><a id="R4"></a>CLS Rule 4：程序集应遵循附录 <strong>Annex 7 of Technical Report 15 of the Unicode Standard 3.0</strong>，该 <a href="http://www.unicode.org/unicode/reports/tr15/tr15-18.html">附录</a> 规定了允许开始和包含在标识符中的字符集。标识符应采用 <strong>Unicode Normalization Form C</strong> 定义的规范格式。出于对 CLS 的支持，如果两个标识符的小写映射（由 Unicode 不区分区域的一对一小写映射指定）相同，那么这两个标识符就是相同的。要想在 CLS 下被认为是不同的，两个标识符在大小写上必须有所不同。但是，为了覆盖隐藏继承的定义，CLI 要求使用原始声明的精确编码。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要使用违反该规则的类型，但应有一种机制允许访问使用其自身关键字作为名称的命名项。
+For <em>extender</em>：不需要创建违反该规则的类型。应提供一种机制允许定义遵循这些规则的新名称，但这些新名称与语言中的关键字相同。
+For <em>framework</em>：不应导出违反该规则的类型。应避免使用常用编程语言中的关键字作为名称。</p>
+</blockquote>
+</blockquote>
+<h4 id="%E7%A8%8B%E5%BA%8F%E9%9B%86%E5%92%8C%E4%BD%9C%E7%94%A8%E5%9F%9F">程序集和作用域</h4>
+<p>通常，名称并不是唯一的。名称被收集到称为范围（作用域，<strong>scopes</strong>）的分组中。在一个作用域内，只要它们是不同类别（<strong>kinds</strong>，方法、字段、嵌套类型、属性和事件）或具有不同的签名，一个名称就可以引用多个实体。</p>
+<blockquote>
+<blockquote>
+<p><a id="R5"></a>CLS Rule 5：在遵循 CLS 的范围内引入的所有名称应该是独立的，且不依赖于类型，除非这些名称相同并通过重载进行解析。尽管 CTS 允许单个类型为方法和字段使用相同的名称，但 CLS 不允许这样做。</p>
+</blockquote>
+<blockquote>
+<p><a id="R6"></a>CLS Rule 6：字段和嵌套类型应仅通过标识符比较来区分，尽管 CTS 允许区分不同的签名。具有相同名称（通过标识符比较）的方法、属性和事件应该不仅仅在返回类型上有所不同，除 CLS Rule 39 情况外。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要使用违反这些规则的类型，只需忽略任何被标记为不符合 <em>CLS-Compliant</em> 的成员即可。
+For <em>extender</em>：不需要提供定义违反这些规则的类型的语法。
+For <em>framework</em>：如果类型违反了这些规则，那么就不应该将其标记为 <em>CLS-Compliant</em>，除非他们将类型中足够多的违规项标记为不遵循 <em>CLS-Compliant</em>，以使得剩余的成员之间不会发生冲突。</p>
+</blockquote>
+</blockquote>
+<p>一个命名实体在一个范围中有其名称。因此要识别一个命名实体，需要提供一个范围和一个名称。范围被认为是对名称的限定（<strong>qualify</strong>），类型为类型中的名称提供了一个范围，因此，类型限定了类型中的名称。</p>
+<p>由于类型是命名的，因此类型的名称也被分组到范围中。为了完全识别一个类型，类型名称应由包含类型名称的范围进行限定。类型名称的范围由包含类型实现的程序集（<strong>assembly</strong>）进行限定。程序集是一组可配置的、可加载的代码模块和其他资源的集合，这些模块和资源共同实现了一个功能单元。类型名称被认为在实现该类型的程序集的程序集范围（<strong>assembly scope</strong>）内。程序集本身有名称，这些名称构成了 CTS 命名层次结构的基础。</p>
+<p><strong>Type definition</strong> 类型定义：</p>
+<ul>
+<li>为正在定义的类型（即 <strong>type name</strong> 类型名称）定义一个名称，并指定一个可以找到该名称的作用域。</li>
+<li>定义了一个成员范围（<strong>member scope</strong>），在这个范围内，不同种类的成员（字段、方法、事件和属性）的名称被绑定。在类型的成员范围内，（成员名称、成员种类和成员签名）的元组是唯一的。</li>
+<li>隐式地将类型分配给包含类型定义的程序集的程序集范围。</li>
+</ul>
+<p>CTS 支持枚举（<strong>enum</strong>），也称为枚举类型（<strong>enumeration type</strong>）。为了匹配签名，枚举不应该与底层类型相同。但是，枚举的实例应该可以赋值给底层类型，反之亦然。从枚举转换到底层类型，或者从底层类型转换到枚举，都不需要转换（<strong>cast</strong>）或强制转换（<strong>coercion</strong>）。枚举类型受到更多的限制：</p>
+<ul>
+<li>它应该有且仅有一个实例字段，该字段的类型定义了枚举的底层类型。</li>
+<li>它不应该有自己的任何方法。</li>
+<li>它应该从 <code>System.Enum</code> 派生。</li>
+<li>它不应该实现自己的任何接口。</li>
+<li>它不应该有自己的任何属性或事件。</li>
+<li>它不应该有任何静态字段，除非它们是字面量。</li>
+</ul>
+<p>枚举的底层类型应该是内置的整数类型。枚举应该从 <code>System.Enum</code> 派生，因此它们是值类型。像所有的值类型一样，它们应是密封的。</p>
+<blockquote>
+<blockquote>
+<p><a id="R7"></a>CLS Rule 7：枚举的底层类型应该是内置的 CLS 整数类型，字段的名称应该是 <code>&quot;value__&quot;</code>，并且该字段应该被标记为 <code>RTSpecialName</code>。</p>
+</blockquote>
+<blockquote>
+<p><a id="R8"></a>CLS Rule 8：有两种不同的枚举，通过 <code>System.FlagsAttribute</code> 自定义特性的存在或缺失来表示。一种代表命名的整数值；另一种代表可以组合生成未命名值的命名位标志。枚举的值不限于指定的值。</p>
+</blockquote>
+<blockquote>
+<p><a id="R9"></a>CLS Rule 9：枚举的文字静态字段应该具有枚举本身的类型。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：应接受遵循这些规则的枚举的定义，但不需要区分标志（<code>Flags</code>）和命名值。
+For <em>extender</em>：与 <em>consumer</em> 相同。支持扩展的语言允许编写枚举，但不需要区分标志（<code>Flags</code>）和命名值。
+For <em>framework</em>：不应该暴露违反这些规则的枚举，也不应该假设枚举只有指定的值。</p>
+</blockquote>
+</blockquote>
+<h4 id="%E5%8F%AF%E8%A7%81%E6%80%A7%E5%8F%AF%E8%AE%BF%E9%97%AE%E6%80%A7%E5%AE%89%E5%85%A8%E6%80%A7">可见性、可访问性、安全性</h4>
+<p>要引用作用域中的一个命名实体，作用域和作用域中的名称都必须是可见的（<strong>visible</strong>）。可见性由包含引用的实体（引用者，<strong>referent</strong>）和包含被引用名称的实体（引用实体，<strong>referenced entity</strong>）之间的关系决定。参考以下伪代码：</p>
+<pre class="hljs"><code><div><span class="hljs-keyword">class</span> <span class="hljs-title">A</span>{
+    <span class="hljs-keyword">int</span> IntInsideA;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-title">B</span> : <span class="hljs-title">A</span>{
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">method</span>(<span class="hljs-params"></span>)</span> =&gt; IntInsideA = <span class="hljs-number">15</span>;
+}
+<span class="hljs-comment">// 分析在 A 中对字段 IntInsideA 的引用：</span>
+<span class="hljs-comment">// - B 是引用者，它有一个方法引用了该字段</span>
+<span class="hljs-comment">// - A 中的 IntInsideA 是被引用实体</span>
+</div></code></pre>
+<p>为了确认引用是否被允许访问被引用实体，需要确认被引用实体的名称是否对引用可见；如果可见，引用是否可访问。只有满足以下条件，才允许访问类型的成员：</p>
+<ul>
+<li>类型是可见的，对于嵌套类型，还必须是可访问的。</li>
+<li>成员是可访问的。</li>
+<li>已经获得所有相关的安全权限。</li>
+</ul>
+<p>一个实例化的泛型类型只有在其自身和每个组成部分（泛型类型定义和泛型参数）都可见的情况下，才能从某个程序集中可见。例如，如果 <code>List&lt;T&gt;</code> 从程序集 <code>A</code> 中导出，且 <code>MyClass</code> 在程序集 <code>B</code> 中定义但未导出，那么 <code>List&lt;MyClass&gt;</code> 只能在程序集 <code>B</code> 内部可见。</p>
+<h5 id="%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7">类型的可见性</h5>
+<p>只有类型名称而非成员名称具有可控制的可见性。类型名称分为：</p>
+<ul>
+<li>从它们所定义的程序集中导出（<strong>Exported</strong>）。虽然可以标记一个类型以允许它从程序集中导出，但是程序集的配置决定了是否提供类型名称。</li>
+<li>没有从定义它们的程序集中导出（<strong>Not exported</strong>）到外部。</li>
+<li>嵌套在另一个类型内部。在这种情况下，该类型本身具有其嵌套的类型（即其封闭类型，<strong>enclosing type</strong>）的可见性。</li>
+</ul>
+<p>一个顶级命名类型只有在具有公共可见性时才会被导出。由类型定义器生成的类型只有在类型被构造时才会被导出。由类型定义器生成的类型，如果其生成的所有类型都可见，那么该类型就是可见的。</p>
+<h5 id="%E5%B5%8C%E5%A5%97%E7%B1%BB%E5%9E%8B%E5%92%8C%E6%88%90%E5%91%98%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7">嵌套类型和成员的可见性</h5>
+<p>一个类型包含了它的所有成员，并且还指定了其成员的可访问性规则。除非特别指出，否则可访问性仅基于被引用成员的静态可见类型以及正在进行引用的类型和程序集来决定。CTS 支持七种不同的可访问性规则：</p>
+<ul>
+<li><strong>compiler-controlled</strong>：只能通过定义来访问，而不能通过引用来访问，因此只能在单个编译单元内访问，并且受编译器的控制。</li>
+<li><strong>private</strong>：只有在定义成员的确切类型的实现中的引用才能访问。</li>
+<li><strong>family</strong>：对支持相同类型的引用可访问（即，精确类型及其所有继承的类型）。对于可验证的代码，有一个额外的要求（可能需要运行时）检查：引用应通过其精确类型支持引用精确类型的项目进行。正在访问其成员的项目应继承自执行访问的类型。</li>
+<li><strong>assembly</strong>：只有在包含类型实现的同一程序集中的引用才能访问。</li>
+<li><strong>family-and-assembly</strong>：只有同时符合 <strong>family</strong> 和 <strong>assembly</strong> 的引用才能访问。</li>
+<li><strong>family-or-assembly</strong>：只有符合 <strong>family</strong> 或 <strong>assembly</strong> 的引用才能访问。</li>
+<li><strong>public</strong>：所有的引用都可访问。</li>
+</ul>
+<p>一个成员或嵌套类型只有在具有 <strong>public</strong>，<strong>family-or-assembly</strong>，或 <strong>family</strong> 可访问性时，并且其定义类型（在成员的情况下）或其封闭类型（在嵌套类型的情况下）被导出的情况下，才会被导出。</p>
+<p>类型定义器的可访问性与生成它的类型的可访问性相同。一般来说，类型的成员可以被分配任何一种可访问性规则。然而，有三个例外：</p>
+<ul>
+<li>由接口定义的成员（除嵌套类型外）应为公开的。</li>
+<li>当一个类型定义了一个虚拟方法来重写一个继承的定义时，两个定义中的可访问性应该是相同的，或者重写的定义应该允许比原始定义更多的访问。例如，可以用一个新的实现来重写一个 <strong>assembly virtual</strong> 方法，这个新的实现是 <strong>public virtual</strong> 的，但不能用 <strong>family virtual</strong> 来重写。如果正在重写的基础定义有 <strong>family-or-assembly</strong> 访问权限，而重写的定义只有 <strong>family</strong> 访问权限，那么不会被认为是限制访问。</li>
+<li>由嵌套类型定义的成员，或者在嵌套类型中定义的嵌套类型，其可访问性不应大于定义它的封闭类型。</li>
+</ul>
+<p>包括 C++ 在内的语言允许这种 “扩大” 的访问权限。限制访问会提供一种错误的安全幻觉，因为简单地将一个对象转换为基类（这在方法调用时隐式发生）就可以调用该方法，尽管访问权限受到限制。为了防止虚拟方法被重写，使用 <strong>final</strong> 而不是依赖于有限的可访问性。</p>
+<blockquote>
+<blockquote>
+<p><a id="R10"></a>CLS Rule 10：在重写继承的方法时，可访问性不应改变，除非重写从不同程序集继承的具有 <strong>family-or-assembly</strong> 可访问性的方法。在这种情况下，重写应具有 <strong>family</strong> 可访问性。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要接受扩大访问继承虚方法的类型。
+For <em>extender</em>：不需要提供语法来支持对继承虚拟方法的扩大访问。
+For <em>framework</em>：不应依赖于扩大对虚拟方法的访问的能力，无论是在框架导出部分还是在框架内部的用户。</p>
+</blockquote>
+</blockquote>
+<h5 id="%E5%AE%89%E5%85%A8%E6%9D%83%E9%99%90">安全权限</h5>
+<p>对成员的访问也受到可以附加到程序集、类型、方法、属性或事件的安全需求的控制。安全需求不是类型协议的一部分，因此不会被继承。有两种类型的需求：</p>
+<ul>
+<li>继承需求 (<strong>inheritance demand</strong>)：当附加到一个类型时，它要求任何可能从这个类型继承的类型都必须具有指定的安全权限。当附加到一个非最终的虚拟方法时，它要求任何可能重写此方法的类型都应具有指定的权限。它不应附加到任何其他成员。</li>
+<li>引用需求 (<strong>reference demand</strong>)：任何试图解析对标记项的引用的尝试都应具有指定的安全权限。</li>
+</ul>
+<p>每种需求只能附加到任何一项上。将安全需求附加到程序集意味着它被附加到程序集中的所有类型上，除非另一种相同类型的需求被附加到类型上。同样，附加到类型上的需求意味着对类型的所有成员都有相同的需求，除非另一种相同类型的需求被附加到成员上。</p>
+<h5 id="%E5%B5%8C%E5%A5%97%E7%B1%BB%E5%9E%8B">嵌套类型</h5>
+<p>一个类型可以是封闭类型的成员，在这种情况下，它是一个嵌套类型。嵌套类型具有与封闭类型相同的可见性，并具有封闭类型的任何其他成员的可访问性。这种可访问性决定了哪些其他类型可以引用嵌套类型。也就是说，对于一个类来说，定义一个嵌套类型的字段或数组元素，有一个方法将嵌套类型作为参数或返回一个值等，嵌套类型应该对引用类型既可见又可访问。</p>
+<p>嵌套类型是封闭类型的一部分，因此其方法可以访问封闭类型的所有成员，以及从其继承的类型的成员的 <strong>family</strong> 访问。嵌套类型的名称由其封闭类型限定，而不是其程序集（只有顶级类型由其程序集限定）。程序集内的嵌套类型的名称没有唯一性要求。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="contracts-%E5%8D%8F%E8%AE%AE">Contracts 协议</h3>
+<p><strong>Contracts</strong> 协议是被命名的。它们是所有实现方和所有协议方之间对一组签名的共享假设。签名是协议的一部分，可以被检查和执行。</p>
+<p>协议不是类型，它们指定了对类型实现的要求。类型声明了它们遵守的协定（即，所有类型的实现应支持的协议）。可以验证一个类型的实现，以检查协议的可执行部分 “命名签名” 是否已经被实现。协议的种类有：</p>
+<ul>
+<li>类协议 (<strong>Class contract</strong>)：类协议是用类定义来指定的。类定义既定义了类协议，也定义了类类型（<strong>class type</strong>）。类协议的名称和类类型的名称是相同的。类协议指定了类类型值的表示。此外，类协议还指定了类类型支持的其他协议（例如，应实现哪些接口、方法、属性和事件）。一个类类型如果支持另一个类类型的类协议，就被称为从那个类类型继承（<strong>inherit</strong>）。</li>
+</ul>
+<ul>
+<li>接口协议 (<strong>Interface contract</strong>)：接口协议是通过接口定义来指定的。接口定义既定义了接口协议，也定义了接口类型。接口协议的名称和接口类型的名称是相同的。许多类型可以支持同一个接口协议。像类协议一样，接口协议指定了接口支持的其他协议（例如，应实现哪些接口、方法、属性和事件）。接口类型永远无法完全描述一个值的表示。因此接口类型永远无法支持类协议，也永远不能成为类类型或精确类型。</li>
+</ul>
+<ul>
+<li>方法协议 (<strong>Method contract</strong>)：方法协议是通过方法定义来指定的。方法协议是一个命名的操作，它指定了方法的实现和方法的调用者之间的协议。方法协议总是类型协议（类、值类型或接口）的一部分，并描述了如何实现特定的命名操作。方法协议指定了方法的每个参数应支持的协议，返回值（如果有）应支持的协议。</li>
+</ul>
+<ul>
+<li>属性协议 (<strong>Property contract</strong>)：属性协议是用属性定义来指定的。有一组可扩展的操作用于处理命名值，其中包括一对标准的读取值和更改值的操作。属性协议为这些操作的子集指定方法协议，这些操作应由支持属性协议的任何类型实现。一个类型可以支持许多属性协议，但任何给定的属性协议只能由一个类型支持。因此，属性定义是支持属性的类型的类型定义的一部分。</li>
+</ul>
+<ul>
+<li>事件协议 (<strong>Event contract</strong>)：事件协议是通过事件定义来指定的。有一个可扩展的操作集用于管理一个命名的事件，其中包括三种标准方法（注册对事件的关注，撤销对事件的关注，触发事件）。事件协议指定了所有由任何支持事件协议的类型实现的操作的方法协议。一个类型可以支持许多事件协议，但任何给定的事件合约只能由一个类型支持。因此，事件定义是支持事件的类型的类型定义的一部分。</li>
+</ul>
+<h4 id="%E7%AD%BE%E5%90%8D">签名</h4>
+<p>签名是协议的一部分，可以被检查和自动执行。签名是通过向类型和其他签名添加约束来形成的。约束是对值或位置的使用或允许操作的限制。例如，约束可能是一个位置是否可以被覆盖为不同的值，或者一个值是否可以被改变。</p>
+<p>所有位置都有签名，所有值也是如此。赋值兼容性要求值的签名（包括约束）与位置的签名（包括约束）兼容。有四种基本类型的签名：类型签名，位置签名，参数签名和方法签名。局部签名实际上是位置签名的一个版本。</p>
+<blockquote>
+<blockquote>
+<p><a id="R11"></a>CLS Rule 11：出现在签名中的所有类型都应该是 <em>CLS-compliant</em> 的。组成实例化泛型类型的所有类型都应该是 <em>CLS-compliant</em> 的。</p>
+<p><a id="R12"></a>CLS Rule 12：类型和成员的可见性和可访问性应是：任何成员签名中的类型在成员本身可见和可访问时应该是可见和可访问的。例如，一个在其程序集外部可见的公共方法不应该有一个只在程序集内部可见的类型的参数。在任何成员的签名中使用的实例化泛型类型的组成类型的可见性和可访问性应该在成员本身可见和可访问时是可见和可访问的。一个在其程序集外部可见的成员的签名中存在的实例化泛型类型不应该有一个只在程序集内部可见的类型的泛型参数。</p>
+<p>For <em>consumer</em>：不需要接受那些包含违反规则成员的类型。
+For <em>extender</em>：不需要提供语法来违反这些规则。
+For <em>framework</em>：在其导出类型及其成员中不得违反此规则。</p>
+</blockquote>
+</blockquote>
+<h5 id="%E7%B1%BB%E5%9E%8B%E7%AD%BE%E5%90%8D">类型签名</h5>
+<p>类型签名定义了对值及其使用的约束。一个类型本身就是一个有效的类型签名。不能通过检查值或者定义值的类类型来确定值的类型签名。值的类型签名是从加载值的位置的位置签名或计算它的操作中派生出来的。通常，值的类型签名是从其中加载值的位置签名中的类型。</p>
+<p>之所以要区分类型签名和位置签名，是因为某些约束，如 “常量”，是对值而不是位置的约束。未来的标准版本或非标准扩展可以引入类型约束，从而使这种区别有意义。</p>
+<h5 id="%E4%BD%8D%E7%BD%AE%E7%AD%BE%E5%90%8D">位置签名</h5>
+<p>所有的位置都是有类型的。这意味着所有的位置都有一个位置签名，它定义了对位置、其使用以及存储在位置中的值的使用的约束。任何有效的类型签名都是一个有效的位置签名。因此，位置签名包含一个类型，并可以额外包含常量约束。位置签名还可以包含位置约束（<strong>location constraint</strong>），这些约束对位置的使用进行了进一步的限制。位置约束包括：</p>
+<ul>
+<li><strong>init-only constraint</strong> 承诺一旦位置被初始化，其内容永远不会改变。也就是说，内容在任何访问之前被初始化，初始化后，位置中不能存储任何值。内容始终与初始化的值相同。虽然这个约束在逻辑上适用于任何位置，但只能放在复合类型的字段（静态或实例）上。</li>
+<li><strong>literal constraint</strong> 保证位置的值实际上是内置类型的固定值。该值作为约束的一部分进行指定。编译器需要将所有对位置的引用替换为其值，因此 VES 不需要为位置分配空间。虽然从逻辑上看，这种约束适用于任何位置，但只能放在复合类型的静态字段上。标记为此的字段不允许从 CIL 中引用（它们应在编译时内联到其常量值），但可以使用反射和直接处理元数据的工具进行访问。</li>
+</ul>
+<blockquote>
+<blockquote>
+<p><a id="R13"></a>CLS Rule 13：字面量静态的值是通过使用字段初始化元数据来指定的。一个符合 CLS 的字面量必须在字段初始化元数据中指定一个与字面量完全相同类型的值（或者，如果该字面量是枚举，则为底层类型）。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：必须能够读取静态字面量字段的字段初始化元数据，并在引用时内联指定的值。<em>consumer</em> 可以假设字段初始化元数据的类型与字面量字段的类型完全相同（即，<em>Consumer Tools</em> 不需要实现值的转换）。
+For <em>extender</em>：必须避免为静态字面量字段生成字段初始化元数据，其中字段初始化元数据的类型与字段的类型不完全匹配。
+For <em>framework</em>：应避免使用指定需要转换值的字面量的值的语法。编译器可以在持久化字段初始化元数据之前自行进行转换，从而产生符合 CLS 的框架，但鼓励框架不要依赖这种隐式转换。</p>
+</blockquote>
+</blockquote>
+<p>在一个位置上提供一个易变（<strong>volatile</strong>）的约束，要求存储在该位置的值在访问之间不被缓存，这似乎是合理的。然而，CIL 在某些指令前加上了一个 <code>volatile.</code> 前缀，以指定该值既不被缓存，也不使用现有的缓存来计算。这样的约束可以使用自定义特性来编码，尽管这个标准没有指定这样的特性。</p>
+<h5 id="%E5%B1%80%E9%83%A8%E7%AD%BE%E5%90%8D">局部签名</h5>
+<p>局部签名（<strong>local signature</strong>）指定了在方法运行期间分配的局部变量的约束。局部签名包含完整的位置签名，另外还可以指定一个额外的约束：<strong>byref</strong> 约束声明相应位置的内容是一个托管指针。托管指针可以指向局部变量、参数、复合类型的字段或数组的元素。然而，当一个调用跨越远程边界时，符合规范的实现可以使用 <em>copy-in / copy-out</em> 机制，而不是托管指针。因此，程序不应依赖真正指针的别名行为。</p>
+<p>另外，还有一个特殊的局部签名。类型引用局部变量的签名包含指向某个位置的托管指针和可以存储在该位置的类型的运行时表示。类型引用签名类似于 <strong>byref</strong> 约束，但是 <strong>byref</strong> 在 <strong>byref</strong> 约束的一部分（作为类型描述的一部分）中指定了类型，而类型引用动态地提供了类型信息。类型引用本身就是一个完整的签名，不能与其他约束组合。特别地，不可能指定类型为类型引用（<strong>typed reference</strong>）的 <strong>byref</strong>。</p>
+<p>类型引用签名实际上被表示为一个内置的值类型，就像整数和浮点类型一样。在基类库中，这种类型被称为 <code>System.TypedReference</code>，在 CIL 汇编语言中，它被关键字 <code>typedref</code> 指定。这种类型只能用于参数和局部变量。它不应被装箱，也不应被用作字段、数组的元素或返回值的类型。</p>
+<blockquote>
+<blockquote>
+<p><a id="R14"></a>CLS Rule 14：类型引用不是 <em>CLS-compliant</em>。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：无需接受此类型。
+For <em>extender</em>：无需提供定义此类型的语法，或扩展使用此类型的接口或类。
+For <em>framework</em>：此类型不应出现在导出的成员中。</p>
+</blockquote>
+</blockquote>
+<h5 id="%E5%8F%82%E6%95%B0%E7%AD%BE%E5%90%8D">参数签名</h5>
+<p>参数签名（<strong>parameter signature</strong>）定义了作为方法调用一部分传递单个值的约束。参数签名由方法定义声明。任何有效的局部签名都是有效的参数签名。</p>
+<h5 id="%E6%96%B9%E6%B3%95%E7%AD%BE%E5%90%8D">方法签名</h5>
+<p>方法签名（<strong>method signature</strong>）由以下部分组成：</p>
+<ul>
+<li>调用约定。</li>
+<li>如果方法是泛型，那么指明泛型参数的数量。</li>
+<li>如果调用约定指定这是一个实例方法，并且拥有方法定义的类型为 <code>T</code>，那么 <code>this</code> 指针的类型是：
+<ul>
+<li>如果调用约定是实例显式（<code>instance explicit</code>）的，则由第一个参数签名给出；</li>
+<li>如果 <code>T</code> 是值类型并且方法定义是非虚拟的，则推断为 <code>&amp;T</code>；</li>
+<li>如果 <code>T</code> 是值类型并且方法定义是虚拟的（这包括由 <code>T</code> 实现的接口的方法定义），则推断为 “装箱” <code>T</code>，</li>
+<li>否则，推断为 <code>T</code>。</li>
+</ul>
+</li>
+<li>一个包含零个或多个参数的列表，每个方法的参数都有一个签名，并且；</li>
+<li>如果方法具有返回值，则它将包含有一个类型签名。</li>
+</ul>
+<p>方法签名是由方法定义声明的。除参数签名的约束外，只能添加一个约束到方法签名：</p>
+<ul>
+<li>可以包含 <code>vararg</code> 约束，以表明从这个位置开始的所有参数都是可选的。当它出现时，调用约定应该是支持可变参数列表的。</li>
+</ul>
+<p>方法签名有两种不同的用途：作为方法定义的一部分，或作为通过函数指针调用时的调用点的描述。在后一种情况下，方法签名指示：</p>
+<ul>
+<li>调用约定（可以包括平台特定的调用约定）；</li>
+<li>正在传递的所有参数值的类型；</li>
+<li>如果需要，一个 <code>vararg</code> 标记，指示固定参数列表结束和可变参数列表开始的位置。</li>
+</ul>
+<p>当用作方法定义的一部分时，<code>vararg</code> 约束由调用约定选择表示。</p>
+<p>单个方法实现可以同时满足类型的方法定义和类型实现的接口的方法定义。如果类型是值类型 <code>T</code>，那么在类型自己的方法定义的方法签名中，<code>this</code> 指针是一个托管指针 <code>&amp;T</code>，而在与接口的方法定义相关联的方法签名中，它是 “装箱” 了的 <code>T</code>。</p>
+<p><code>this</code> 指针的存在影响了 CIL 中参数签名和参数编号的配对。如果为 <code>this</code> 指针推断出参数签名，那么元数据中的第一个参数签名就是参数编号一。如果没有 <code>this</code> 指针，如静态方法，或者这是一个 <code>instance explicit</code> 方法，那么第一个参数签名就是参数编号零。</p>
+<blockquote>
+<blockquote>
+<p><a id="R15"></a>CLS Rule 15：<code>vararg</code> 约束不是 CLS 的一部分，CLS 支持的唯一调用约定是标准的托管调用约定。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：无需接受具有可变参数列表或非托管调用约定的方法。
+For <em>extender</em>：无需提供声明 <code>vararg</code> 约束方法或非托管调用约定方法的语法。
+For <em>framework</em>：既不应导出具有 <code>vararg</code> 约束的方法，也不应导出具有非托管调用约定的方法。</p>
+</blockquote>
+</blockquote>
+<h5 id="%E7%AD%BE%E5%90%8D%E5%8C%B9%E9%85%8D">签名匹配</h5>
+<p>对于方法签名以外的签名，只有当签名的每个组件类型在两个签名中都相同，才认为两个签名匹配。方法签名匹配用于确定隐藏和重写。只有在以下情况下，才认为两个方法签名匹配：</p>
+<ul>
+<li>调用约定是相同的；</li>
+<li>两个签名都是静态的或实例的；</li>
+<li>如果方法是泛型的，泛型参数的数量是相同的；</li>
+<li>对于实例签名，重写或隐藏签名的 <code>this</code> 指针的类型可以分配给被重写或隐藏签名的 <code>this</code> 指针的类型；</li>
+<li>参数的数量和类型签名是相同的。</li>
+<li>结果的类型签名是相同的。无返回值时，返回类型是 <code>Void</code>。</li>
+</ul>
+<p>在重写或隐藏时，该元素的可访问性不需要相同。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E8%B5%8B%E5%80%BC%E5%85%BC%E5%AE%B9%E6%80%A7">赋值兼容性</h3>
+<p>赋值兼容性（<strong>assignment compatibility</strong>）是指将类型 <code>T</code>（由类型签名静态描述）的值存储到类型 <code>U</code>（由位置签名描述）的位置的能力，简写为 <code>U := T</code>。因为 <code>T</code> 的类型签名是静态描述的，所以值可能实际上并不是由签名描述的类型，而是与该类型兼容的某种内容。例如没有位置或没有值具有 <code>System.Void</code> 类型。</p>
+<p>根据评估的上下文，确定类型兼容性的规则有所不同。赋值兼容性定义了以下关系：</p>
+<ul>
+<li><em>compatible-with</em>：是由 <code>castclass</code> 和 <code>isinst</code> 使用的关系，也用于确定变体泛型参数的有效性。基于此关系的操作不会改变值的表示。在转换时，源类型是值的动态类型。</li>
+<li><em>array-element-compatible-with</em>：是用于确定对数组元素的赋值的有效性的辅助关系。</li>
+<li><em>assignable-to</em>：是用于一般赋值的关系，包括加载和存储指令、隐式参数强制转换和方法返回。基于此关系的操作可能会改变值的表示。在赋值时，源类型是值的静态类型。</li>
+<li><em>pointer-element-compatible-with</em>：是用于确定托管指针兼容性的辅助关系。</li>
+</ul>
+<p>这些关系是根据六个类型子集定义的：</p>
+<ul>
+<li><em>storage types</em>：这些存储类型可以作为位置（<em>location</em>），局部（<em>local</em>）和参数（<em>parameter</em>）签名而出现。不包含方法签名，因为没有可以被赋值的方法值，委托类型是引用类型并可能出现在上述签名中。</li>
+<li><em>underlying types</em>：在 CTS 枚举中，枚举是现有底层类型的替代名称，被称为它们的基础类型。除了签名匹配，枚举被视为它们的基础类型。这个子集是删除了枚举的 <em>storage types</em> 存储类型的集合。</li>
+<li><em>reduced types</em>：当且仅当 <code>S</code> 和 <code>T</code> 具有相同的简化类型时，值类型 <code>S</code> 的值可以存储到值类型 <code>T</code> 的数组中，或从值类型 <code>T</code> 的数组中加载；并且值类型 <code>S</code> 的数组可以赋值给值类型 <code>T</code> 的数组。简化类型是 <em>underlying types</em> 底层类型的子集。</li>
+<li><em>verification types</em>：验证算法将某些验证类型视为是可互换的，并为它们分配一个公共的验证类型。验证类型是 <em>reduced types</em> 简化类型的一个子集。</li>
+<li><em>intermediate types</em>：只有一个内置值类型的子集可以在评估栈（<em>evaluation stack</em>）上表示。其他内置值类型的值在加载到（或存储到）评估栈时，转换为它们的中间类型（或从中间类型转换）。中间类型是 <em>verification types</em> 验证类型的子集加上浮点类型 <code>F</code>（<code>F</code> 不是上述四个子集的成员）。</li>
+<li><em>transient types</em>：这些类型只能出现在评估栈上：装箱类型、可控可变性托管指针类型，和 <code>null</code> 类型。</li>
+</ul>
+<p>以下是对 <em>underlying types</em> 底层类型、<em>reduced types</em> 简化类型、<em>verification types</em> 验证类型和 <em>intermediate types</em> 中间类型的精确定义。</p>
+<h4 id="%E5%AE%9A%E4%B9%89%E8%B5%8B%E5%80%BC%E5%85%BC%E5%AE%B9%E6%80%A7">定义赋值兼容性</h4>
+<blockquote>
+<p><em><strong>对浮点类型的处理</strong></em></p>
+<blockquote>
+<p>浮点值有两种类型：名义类型（<em>the nominal type</em>）和表示类型（<em>the representation type</em>）。有三种浮点类型：<code>float32</code>、<code>float64</code> 和 <code>F</code>。一个（名义）类型为 <code>float32</code> 或 <code>float64</code> 的值可能由一个实现使用类型 <code>F</code> 的值来表示。除非明确指出，任何对浮点类型的引用都指的是名义类型，特别是在引用签名和赋值兼容性时。因此，当赋值兼容性规则指出基于（名义）类型的浮点表示可能会改变时，表示类型可能已经相同，实际上并未进行任何改变。</p>
+</blockquote>
+<p><em><strong>符号预定义</strong></em></p>
+<blockquote>
+<ul>
+<li><em>S</em>, <em>T</em>, <em>U</em>, <em>V</em>, <em>W</em> 表示任意类型表达式；</li>
+<li><em>N</em>, <em>M</em> 表示声明的类型名称；</li>
+<li><em>X</em>, <em>Y</em> 表示声明的（正式）类型参数。
+<em>T</em> 的某种定义形式 <em><em>N</em>&lt;{<em>X</em><sub><em>i</em></sub> ← <em>T</em><sub><em>i</em></sub>}&gt;</em> 表示为 <em>T</em> 是一个可能实例化的对象、接口、委托或形式为 <em>N</em>&lt;<em>T</em><sub>1</sub>,…,<em>T</em><sub><em>n</em></sub>&gt;, <em>n</em> ≥ 0 (<em>n</em> = 0, &lt;&gt; 为空) 的值类型，其中 <em>N</em> 用泛型参数 <em>X</em><sub>1</sub>,…,<em>X</em><sub><em>n</em></sub> 表示。</li>
+</ul>
+</blockquote>
+</blockquote>
+<blockquote>
+<p>类型 <em>T</em> 的 <em>基础类型</em> 如下：</p>
+</blockquote>
+<ul>
+<li>如果 <em>T</em> 是枚举类型，那么其基础类型是在枚举的定义中声明的基础类型。</li>
+<li>否则，基础类型就是它本身。</li>
+</ul>
+<blockquote>
+<p>类型 <em>T</em> 的 <em>简化类型</em> 如下：</p>
+</blockquote>
+<ul>
+<li>如果 <em>T</em> 的基础类型是 <code>int8</code> 或 <code>unsigned int8</code>，那么它的简化类型是 <code>int8</code>。</li>
+<li>如果 <em>T</em> 的基础类型是 <code>int16</code> 或 <code>unsigned int16</code>，那么它的简化类型是 <code>int16</code>。</li>
+<li>如果 <em>T</em> 的基础类型是 <code>int32</code> 或 <code>unsigned int32</code>，那么它的简化类型是 <code>int32</code>。</li>
+<li>如果 <em>T</em> 的基础类型是 <code>int64</code> 或 <code>unsigned int64</code>，那么它的简化类型是 <code>int64</code>。</li>
+<li>如果 <em>T</em> 的基础类型是 <code>native int</code> 或 <code>unsigned native int</code>，那么它的简化类型是 <code>native int</code>。</li>
+<li>否则，简化类型就是其本身。</li>
+</ul>
+<p>简化类型忽略了枚举和有符号与无符号整数类型之间的语义差异；如果它们具有相同的位数，则将这些类型视为相同。</p>
+<blockquote>
+<p>类型 <em>T</em> 的 <em>验证类型</em> 如下：</p>
+</blockquote>
+<ul>
+<li>如果 <em>T</em> 的简化类型是：
+<ul>
+<li><code>int8</code> 或 <code>bool</code>，那么它的验证类型是 <code>int8</code>。</li>
+<li><code>int16</code> 或 <code>char</code>，那么它的验证类型是 <code>int16</code>。</li>
+<li><code>int32</code>，那么它的验证类型是 <code>int32</code>。</li>
+<li><code>int64</code>，那么它的验证类型是 <code>int64</code>。</li>
+<li><code>native int</code>，那么它的验证类型是 <code>native int</code>。</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>如果 <em>T</em> 是托管指针类型 <em>S</em>&amp; 并且 <em>S</em> 的简化类型是：
+<ul>
+<li><code>int8</code> 或 <code>bool</code>，那么它的验证类型是 <code>int8&amp;</code>。</li>
+<li><code>int16</code> 或 <code>char</code>，那么它的验证类型是 <code>int16&amp;</code>。</li>
+<li><code>int32</code>，那么它的验证类型是 <code>int32&amp;</code>。</li>
+<li><code>int64</code>，那么它的验证类型是 <code>int64&amp;</code>。</li>
+<li><code>native int</code>，那么它的验证类型是 <code>native int&amp;</code>。</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>否则，验证类型就是其本身。</li>
+</ul>
+<p>验证类型忽略了枚举、字符、布尔值、有符号和无符号整数类型以及指向这些类型的托管指针之间的语义差异；如果它们具有相同的位数或指向具有相同位数的类型，则将这些类型视为相同。</p>
+<blockquote>
+<p>类型 <em>T</em> 的 <em>中间类型</em> 如下：</p>
+</blockquote>
+<ul>
+<li>如果 <em>T</em> 的验证类型是 <code>int8</code>，<code>int16</code> 或 <code>int32</code>，那么它的中间类型是 <code>int32</code>。</li>
+<li>如果 <em>T</em> 的验证类型是浮点类型，那么它的中间类型是 <code>F</code>。</li>
+<li>否则，中间类型就是 <code>T</code> 的验证类型。</li>
+</ul>
+<p>中间类型与堆栈状态中的验证类型相似，仅对浮点类型有所不同。类型 <em>T</em> 的中间类型可能与 <em>T</em> 有不同的表示和含义。</p>
+<blockquote>
+<p>类型 <em>T</em> 的直接基类（<em>direct class</em>）如下：</p>
+</blockquote>
+<ul>
+<li>如果 <em>T</em> 是数组类型（零基单维或一般数组），那么它的直接基类是 <code>System.Array</code>。</li>
+<li>如果 <em>T</em> 是接口类型，那么它的直接基类是 <code>System.Object</code>。</li>
+<li>如果 <em>T</em> 是形式为 <em>N</em>&lt;{<em>X</em><sub><em>i</em></sub> ← <em>T</em><sub><em>i</em></sub>}&gt;，并且 <em>N</em> 被声明为扩展形式为 <em>M</em>&lt;{<em>Y</em><sub><em>j</em></sub> ← <em>S</em><sub><em>j</em></sub>}&gt; 的类型 <em>U</em>，那么 <em>T</em> 的直接基类是 <em>U</em>，其中 <em>S</em><sub>1</sub>,…,<em>S</em><sub><em>m</em></sub> 中的任何 <em>X</em><sub>1</sub>,…,<em>X</em><sub><em>n</em></sub> 出现都被相应的 <em>T</em><sub>1</sub>,…,<em>T</em><sub><em>n</em></sub> 替换。</li>
+<li>对于任何其他形式的类型 <em>T</em>，没有直接基类。</li>
+</ul>
+<p>根据这个定义，只有 <code>System.Object</code> 本身、值类型的非装箱形式和泛型参数没有直接基类。</p>
+<blockquote>
+<p>类型 <em>T</em> 直接实现的接口（<em>interfaces directly implemented</em>）如下：</p>
+</blockquote>
+<ul>
+<li>如果 <em>T</em> 的形式为 <em>N</em>&lt;{<em>X</em><sub><em>i</em></sub> ← <em>T</em><sub><em>i</em></sub>}&gt; 并且声明实现（或如果 <em>N</em> 是接口，则需要实现）形式为 <em>M</em><sub><em>j</em></sub>&lt;{<em>Y</em><sub><em>j</em>,<em>k</em></sub> ← <em>S</em><sub><em>j</em>,<em>k</em></sub>}&gt; 的接口 <em>U</em><sub>1</sub>,…,<em>U</em><sub><em>m</em></sub>，那么 <em>T</em> 直接实现的接口是 <em>U</em><sub>1</sub>,…,<em>U</em><sub><em>m</em></sub>，其中 <em>S</em><sub><em>j</em>,<em>k</em></sub> 中的 <em>X</em><sub><em>i</em></sub> 被相应的 <em>T</em><sub><em>i</em></sub> 替换。</li>
+<li>对于任何其他形式的类型 <em>T</em>，没有直接实现的接口。</li>
+</ul>
+<blockquote>
+<p>当且仅当满足以下条件之一时，类型 <em>T</em> 是引用类型：</p>
+</blockquote>
+<ul>
+<li><em>T</em> 是可能实例化的对象、委托或接口，形式为 <em>N</em>&lt;<em>T</em><sub>1</sub>,…,<em>T</em><sub><em>n</em></sub>&gt; (<em>n</em> ≥ 0)</li>
+<li><em>T</em> 是数组类型</li>
+</ul>
+<p>泛型参数不是引用类型。因此，引用类型的兼容性规则不适用。对于装箱类型的特殊情况也是如此。</p>
+<blockquote>
+<p>在确定签名的类型以实现类型兼容性时：</p>
+</blockquote>
+<ul>
+<li>任何 <strong>byref</strong> (<code>&amp;</code>) 约束被视为类型的一部分；</li>
+<li>特殊签名类型引用是类型 <strong>typedref</strong>；</li>
+<li>任何 <strong>modopt</strong>，<strong>modreq</strong>，或者 <strong>pinned</strong> 修饰符都会被忽略；并且</li>
+<li>任何调用约定都被视为类型的一部分。</li>
+</ul>
+<p>字面量约束不被视为字段，因此不能从 CIL 引用标记为此的字段。</p>
+<h4 id="%E7%AD%BE%E5%90%8D%E7%B1%BB%E5%9E%8B%E7%9A%84%E8%B5%8B%E5%80%BC%E5%85%BC%E5%AE%B9%E6%80%A7">签名类型的赋值兼容性</h4>
+<p>签名类型 T 与签名类型 <em>U</em> 兼容（<em>compatible-with</em>，兼容关系是在以下规则下封闭的最小关系）当且仅当满足以下至少一项条件：</p>
+<ol>
+<li><em>T</em> 与 <em>U</em> 等价（<em>identify</em>，自反性）。</li>
+<li>存在某个 <em>V</em>，使得 <em>T</em> 与 <em>V</em> 兼容，并且 <em>V</em> 与 <em>U</em> 兼容（<em>identify</em>，传递性）。</li>
+<li><em>T</em> 是引用类型，而 <em>U</em> 是 <em>T</em> 的直接基类。</li>
+<li><em>T</em> 是引用类型，而 <em>U</em> 是 <em>T</em> 直接实现的接口。</li>
+<li><em>T</em> 是零秩单维数组 <code>V[ ]</code>，而 <em>U</em> 是零秩单维数组 <code>W[]</code>，并且 <em>V</em> 与 <em>W</em> 数组元素兼容（<em>array-element-compatible-with</em>）。</li>
+<li><em>T</em> 是秩为 <em>r</em> 和元素类型为 <em>V</em> 的数组，而 <em>U</em> 是相同秩为 <em>r</em> 和元素类型为 <em>W</em> 的数组，且 <em>V</em> 与 <em>W</em> 数组元素兼容。</li>
+<li><em>T</em> 是零秩单维数组 <code>V[]</code>，而 <em>U</em> 是 <code>IList&lt;W&gt;</code>，并且 <em>V</em> 与 <em>W</em> 数组元素兼容。</li>
+<li><em>T</em> 是 <em>D</em>&lt;<em>T</em><sub>1</sub>,…,<em>T</em><sub><em>n</em></sub>&gt;，而 <em>U</em> 是 <em>D</em>&lt;<em>U</em><sub>1</sub>,…,<em>U</em><sub><em>n</em></sub>&gt;，对于某个带有变量声明 <em>var</em><sub>1</sub> 到 <em>var</em><sub><em>n</em></sub> 的接口或委托类型 <em>D</em>，并且对于从 1 到 <em>n</em> 的每个 <em>i</em>，满足以下条件之一：
+<ol>
+<li><em>var</em><sub><em>i</em></sub> = none (无变化)，并且 <em>T</em><sub><em>i</em></sub> 与 <em>U</em><sub><em>i</em></sub> 相同</li>
+<li><em>var</em><sub><em>i</em></sub> = + (协变)，并且 <em>T</em><sub><em>i</em></sub> 与 <em>U</em><sub><em>i</em></sub> <em>兼容</em></li>
+<li><em>var</em><sub><em>i</em></sub> = - (逆变)，并且 <em>U</em><sub><em>i</em></sub> 与 <em>T</em><sub><em>i</em></sub> <em>兼容</em></li>
+</ol>
+</li>
+<li><em>T</em> 和 <em>U</em> 是方法签名，且 <em>T</em> 是与 <em>U</em> 方法签名兼容（<em>method-signature-compatible-with</em>）。</li>
+</ol>
+<p>只有当 <em>T</em> 具有基础类型 <em>V</em> 且 <em>U</em> 具有基础类型 <em>W</em> 时，并且满足以下条件之一，签名类型 <em>T</em> 才与签名类型 <em>U</em> 数组元素兼容：</p>
+<ul>
+<li><em>V</em> 与 <em>W</em> <strong>兼容</strong>；或</li>
+<li><em>V</em> 和 <em>W</em> 具有相同的简化类型。</li>
+</ul>
+<p><strong>数组元素兼容</strong> 扩展了 <strong>兼容</strong>，但与枚举和整数符号无关。</p>
+<p>当 <code>W[]</code> 与 <code>V[]</code> 兼容且 <em>V</em> 和 <em>W</em> 具有相同的简化类型时，不应执行从 <em>V</em> 到 <em>W</em> 的表示更改，而应根据类型 <em>W</em> 而不是类型 <em>V</em> 来解释值的位。</p>
+<p>协变规则并不反映 <strong>数组元素兼容</strong> 的简化类型等价规则。依据规则 7：</p>
+<pre class="hljs"><code><div>IList&lt;int16&gt; := int16[]
+IList&lt;uint16&gt; := int16[]
+</div></code></pre>
+<p>在规则 8 则是：</p>
+<pre class="hljs"><code><div>IList&lt;int16&gt; :≠ IList&lt;uint16&gt;
+</div></code></pre>
+<br>
+<p>当且仅当满足以下条件时，方法签名类型 <em>T</em> 与方法签名类型 <em>U</em> 方法签名兼容：</p>
+<ol>
+<li>对于每个签名，如果签名是实例方法，它携带 <code>this</code> 的类型。这对于由 <code>ldftn</code> 和 <code>ldvirtftn</code> 指令产生的实例方法指针的签名始终是的 <code>true</code>。然而，如果元数据中指定的变量（与方法相对）的签名设置了 <code>HASTHIS</code> 和 <code>EXPLICITTHIS</code>，则不能在验证的代码中使用，并且不受 <em>方法签名兼容</em> 的支持。</li>
+<li><em>T</em> 和 <em>U</em> 的调用约定应完全匹配，忽略静态和实例方法之间的区别（即，如果有，<code>this</code> 参数不被特别对待）。</li>
+<li>对于 <em>T</em> 的每个参数类型 <em>P</em> 和 <em>U</em> 的相应类型 <em>Q</em>，<em>P</em> 是可分配（<em>assignable-to</em>）给 <em>Q</em>。</li>
+<li>对于 <em>T</em> 的返回类型 <em>P</em> 和 <em>U</em> 的返回类型 <em>Q</em>，<em>Q</em> 是 <em>可分配给</em> <em>P</em>。</li>
+</ol>
+<h4 id="%E4%BD%8D%E7%BD%AE%E7%B1%BB%E5%9E%8B%E7%9A%84%E8%B5%8B%E5%80%BC%E5%85%BC%E5%AE%B9%E6%80%A7">位置类型的赋值兼容性</h4>
+<p><em>兼容</em> 关系扩展到处理托管指针类型。当且仅当满足以下条件之一时，位置类型 <em>T</em> 与位置类型 <em>U</em> <em>兼容</em>：</p>
+<ol>
+<li><em>T</em> 和 <em>U</em> 不是托管指针类型，并且根据签名类型赋值兼容性中的定义，<em>T</em> 与 <em>U</em> <em>兼容</em>。</li>
+<li><em>T</em> 和 <em>U</em> 都是托管指针类型，并且 <em>T</em> 与 <em>U</em> 指针元素兼容（<em>pointer-element-compatible-with</em>）。</li>
+</ol>
+<p>当且仅当 <em>T</em> 具有验证类型 <em>V</em>，<em>U</em> 具有验证类型 <em>W</em>，并且 <em>V</em> 与 <em>W</em> 相同，托管指针类型 <em>T</em> 与托管指针类型 <em>U</em> <em>指针元素兼容</em>。</p>
+<h4 id="%E4%B8%80%E8%88%AC%E8%B5%8B%E5%80%BC%E5%85%BC%E5%AE%B9%E6%80%A7">一般赋值兼容性</h4>
+<p><em>可赋值给</em>（<em>assignable-to</em>）关系扩展了 <em>兼容</em>，以涵盖由各种加载和存储指令、隐式参数强制转换和方法返回的语义支持的原始值类型赋值。</p>
+<p>当且仅当满足以下条件之一时，位置类型 T <em>可赋值给</em> 位置类型 <em>U</em>：</p>
+<ol>
+<li><em>T</em> 与 <em>U</em> 等价（<em>identify</em>，自反性）。</li>
+<li>存在某个 <em>V</em>，使得 <em>T</em> <em>可赋值给</em> <em>V</em>，并且 <em>V</em> <em>可赋值给</em> <em>U</em>（<em>identify</em>，传递性）。</li>
+<li><em>T</em> 具有中间类型 <em>V</em>，<em>U</em> 具有中间类型 <em>W</em>，并且 <em>V</em> 与 <em>W</em> 相同。</li>
+<li><em>T</em> 具有中间类型 <code>native int</code>，并且 <em>U</em> 具有中间类型 <code>int32</code>，反之亦然。</li>
+<li><em>T</em> 与 <em>U</em> <em>兼容</em>。</li>
+</ol>
+<p>由 <em>可赋值给</em> 控制的赋值，如果涉及使用中间类型的规则的应用，可能会改变被赋值的值的表示和含义，因为它被翻译（被转换）为中间类型，然后从中间类型翻译（转换）回来。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E7%B1%BB%E5%9E%8B%E5%AE%89%E5%85%A8%E5%92%8C%E7%B1%BB%E5%9E%8B%E9%AA%8C%E8%AF%81">类型安全和类型验证</h3>
+<p>由于类型指定了协议（<em>Contracts</em>），因此了解给定实现是否符合这些协议是非常重要的。一个实现如果符合协议的可执行部分（命名签名），就被称为 <strong>类型安全</strong>。协议的重要部分涉及对命名项的可见性和可访问性的限制，以及名称到实现与内存位置的映射。</p>
+<p>类型安全的实现只将类型签名所描述的值存储在一个 <em>可赋值</em> 的位置签名的位置。类型安全的实现永远不会对将操作应用于未由该值确切类型定义的值。类型安全的实现只访问对它们既可见又可访问的位置。在类型安全的实现中，值的确切类型不能改变。</p>
+<p><strong>验证</strong> 是一种检查实现并断言其类型安全的机械过程。如果该过程证明实现是类型安全的，则认为验证成功。如果该过程未能证明实现的类型安全性，则认为验证失败。验证必然是保守的：它可以报告某个类型安全的实现是验证失败的，但对于非类型安全的实现，它永远不会报告成功。例如，大多数验证过程都会报告执行基于指针的算术的实现是验证失败的，即使该实现实际上是类型安全的。</p>
+<p>有许多不同的过程可以作为验证的基础。最简单的过程只是说所有的实现都不是类型安全的。通过花费更多的资源（时间和空间），一个过程可以正确地识别更多类型安全的实现。然而，已经证明，没有一个机械过程可以在有限的时间内且没有错误地，正确识别所有的实现是类型安全的还是非类型安全的。因此，选择特定的验证过程是一种工程问题，基于可用的资源来做决定，以及检测不同编程结构的类型安全的重要性。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="type-definers-%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89%E5%99%A8">Type definers 类型定义器</h3>
+<p>类型定义器从现有类型构造新类型。<strong>隐式类型</strong>（例如，内置类型、数组和指针，包括函数指针）在使用时被定义。在签名中提到隐式类型本身就是类型的完整定义。隐式类型允许 VES 使用具有一套标准的成员、接口等构造实例。隐式类型不需要用户提供的名称。</p>
+<p>所有其他类型都应使用显式类型定义进行显式定义。显式类型定义器包括：</p>
+<ul>
+<li>接口定义 – 用于定义接口类型</li>
+<li>类定义 – 用于定义类类型，可以是以下两者之一：
+<ul>
+<li>对象类型（包括委托）</li>
+<li>值类型及其关联的装箱类型</li>
+</ul>
+</li>
+</ul>
+<p>虽然类定义总是定义类类型，但并非所有类类型都需要类定义。隐式定义的数组类型和指针类型也是类类型。</p>
+<p>类似地，不是所有由类定义定义的类型都是对象类型。数组类型、显式定义的对象类型和装箱类型是对象类型。指针类型、函数指针类型和值类型不是对象类型。</p>
+<p>类、接口和值类型的定义可以被参数化，这是一种被称为 <em>泛型类型定义</em> 的特性。也就是说，类、接口或值类型的定义可以包含泛型参数。当使用时，会生成泛型类、接口或值类型的特定实例，此时泛型参数被绑定到特定的泛型参数。泛型参数可以被约束，因此只有匹配这些约束的泛型参数才能被用于实例化。</p>
+<h4 id="%E6%95%B0%E7%BB%84%E7%B1%BB%E5%9E%8B">数组类型</h4>
+<p><strong>数组类型</strong> 应通过指定数组的元素类型、数组的 <strong>秩</strong>（维数）以及数组每个维度的上下界来定义。因此，不需要单独定义数组类型。边界（以及数组的索引）应为有符号整数。虽然每个维度的实际边界只在运行时才知道，但签名可以指定在编译时已知的信息（例如，无边界、下界或上下界）。</p>
+<p>数组元素应在数组对象中按行主序排列（即，与最右边的数组维度关联的元素应从最低索引到最高索引连续排列）。为每个数组元素分配的实际存储可以包含特定于平台的填充。当 <code>sizeof</code> 指令应用于该数组元素的类型时，以字节为单位返回此存储的大小。</p>
+<p>数组类型的值是对象；因此，数组类型是一种对象类型。CTS 定义的数组对象是值的数组元素类型存储的位置的重复。重复值的数量由数组的秩和边界决定。只允许将类型签名，而不是位置签名，用作数组元素类型。</p>
+<p>当需要时，VES 会自动创建精确的数组类型。因此，CTS 定义了对数组类型的操作。这些操作通常是：根据大小和下界信息分配数组，索引数组以读取和写入值，计算数组元素的地址（一个托管指针），并查询秩、边界以及存储在数组中的值的总数。</p>
+<p>此外，创建的元素类型为 <code>T</code> 的 <em>Vector</em>，实现了接口 <code>System.Collections.Generic.IList&lt;U&gt;</code>，其中 <code>U := T</code>。</p>
+<blockquote>
+<blockquote>
+<p><a id="R16"></a>CLS Rule 16：数组应具有符合 CLS 的元素类型，且数组的所有维度的下界应为零。仅要求项是数组和数组的元素类型这一事实来区分重载。当重载基于两个或更多数组类型时，元素类型应为命名类型。</p>
+<p>所谓的 “交错数组” 是符合 CLS 的，但是当对多个数组类型进行重载时，它们是类型为 <code>System.Array</code> 的零秩单维数组。</p>
+<p>For <em>consumer</em>：即使处理 <code>System.Array</code> 的实例，也无需支持非 CLS 类型的数组。重载解析无需了解数组类型的全部复杂性。如果没有语言语法用于完整的数组类型范围，程序员应能够访问 <code>System.Array</code> 实例上的 <code>Get</code>、<code>Set</code> 和 <code>Address</code> 方法。
+For <em>extender</em>：无需提供定义非 CLS 数组类型的语法，或扩展使用非 CLS 数组类型的接口或类。应提供对类型 <code>System.Array</code> 的访问，但可以假设所有实例都具有符合 CLS 的类型。虽然必须使用完整的数组签名来覆盖具有数组参数的继承方法，但无需将数组类型的全部复杂性显示给程序员。如果没有语言语法用于完整的数组类型范围，程序员应能够访问 <code>System.Array</code> 实例上的 <code>Get</code>、<code>Set</code> 和 <code>Address</code> 方法。
+For <em>framework</em>：非 CLS 数组类型不应出现在导出的成员中。尽可能只使用简单命名类型的一维、零秩数组（向量，<em>Vector</em>），因为这些在最广泛的编程语言中得到支持。应避免对数组类型进行重载，当使用时应遵守限制。</p>
+</blockquote>
+</blockquote>
+<p>数组类型形成一个层次结构，所有的数组类型都继承自 <code>System.Array</code> 类型。这是一个抽象类，它表示所有的数组，无论它们的元素类型、秩或上下界如何。VES 为每个可区分的数组类型创建一个数组类型。一般来说，数组类型只通过它们的元素类型和秩来区分。然而，VES 特别对待单维、零秩的数组（也称为向量）。向量也通过它们的元素类型来区分，但是一个向量与具有非零下界的同一元素类型的单维数组是不同的。不支持零维数组。参考以下使用 CIL 语法的例子：</p>
+<table>
+<thead>
+<tr>
+<th>Static specification of type</th>
+<th>Actual type constructed</th>
+<th>Allowed in CLS?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>int32[]</code></td>
+<td>vector of <code>int32</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>int32[0...5]</code></td>
+<td>vector of <code>int32</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>int32[1...5]</code></td>
+<td>array, rank 1, of <code>int32</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>int32[,]</code></td>
+<td>array, rank 2, of <code>int32</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>int32[0...3, 0...5]</code></td>
+<td>array, rank 2, of <code>int32</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>int32[0..., 0...]</code></td>
+<td>array, rank 2, of <code>int32</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>int32[1..., 0...]</code></td>
+<td>array, rank 2, of <code>int32</code></td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h4 id="%E9%9D%9E%E6%89%98%E7%AE%A1%E6%8C%87%E9%92%88%E7%B1%BB%E5%9E%8B">非托管指针类型</h4>
+<p><strong>非托管指针类型</strong>（也简称为 &quot;指针类型&quot;）是通过指定指针引用的位置的位置签名来定义的。任何指针类型的签名都包含这个位置签名。因此，不需要单独定义指针类型。</p>
+<p>虽然指针类型是引用类型，但指针类型的值不是对象，因此，给定一个指针类型的值，无法确定其确切类型。CTS 为指针类型提供了两种类型安全的操作：一种是从指针引用的位置加载值，另一种是将 <em>可赋值</em> 类型的值存储到指针引用的位置。CTS 还为指针类型提供了三种操作（基于字节的地址算术）：向指针加减整数，以及从一个指针减去另一个指针。前两种操作的结果是指向与原始指针相同的类型签名的指针。</p>
+<blockquote>
+<blockquote>
+<p><a id="R17"></a>CLS Rule 17：非托管指针类型不兼容 CLS。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：无需支持非托管指针类型。
+For <em>extender</em>：无需提供定义或访问非托管指针类型的语法。
+For <em>framework</em>：非托管指针类型不应被外部导出。</p>
+</blockquote>
+</blockquote>
+<h4 id="%E5%A7%94%E6%89%98%E7%B1%BB%E5%9E%8B">委托类型</h4>
+<p><strong>委托</strong> 是面向对象的函数指针等价物。与函数指针不同，委托是面向对象的、类型安全且可靠的。委托是通过定义一个从基类型 <code>System.Delegate</code> 派生的类来创建的。每个委托类型都应提供一个带有适当参数的名为 <code>Invoke</code> 的方法，每个委托实例都将对其 <code>Invoke</code> 方法的调用转发到兼容委托签名的特定对象上的一个或多个静态或实例方法。委托实例在创建时选择要委托的对象和方法。</p>
+<p>除了实例构造函数和 <code>Invoke</code> 方法外，委托还可以选择性地具有两个额外的方法：<code>BeginInvoke</code> 和 <code>EndInvoke</code>，它们用于异步调用。</p>
+<p>虽然在大多数情况下，委托看起来只是另一种用户定义的类，但它们受到严格控制。方法的实现由 VES 提供，而不是用户代码。在委托类型上可以定义的额外成员只能是静态方法或实例方法。</p>
+<h4 id="%E6%8E%A5%E5%8F%A3%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89">接口类型定义</h4>
+<p>接口定义（<em>interface-type-definitions</em>）定义了一个接口类型。接口类型是一组命名的方法、位置和其他协议，任何支持同名接口协议的对象类型都应实现这些协议。接口定义总是对值的不完全描述，因此，它不能定义类类型或确切类型，也不能是对象类型。</p>
+<p>零个或多个对象类型可以支持一个接口类型，只有对象类型可以支持接口类型。接口类型可以要求支持它的对象也必须支持其他（指定的）接口类型。支持命名接口协议的对象类型应提供接口类型指定（但未由接口类型实现）的方法、位置和其他协议的完整实现。因此，对象类型的一个值也是对象类型支持的所有接口类型的一个值。接口协议的支持是声明的，而不是推断的；即，存在实现接口类型所需的方法、位置和其他协议的实现并不意味着该对象类型支持接口协议。</p>
+<blockquote>
+<blockquote>
+<p><a id="R18"></a>CLS Rule 18：兼容 CLS 的接口不应要求为了实现它们而定义非 CLS 兼容的方法。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：无需处理此类接口。
+For <em>extender</em>：无需提供定义此类接口的机制。
+For <em>framework</em>：无需提供定义此类接口的机制。</p>
+</blockquote>
+</blockquote>
+<p>接口类型必然是不完全的，因为它们对接口类型的值的表示没有任何说明。因此，接口类型定义不应为接口类型的值提供字段定义（即，实例字段），尽管它可以声明静态字段。</p>
+<p>同样，接口类型定义不应为其类型的值的任何方法提供实现。接口类型定义可以（并且通常会）定义由支持类型实现的方法协议（方法名称和方法签名）。接口类型定义可以定义和实现静态方法，因为静态方法与接口类型本身相关，而不是与该类型的任何值相关。</p>
+<p>接口可以有静态方法或虚方法，但不应有实例方法定义。</p>
+<blockquote>
+<blockquote>
+<p><a id="R19"></a>CLS Rule 19：兼容 CLS 的接口不应定义静态方法，也不应定义字段。</p>
+<p><em>CLS-compliant</em> 的接口可以定义属性、事件和虚方法。</p>
+<p>For <em>consumer</em>：无需接受违反这些规则的接口。
+For <em>extender</em>：无需提供编写违反这些规则的接口的语法。
+For <em>framework</em>：不应向外部公开违反这些规则的接口。如果需要静态方法、实例方法或字段，可以定义一个单独的类来提供它们。</p>
+</blockquote>
+</blockquote>
+<p>接口类型还可以定义对象类型必须实现的事件和属性协议。由于事件和属性协议可以归约为方法协议集，因此适用上述方法定义规则。接口类型定义可以指定接口类型的实现需要支持的其他接口协议。</p>
+<p>接口类型被赋予一个可见性特性，该特性控制可以从哪里引用接口类型。接口类型定义与支持接口类型的任何对象类型定义是分开的。因此，通常可能并且希望接口类型和实现对象类型具有不同的可见性。然而，由于可访问性特性是相对于实现类型而不是接口本身的，接口的所有成员都应具有公共可访问性，并且不能将安全权限附加到接口成员或接口本身上。</p>
+<h4 id="%E7%B1%BB%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89">类类型定义</h4>
+<p>除接口和那些由 CTS 自动提供定义的类型外，所有类型都由类定义（<em>class-type-definitions</em>）定义。<strong>类类型</strong>（<em>class type</em>）是类类型的值的表示以及类类型支持的所有协议（类、接口、方法、属性和事件）的完整规范。因此，类类型是一个确切的类型。除非它指定类是一个<strong>抽象对象类型</strong>（<em>abstract object type</em>），否则类定义不仅定义了类类型，还为类类型支持的所有协议提供了实现。</p>
+<p>类定义以及类类型的实现总是驻留在某个程序集中。程序集是一组配置好的可加载代码模块和其他资源，它们共同实现一个功能单元。</p>
+<p>虽然类定义总是定义类类型，但并非所有类类型都需要类定义。数组类型和指针类型，这些都是隐式定义的，也是类类型。</p>
+<p>显式类定义用于定义：</p>
+<ul>
+<li>对象类型（<em>Object type</em>）。</li>
+<li>值类型及其关联的装箱类型。</li>
+</ul>
+<p>显式类定义：</p>
+<ul>
+<li>命名类类型。</li>
+<li>将类类型名称隐式分配给一个范围，即包含类定义的程序集。</li>
+<li>定义同名的类协议。</li>
+<li>使用字段、方法、属性和事件的成员定义来定义类类型的所有值的表示和有效操作。</li>
+<li>定义类类型的静态成员。</li>
+<li>指定类类型还支持的任何其他接口和类协议。</li>
+<li>为类类型支持的成员和接口协议提供实现。</li>
+<li>明确声明类型的可见性，公共或程序集。</li>
+<li>可以选择性地指定一个方法（称为 <code>.cctor</code>）来初始化类型。</li>
+</ul>
+<p>类型初始化方法的执行时机和触发条件的语义如下：</p>
+<ol>
+<li>类型可以有一个类型初始化方法，也可以没有。</li>
+<li>类型可以被指定为对其类型初始化方法具有宽松的语义（为了方便，我们将这种宽松的语义称为 <strong>BeforeFieldInit</strong>）。</li>
+<li>如果标记为 <strong>BeforeFieldInit</strong>，则在首次访问该类型定义的任何静态字段时或在此之前，执行类型的初始化方法。</li>
+<li>如果未标记为 <strong>BeforeFieldInit</strong>，则在以下情况下执行该类型的初始化方法：
+<ol>
+<li>首次访问该类型的任何静态字段，或</li>
+<li>首次调用该类型的任何静态方法，或</li>
+<li>如果它是值类型，首次调用该类型的任何实例或虚方法，或</li>
+<li>首次调用该类型的任何构造函数。</li>
+</ol>
+</li>
+<li>执行任何类型的初始化方法不会触发其基类型定义的任何初始化方法的自动执行，也不会触发该类型实现的任何接口。</li>
+</ol>
+<p>对于引用类型，必须调用构造函数来创建非空实例。因此对于引用类型，在可以访问实例字段和在非空实例上调用方法之前，将调用 <code>.cctor</code>。对于值类型，可以创建一个 &quot;全零&quot; 实例而无需构造函数（但只有这个值可以在没有构造函数的情况下创建）。因此，对于值类型，<code>.cctor</code> 只保证在值类型的非 &quot;全零&quot; 实例上被调用。</p>
+<p><strong>BeforeFieldInit</strong> 行为适用于没有副作用的初始化代码，其中精确的时间并不重要。此外，在 <strong>BeforeFieldInit</strong> 语义下，允许在首次访问该类型的任何静态字段时或在此之前执行类型初始化器，由 CLI 自行决定。如果一种语言希望提供更严格的行为，例如，类型初始化自动触发基类的初始化器的执行，按从上到下的顺序，那么它可以通过以下方式之一来实现：</p>
+<ul>
+<li>在每个类构造函数中定义隐藏的静态字段和代码，触及其基类和 / 或它实现的接口的隐藏静态字段，或</li>
+<li>通过显式调用 <code>System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor</code>。</li>
+</ul>
+<h4 id="%E5%AF%B9%E8%B1%A1%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89">对象类型定义</h4>
+<p>所有对象都是 <strong>对象类型</strong>（<em>object type</em>）的实例。对象的对象类型在创建对象时设置，并且是不可变的。对象类型描述了实例的物理结构和允许对其进行的操作。同一对象类型的所有实例具有相同的结构和相同的允许操作。对象类型由类类型定义显式声明，数组类型除外，数组类型由 VES 内部提供。</p>
+<h5 id="%E4%BD%9C%E7%94%A8%E5%9F%9F%E5%92%8C%E5%8F%AF%E8%A7%81%E6%80%A7">作用域和可见性</h5>
+<p>由于对象类型定义是类类型定义，对象类型定义隐式地指定对象类型名称的范围为包含对象类型定义的程序集。类似地，对象类型定义也应明确声明对象类型的可见性（<strong>public</strong> 或 <strong>assembly</strong>）。</p>
+<h5 id="%E5%85%B7%E4%BD%93%E6%80%A7">具体性</h5>
+<p>一个对象类型可以通过对象类型定义被标记为 <strong>抽象</strong>（<em>abstract</em>）。一个没有被标记为 <strong>抽象</strong> 的对象类型，按定义来说，是 <strong>具体</strong>（<em>concrete</em>）的。只有对象类型可以被声明为抽象的。只有抽象对象类型才允许定义该类型或 VES 不提供实现的方法协议。这样的方法协议被称为 <strong>抽象方法</strong>。抽象类上的方法不必都是抽象的。</p>
+<p>试图创建一个抽象对象类型的实例是错误的，无论该类型是否有抽象方法。如果一个从抽象对象类型派生的对象类型为基对象类型中的所有抽象方法提供了实现，并且它本身没有被标记为抽象的，那么该派生对象类型是具体的。可以创建这样一个具体派生类的实例。位置可以是一个抽象类型，而从抽象类型派生的具体类型的实例可以存储在这个位置。</p>
+<h5 id="%E7%B1%BB%E5%9E%8B%E6%88%90%E5%91%98">类型成员</h5>
+<p>对象类型定义包括类型的所有成员的成员定义。简单来说，类型的成员包括存储值的字段、可以调用的方法、可用的属性和可以引发的事件。</p>
+<ul>
+<li>对象类型的字段通过指定组成对象类型的组件块来指定对象类型值的表示。静态字段指定与对象类型本身关联的字段。对象类型的字段通过位置签名来命名和类型化。类型成员的名称限定在该类型的范围内。使用字段定义声明字段。</li>
+</ul>
+<ul>
+<li>对象类型的方法指定对类型的值的操作。静态方法指定对类型本身的操作。方法是命名的，它们有一个方法签名。方法的名称限定在类型范围内。使用方法定义来声明方法。</li>
+</ul>
+<ul>
+<li>对象类型的属性指定可通过读写值的方法访问的命名值。属性的名称是方法的分组；方法本身也通过方法签名来命名和类型化。属性的名称限定在类型的范围内。使用属性定义来声明属性。</li>
+</ul>
+<ul>
+<li>对象类型的事件指定命名的状态转换，订阅者可以通过访问器方法注册 / 取消注册关注。当状态改变时，通知订阅者状态转换。事件的名称是访问器方法的分组；方法本身也通过方法签名进行命名和类型化。事件的名称限定在类型的范围内。使用事件定义进行声明事件。</li>
+</ul>
+<h5 id="%E6%94%AF%E6%8C%81%E6%8E%A5%E5%8F%A3%E5%8D%8F%E8%AE%AE">支持接口协议</h5>
+<p>对象类型定义可以声明它们支持零个或多个接口协议。声明支持接口协议会要求对象类型的实现完全实现该接口协议。实现接口协议总是归结为实现所需的方法集，即接口类型所需的方法。</p>
+<p>对象类型实现的不同类型（即对象类型和任何实现的接口类型）都是命名成员的单独逻辑分组。如果一个类 <code>Foo</code> 实现了一个接口 <code>IFoo</code>，并且 <code>IFoo</code> 声明了一个成员方法 <code>int a()</code>，并且 <code>Foo</code> 也声明了一个成员方法 <code>int a()</code>，那么就有两个成员，一个在 <code>IFoo</code> 接口类型中，一个在 <code>Foo</code> 类类型中。<code>Foo</code> 的实现将为两者都提供实现，可能是共享的。类似地，如果一个类实现了两个接口 <code>IFoo</code> 和 <code>IBar</code>，每个接口都定义了一个方法 <code>int a()</code>，那么类将提供两个方法实现，每个接口一个，尽管它们可以共享实现的实际代码。</p>
+<blockquote>
+<blockquote>
+<p><a id="R20"></a>CLS Rule 20：兼容 CLS 的类、值类型和接口不应要求实现非 CLS 兼容的成员。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：无需接受违反此规则的类、值类型或接口。
+For <em>extender</em>：无需提供编写违反此规则的类、值类型或接口的语法。
+For <em>framework</em>：不应外部公开违反此规则的类、值类型或接口。如果符合 CLS 的框架公开了一个实现非 CLS 兼容接口的类，框架应提供所有非 CLS 兼容成员的具体实现。这确保了 CLS <em>extender</em> 不需要为实现非 CLS 兼容的成员提供语法。</p>
+</blockquote>
+</blockquote>
+<h5 id="%E6%94%AF%E6%8C%81%E7%B1%BB%E5%8D%8F%E8%AE%AE">支持类协议</h5>
+<p>对象类型定义可以声明支持另一个类协议。声明支持另一个类协议等同于对象类型继承。</p>
+<h5 id="%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0">构造函数</h5>
+<p>对象类型的新值是通过 <strong>构造函数</strong>（<em>constructors</em>）创建的。构造函数应该是实例方法，通过一种特殊形式的方法协议定义，它将方法协议定义为特定对象类型的构造函数。对象类型的构造函数是对象类型定义的一部分。虽然 CTS 和 VES 确保只有正确定义的构造函数用于创建对象类型的新值，但新构造的对象的最终正确性取决于构造函数的实现本身。</p>
+<p>对象类型应定义至少一个构造函数方法，但该方法不必是公开的。通过调用构造函数创建对象类型的新值涉及以下步骤，按顺序进行：</p>
+<ol>
+<li>在托管内存中为新值分配空间。</li>
+<li>初始化新值的 VES 数据结构，并将用户可见的内存清零。</li>
+<li>调用对象类型的指定构造函数。</li>
+</ol>
+<p>在构造函数内部，对象类型可以选择进行任何初始化（可能没有）。</p>
+<blockquote>
+<blockquote>
+<p><a id="R21"></a>CLS Rule 21：对象构造函数在访问继承的实例数据之前，必须调用其基类的某个实例构造函数（这不适用于值类型，构造它们时可以不需要调用构造函数）。</p>
+</blockquote>
+<blockquote>
+<p><a id="R22"></a>CLS Rule 22：对象构造函数只能在创建对象的过程中被调用，一个对象不应被初始化两次。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：应提供语法来选择创建对象时要调用的构造函数。
+For <em>extender</em>：应提供定义具有不同签名的构造函数方法的语法。如果构造函数不遵守这些规则，它可以发出编译器错误。
+For <em>framework</em>：可以假设对象创建包括对构造函数之一的调用，并且没有对象被初始化两次。<code>System.Object.MemberwiseClone</code> 和反序列化（包括对象远程处理）不应运行构造函数。</p>
+</blockquote>
+</blockquote>
+<h5 id="%E7%BB%88%E7%BB%93%E5%99%A8">终结器</h5>
+<p>创建对象类型的类定义可以提供一个实例方法（称为<em>终结器</em>（<em>finalizers</em>）），当类的实例不再可达时调用。类 <code>System.GC</code> 通过 <code>SuppressFinalize</code> 和 <code>ReRegisterForFinalize</code> 方法对终结器的行为提供了有限的控制。符合 CLI 的实现可以指定并提供影响终结器行为的额外机制。</p>
+<p>符合 CLI 的实现不应自动为同一对象调用两次终结器，除非</p>
+<ul>
+<li>有一个干预的 <code>ReRegisterForFinalize</code> 调用（没有后续的 <code>SuppressFinalize</code> 调用），或者</li>
+<li>程序已经调用了一个明确指定会改变此行为的特定于实现的机制。</li>
+</ul>
+<p>程序员期望终结器在任何给定的对象上只运行一次，除非他们采取明确的行动导致终结器运行多次。</p>
+<p>为值类型定义终结器是有效的，该终结器只会在值类型的 <em>装箱</em> 实例上运行。</p>
+<p>由于程序员可能依赖于终结器被调用，CLI 在关闭之前应尽可能确保所有没有通过调用 <code>SuppressFinalize</code> 而被免除终结化的对象的终结器都被调用。实现应指定无法保证此行为的任何条件。</p>
+<p>由于如果终结器没有迅速被调用，资源可能会耗尽，CLI 应确保在实例变得不可访问后在之后的某个时间点调用终结器。虽然依赖内存压力来触发终结是可以接受的，但实现者应考虑使用额外的度量。</p>
+<h4 id="%E5%80%BC%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89">值类型定义</h4>
+<p>并非所有由类定义定义的类型都是对象类型；特别是，值类型不是对象类型，但它们是使用类定义来定义的。值类型的类定义定义了（未装箱的）值类型和关联的装箱类型。类定义的成员定义了两者的表示：</p>
+<ol>
+<li>当在值类型上调用非静态方法（即，实例或虚方法）时，其 <code>this</code> 指针是对实例的托管引用，而当在关联的装箱类型上调用方法时，<code>this</code> 指针是对象引用。值类型上的实例方法接收一个指向未装箱类型的托管指针作为 <strong>this</strong> 指针，而虚方法（包括由值类型实现的接口上的方法）接收装箱类型的实例。</li>
+<li>值类型不支持接口协议，但其关联的装箱类型支持。</li>
+<li>值类型不继承；相反，类定义中指定的基类型定义了装箱类型的基类型。</li>
+<li>装箱类型的基类型不应有任何字段。</li>
+<li>与对象类型不同，创建值类型的实例时不需要调用构造函数。相反，验证规则要求可验证的代码将实例初始化为全位零（对象字段为 <code>null</code>）。</li>
+</ol>
+<h4 id="%E7%B1%BB%E5%9E%8B%E7%BB%A7%E6%89%BF">类型继承</h4>
+<p>类型继承是派生类型保证支持基类型的所有类型协议的另一种说法。此外，派生类型通常提供额外的功能或专门化的行为。类型通过实现基类型的类型协议继承基类型。接口类型实现零个或多个其他接口。值类型不继承，尽管关联的装箱类型是对象类型并从其他类型继承。</p>
+<p>派生类类型应支持其基类型的所有支持的接口协议、类协议、事件协议、方法协议和属性协议。此外，基类型定义的所有位置也在派生类型中定义。继承规则保证，编译为处理基类型值的代码在传递给派生类型的值时仍然有效。因此，派生类型也继承基类型的实现。派生类型可以扩展、重写或隐藏这些实现。</p>
+<h4 id="%E5%AF%B9%E8%B1%A1%E7%B1%BB%E5%9E%8B%E7%BB%A7%E6%89%BF">对象类型继承</h4>
+<p>除 <code>System.Object</code> 外，所有对象类型都应显式或隐式地声明支持（继承自）另一个对象类型。继承关系的图形应形成一个单根树，<code>System.Object</code> 在根位置；所有对象类型最终都继承自 <code>System.Object</code> 类型。引入泛型类型使得给出精确定义变得更加困难；</p>
+<p>对象类型通过声明它是一个 <strong>密封</strong>（<em>sealed</em>）类型，声明它不应被用作基类型（被继承）。</p>
+<blockquote>
+<blockquote>
+<p><a id="R23"></a>CLS Rule 23：<code>System.Object</code> 兼容 CLS。任何其他兼容 CLS 的类应继承自兼容 CLS 的类。</p>
+</blockquote>
+</blockquote>
+<p>数组是对象类型，它继承自其他对象类型。由于数组对象类型是由 VES 制造的，数组的继承是固定的（继承自 <code>System.Array</code>）。</p>
+<h4 id="%E5%80%BC%E7%B1%BB%E5%9E%8B%E7%BB%A7%E6%89%BF">值类型继承</h4>
+<p>在未装箱的形式下，值类型不从任何类型继承。装箱的值类型应直接从 <code>System.ValueType</code> 继承，除非它们是枚举，枚举应从 <code>System.Enum</code> 继承。装箱的值类型应被密封。</p>
+<p>从逻辑上讲，对应于值类型的装箱类型</p>
+<ul>
+<li>是一个对象类型。</li>
+<li>将指定哪个对象类型是其基类型。</li>
+<li>将具有没有定义字段的基类型。</li>
+<li>将被密封以避免处理值切片的复杂性。</li>
+</ul>
+<p>这里指定的更严格的规则允许更有效的实现，而不会严重损害功能性。</p>
+<h4 id="%E6%8E%A5%E5%8F%A3%E7%B1%BB%E5%9E%8B%E6%B4%BE%E7%94%9F">接口类型派生</h4>
+<p>接口类型可以要求实现一个或多个其他接口。任何实现了对接口类型的支持的类型也应该实现该接口指定的任何必需接口的支持。这与对象类型继承有两点不同：</p>
+<ul>
+<li>对象类型形成一个单一的继承树；接口类型则不然。</li>
+<li>对象类型继承指定了如何继承实现；必需接口则不然，因为接口不定义实现。必需接口指定了实现对象类型应支持的额外协议。</li>
+</ul>
+<p>例如一个接口 <code>IFoo</code>，它有一个单一的方法。一个从它派生的接口 <code>IBar</code>，要求任何支持 <code>IBar</code> 的对象类型也支持 <code>IFoo</code>。它并没有说 <code>IBar</code> 本身将有哪些方法。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E6%88%90%E5%91%98%E7%BB%A7%E6%89%BF">成员继承</h3>
+<p>只有对象类型可以继承实现，因此只有对象类型可以继承成员。虽然接口类型可以从其他接口类型派生，但它们只 “继承” 实现方法协议的要求，从不继承字段或方法实现。</p>
+<h4 id="%E5%AD%97%E6%AE%B5%E7%BB%A7%E6%89%BF">字段继承</h4>
+<p>派生的对象类型继承其基对象类型的所有非静态字段。这允许在期望基类型实例的地方使用派生类型的实例（实例的布局将是相同的）。静态字段不被继承。仅仅因为一个字段存在并不意味着它可以被读取或写入。字段定义的类型可见性、字段可访问性和安全特性决定一个字段是否对派生对象类型可访问。</p>
+<h4 id="%E6%96%B9%E6%B3%95%E7%BB%A7%E6%89%BF">方法继承</h4>
+<p>派生的对象类型继承其基对象类型的所有实例和虚方法。它不继承构造函数或静态方法。仅仅因为一个方法存在并不意味着它可以被调用。它应该通过正在被引用代码使用的类型引用来访问。方法定义的类型可见性、方法可访问性和安全特性决定一个方法是否对派生对象类型可访问。</p>
+<p>派生的对象类型可以通过提供具有相同名称或相同名称和签名的新方法定义来隐藏其基类型的非虚拟（静态或实例）方法。只要符合方法可访问性规则，任一方法仍然可以被调用，因为包含该方法的类型总是符合方法引用。</p>
+<p>虚方法可以被标记为 <strong>final</strong>，在这种情况下，它们不应在派生对象类型中被重写。这确保了方法的实现可以通过虚拟调用在任何支持基类协议的对象上使用，基类提供了最终的实现。如果一个虚方法不是 <strong>final</strong>，那么可以要求一个安全权限（例如密封）以重写虚方法，这样可以将提供实现的能力限制在具有特定权限的类中。当派生类型重写一个虚方法时，它可以为虚方法指定一个新的可访问性，但派生类中的可访问性应至少允许与被重写的方法一样的可访问性。</p>
+<h4 id="%E5%B1%9E%E6%80%A7%E7%BB%A7%E6%89%BF">属性继承</h4>
+<p>从根本上讲，属性和事件是元数据的构造，旨在供针对 CLI 的工具使用，并且 VES 本身并不直接支持它们。因此，确定名称隐藏、继承等规则是源语言编译器和反射库的工作。源编译器应生成直接访问由事件和属性命名的方法的 CIL，而不是事件或属性本身。</p>
+<h4 id="%E9%9A%90%E8%97%8F%E8%A6%86%E7%9B%96%E5%92%8C%E5%B8%83%E5%B1%80">隐藏、覆盖和布局</h4>
+<h2 id="i8104-%E9%9A%90%E8%97%8F%E8%A6%86%E7%9B%96%E5%92%8C%E5%B8%83%E5%B1%80">I.8.10.4 隐藏、覆盖和布局</h2>
+<p>继承涉及两个独立的问题。第一个是类型应实现哪些协议，因此应提供哪些成员名称和签名。第二个是实例的布局，使得派生类型的实例可以替代其任何基类型的实例。只有派生类型的非静态字段和虚方法影响对象的布局。</p>
+<p>CTS 对从基类型可见的名称（<strong>隐藏</strong>，<em>hiding</em>）和在派生类中的布局槽位共享（<strong>覆盖</strong>，<em>overriding</em>）提供了独立的控制。隐藏是通过将派生类中的成员标记为 <strong>按名称隐藏</strong>（<em>hide by name</em>）或 <strong>按名称和签名隐藏</strong>（<em>hide by name-and-signature</em>）来控制的。隐藏总是基于成员的种类进行的，也就是说，派生字段名称可以隐藏基字段名称，但不能隐藏方法名称、属性名称或事件名称。如果派生成员被标记为 <strong>按名称隐藏</strong>，那么在基类中与派生类同名的同种成员在派生类中不可见；如果成员被标记为 <strong>按名称和签名隐藏</strong>，那么只有与派生类完全相同的名称和类型（对于字段）或方法签名（对于方法）的同种成员被隐藏。这两种形式的隐藏的实现完全由源语言编译器和反射库提供；它对 VES 本身没有直接影响。</p>
+<pre class="hljs"><code><div>class Base
+{ 
+  field  int32         A;
+  field  System.String A;
+  method int32         A();
+  method int32         A(int32);
+}
+class Derived inherits from Base
+{ 
+  field  int32 A;
+  hidebysig method int32 A();
+}
+</div></code></pre>
+<p>在类型 <code>Derived</code> 中可用的成员名称是：</p>
+<table>
+<thead>
+<tr>
+<th>成员种类</th>
+<th>成员类型 / 签名</th>
+<th>成员名称</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>字段</td>
+<td><code>int32</code></td>
+<td><code>A</code></td>
+</tr>
+<tr>
+<td>方法</td>
+<td><code>() -&gt; int32</code></td>
+<td><code>A</code></td>
+</tr>
+<tr>
+<td>方法</td>
+<td><code>(int32) -&gt; int32</code></td>
+<td><code>A</code></td>
+</tr>
+</tbody>
+</table>
+<p>虽然隐藏适用于类型的所有成员，但覆盖处理对象布局，只适用于实例字段和虚方法。CTS 提供了两种形式的成员覆盖，<strong>新槽位</strong>（<em>new slot</em>）和 <strong>期望现有槽位</strong>（<em>except existing slot</em>）。标记为 <em>新槽位</em> 的派生类型的成员将始终在对象的布局中获取新的槽位，通过使用将基类型的名称与成员的名称及其类型或签名相结合的限定引用来保证基本字段或方法在对象中可用。标记为 <em>期望现有槽位</em> 的派生类型的成员将重用（即，共享或覆盖）在基类型已经存在的相同类型（字段或方法）、名称和类型的成员对应的槽位；如果没有这样的槽位存在，将分配并使用新的槽位。</p>
+<p>用于确定类型中的名称和类型的对象的布局的一般算法大致如下：</p>
+<ul>
+<li>扁平化继承的名称（使用 <strong>按名称隐藏</strong> 或 <strong>按名称和签名隐藏</strong> 规则），忽略可访问性规则。</li>
+<li>对于每个标记为 <strong>期望现有槽位</strong> 的新成员，查看是否存在与种类（即，字段或方法）、名称和签名完全匹配的成员，并在找到时使用该槽位，否则分配新的槽位。</li>
+<li>在为所有新成员执行完这个操作后，将这些新的成员种类 / 名称 / 签名添加到此类型的成员列表中。</li>
+<li>最后，根据 <strong>按名称隐藏</strong> 或 <strong>按名称和签名隐藏</strong> 规则，删除与新成员匹配的任何继承的名称。</li>
+</ul>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E6%88%90%E5%91%98%E5%AE%9A%E4%B9%89">成员定义</h3>
+<p>对象类型定义、接口类型定义和值类型定义可以包括成员定义：</p>
+<ul>
+<li>字段定义通过指定值的子结构来定义类型值的表示。</li>
+<li>方法定义定义了对类型值的操作以及对类型本身（静态方法）的操作。</li>
+<li>属性和事件定义只能在对象类型上定义。属性和事件定义了实现命名事件或属性行为的访问器方法定义的命名组。</li>
+<li>嵌套类型声明定义了其名称由封闭类型作用域的类型，其实例可以完全访问封闭类的所有成员。</li>
+</ul>
+<p>根据类型定义的种类，对允许的成员定义有限制。</p>
+<h4 id="%E6%96%B9%E6%B3%95%E5%AE%9A%E4%B9%89">方法定义</h4>
+<p>方法定义由名称、方法签名和可选的方法实现组成。方法签名定义了调用约定、方法的参数类型和方法的返回类型。实现是当方法被调用时执行的代码。值类型或对象类型应只定义给定名称和签名的一个方法。然而，派生的对象类型可以有与其基对象类型相同的名称和签名的方法。</p>
+<p>方法的名称限定在类型作用域内的。方法可以被赋予可访问性。方法只能用 <em>可分配</em> 类型的方法签名的参数类型的参数来调用。方法的返回值类型也应该是 <em>可分配给</em> 它被存储的位置的类型。</p>
+<p>方法可以被标记为 <strong>静态</strong>（<em>static</em>），表示该方法不是对类型的值的操作，而是与整个类型相关的操作。未标记为静态的方法定义了对类型的值的有效操作。当调用非静态方法时，类型的特定值 <code>this</code>（或 <code>this</code> 指针），将作为第一个参数传递。</p>
+<p>一个不包含方法实现的方法定义应被标记为 <strong>抽象</strong>（<em>abstract</em>）。接口定义的所有非静态方法都是抽象的。抽象方法定义只允许在被标记为抽象的对象类型中。</p>
+<p>对象类型中的非静态方法定义可以被标记为 <strong>虚拟</strong>（<em>virtual</em>），表示可以在派生类型中提供替代实现。接口定义中的所有非静态方法定义应为虚方法。虚方法可以被标记为 <strong>final</strong>，表示不允许派生对象类型重写方法实现。</p>
+<p>方法定义可以被参数化，这是一种被称为 <em>泛型方法定义</em> 的特性。在使用时生成泛型方法的特定实例，此时泛型参数绑定到特定的泛型参数。泛型方法可以定义为非泛型类型的成员；也可以定义为泛型类型的成员，但可能由与其包含类型不同的泛型参数（或参数）参数化。例如，<code>Stack&lt;T&gt;</code> 类可能包含一个泛型方法 <code>S ConvertTo&lt;S&gt; ()</code>，其中 <code>S</code> 泛型参数与 <code>Stack&lt;T&gt;</code> 中的 <code>T</code> 泛型参数不同。</p>
+<h4 id="%E5%AD%97%E6%AE%B5%E5%AE%9A%E4%B9%89">字段定义</h4>
+<p>字段定义由名称和位置签名组成。位置签名定义了字段的类型和访问约束。值类型或对象类型应只定义给定名称和类型的一个字段。派生的对象类型可以有与其基对象类型相同的名称和类型的字段。</p>
+<p>字段的名称限定在类型作用域内。字段可以被赋予可访问性。字段只能存储其类型是 <em>可分配给</em> 字段类型的值。</p>
+<p>字段可以被标记为 <strong>静态</strong>（<em>static</em>），表示该字段不是类型的值的一部分，而是与整个类型相关的位置。当类型被加载时创建静态字段的位置，并在类型初始化时初始化。</p>
+<p>未标记为静态的字段通过定义值的子结构来定义类型的值的表示。这样的字段的位置在每次构造新值时都在类型的每个值内创建。它们在构造新值期间初始化。给定名称的非静态字段总是位于类型的每个值的相同位置。</p>
+<p>标记为 <strong>可序列化</strong>（<em>serializable</em>） 的字段将被序列化位该类型值的持久状态的一部分。这个标准不要求符合规范的实现提供对序列化（或反序列化）的支持，也不指定完成这些操作的机制。</p>
+<h4 id="%E5%B1%9E%E6%80%A7%E5%AE%9A%E4%B9%89">属性定义</h4>
+<p>属性定义定义了一个命名值和访问该值的方法。属性定义定义了对该值的访问协议。因此，属性定义指定了哪些访问方法存在以及它们各自的方法协议。声明支持属性协议的类型的实现应实现属性协议所需的访问方法。访问方法的实现定义了如何检索和存储值。</p>
+<p>属性定义总是属于接口定义或类定义的一部分。属性定义的名称和值的范围是包含属性定义的类型。CTS 要求构成属性的方法协议应与方法实现匹配，就像任何其他方法协议一样。属性没有与之关联的 CIL 指令，只有元数据。</p>
+<p>按照惯例，属性定义了一个 <strong>getter</strong> 方法（用于访问属性的当前值）和可选的一个 <strong>setter</strong> 方法（用于修改属性的当前值）。CTS 对与属性关联的方法集、它们的名称或它们的使用没有限制。</p>
+<blockquote>
+<blockquote>
+<p><a id="R24"></a>CLS Rule 24：实现属性的 <em>getter</em> 和 <em>setter</em> 方法的方法应在元数据中标记为 <code>SpecialName</code>。</p>
+</blockquote>
+<blockquote>
+<p><a id="R25"></a>CLS Rule 25：不再使用。在这个标准的早期版本中，这个规则声明 “属性和它的访问器的可访问性应相同”。删除这条规则以允许例如 “对 <em>getter</em> 的公共访问，同时限制对 <em>setter</em> 的访问” 的情景。</p>
+</blockquote>
+<blockquote>
+<p><a id="R26"></a>CLS Rule 26：属性的访问器应全部为静态的，全部为虚拟的，或全部为实例的。</p>
+</blockquote>
+<blockquote>
+<p><a id="R27"></a>CLS Rule 27：属性的类型应为 <em>getter</em> 的返回类型和 <em>setter</em> 的最后一个参数的类型。属性的参数类型应为 <em>getter</em> 的参数类型和 <em>setter</em> 除最后一个参数外的所有参数的类型。所有这些类型都应兼容 CLS，且不应为托管指针（不应按引用传递）。</p>
+</blockquote>
+<blockquote>
+<p><a id="R28"></a>CLS Rule 28：属性应遵循特定的命名模式。在 CLS Rule 24 中引用的 <code>SpecialName</code> 特性应在适当的名称比较中被忽略，并应遵循标识符规则。属性应有一个 <em>getter</em> 方法，或一个 <em>setter</em> 方法，或两者都有。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：应在适当的名称比较中忽略 <code>SpecialName</code> 位，并应遵循标识符规则。否则，除了通常访问定义属性的方法外，没有直接支持。
+For <em>extender</em>：应在适当的名称比较中忽略 <code>SpecialName</code> 位，并应遵循标识符规则。否则，除了通常访问定义属性的方法外，没有直接支持。特别是，<em>extender</em> 不需要能够定义属性。
+For <em>framework</em>：应基于并非所有 CLS 语言都将使用特殊语法访问属性的理解进行设计。</p>
+</blockquote>
+</blockquote>
+<h4 id="%E4%BA%8B%E4%BB%B6%E5%AE%9A%E4%B9%89">事件定义</h4>
+<p>CTS 以与支持属性完全相同的方式支持事件。与常规方法不同的是，事件包含订阅和取消订阅事件以及触发事件的方法。</p>
+<blockquote>
+<blockquote>
+<p><a id="R29"></a>CLS Rule 29：实现事件的方法应在元数据中标记为 <code>SpecialName</code>。</p>
+</blockquote>
+<blockquote>
+<p><a id="R30"></a>CLS Rule 30：事件及其访问器的可访问性应相同。</p>
+</blockquote>
+<blockquote>
+<p><a id="R31"></a>CLS Rule 31：事件的 <code>add</code> 和 <code>remove</code> 方法应同时存在或不存在。</p>
+</blockquote>
+<blockquote>
+<p><a id="R32"></a>CLS Rule 32：事件的 <code>add</code> 和 <code>remove</code> 方法应各自接受一个参数，其类型定义了事件的类型，并且应派生自 <code>System.Delegate</code>。</p>
+</blockquote>
+<blockquote>
+<p><a id="R33"></a>CLS Rule 33：事件应遵循特定的命名模式。在 CLS Rule 29 中引用的 <code>SpecialName</code> 特性应在适当的名称比较中被忽略，并应遵循标识符规则。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：应在适当的名称比较中忽略 <code>SpecialName</code> 位，并应遵循标识符规则。否则，除了通常访问定义事件的方法外，没有直接支持。
+For <em>extender</em>：应在适当的名称比较中忽略 <code>SpecialName</code> 位，并应遵循标识符规则。否则，除了通常访问定义事件的方法外，没有直接支持。特别是，扩展者不需要能够定义事件。
+For <em>framework</em>：应基于并非所有 CLS 语言都将使用特殊语法访问事件的理解进行设计。</p>
+</blockquote>
+</blockquote>
+<h4 id="%E5%B5%8C%E5%A5%97%E7%B1%BB%E5%9E%8B%E5%AE%9A%E4%B9%89">嵌套类型定义</h4>
+<p>嵌套类型定义与顶级类型定义相同，只有一点例外：顶级类型具有可见性属性，而嵌套类型的可见性与封闭类型的可见性相同。</p>
+<hr>
+<h2 id="metadata-%E5%85%83%E6%95%B0%E6%8D%AE">Metadata 元数据</h2>
+<p>值类型和引用类型通过在 <strong>元数据</strong>（<em>metadata</em>）表示的类型声明引入到 CTS。元数据是一种结构化的方式来表示 CLI 用于定位和加载类、在内存中布局实例、解析方法调用、解释 CIL 为本机代码、加强安全性和设置运行时上下文边界的所有信息。每个 CLI PE/COFF 模块都携带一个由支持 CLI 的开发工具或编译器发出到模块中的压缩元数据二进制文件。</p>
+<p>每种支持 CLI 的语言都将公开一种适合该语言的语法，用于声明类型和成员，并于特性注释它们，这些特性表示它们需要 CLI 的哪些服务。类型导入也以适合语言的方式处理，并且是开发工具或编译器使用元数据来公开开发者看到的类型。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="components--assemblies-%E7%BB%84%E4%BB%B6%E4%B8%8E%E7%A8%8B%E5%BA%8F%E9%9B%86">Components &amp; assemblies 组件与程序集</h3>
+<p>每个 CLI 组件都携带了针对该组件的声明、实现和引用的元数据。因此，特定于组件的元数据被称为 <strong>组件元数据</strong>（<em>component metadata</em>），并且生成的组件被称为 <strong>自描述</strong>（<em>self-describing</em>）。在 COM 或 CORBA 这样的对象模型中，这些信息由 <strong>typelibs</strong>、<strong>IDL 文件</strong>、<strong>DLLRegisterServer</strong> 以及一系列格式各异、与实际可执行文件分离的自定义文件组合表示。相比之下，元数据是 CLI 组件的基本部分。</p>
+<p>CLI 组件和其他文件的集合被打包在一起，用于部署到 <strong>程序集</strong>。程序集是一个逻辑功能单元，它是 CLI 中重用的主要单元。程序集为类型建立了名称范围。</p>
+<p>在单个组件中声明和实现的类型通过组件参与的程序集导出，供其他实现使用。对类型的所有引用都由使用该类型的上下文中的程序集的标识限定范围。CLI 提供服务来定位引用的程序集并请求解析类型引用。正是这种机制为应用程序提供了隔离范围：程序集单独控制其组成。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E8%AE%BF%E9%97%AE%E5%85%83%E6%95%B0%E6%8D%AE">访问元数据</h3>
+<p>元数据被写入到 CLI 模块，并直接从 CLI 模块中读取，或者通过反射库访问。可以创建一个在开发过程中验证 CLI 模块（包括元数据）的工具。</p>
+<p>当一个类在运行时被加载，CLI 加载器将元数据导入到其自身的内存数据结构中，可以通过 CLI 反射服务进行浏览。反射服务应被视为类似于编译器；它们自动遍历继承层次结构以获取有关继承方法和字段的信息，这些信息有关于通过名称隐藏或通过名称和签名隐藏的规则，以及关于方法和属性的继承规则等等。</p>
+<h4 id="%E5%85%83%E6%95%B0%E6%8D%AE%E6%A0%87%E5%BF%97">元数据标志</h4>
+<p>元数据标记（<em>metadata tokens</em>）是一种依赖于实现的编码机制。元数据标志被嵌入到 CIL 和本机代码中，以在调用点编码方法调用和字段访问；各种 CLI 服务使用元数据标志（<em>tokens</em>）在元数据中检索有关引用和其作用域的类型的信息，以便解析引用。</p>
+<p>元数据标志是元数据对象（如类型声明和成员声明）的类型标识符。给定一个标志，可以确定其类型，并且可以检索该元数据对象的特定元数据属性。然而，元数据标志不是一个持久的标识符，它是针对特定元数据二进制文件的范围。元数据标志被表示为元数据数据结构的索引，因此访问是快速和直接的。</p>
+<h4 id="%E5%85%83%E6%95%B0%E6%8D%AE%E4%B8%AD%E7%9A%84%E6%88%90%E5%91%98%E7%AD%BE%E5%90%8D">元数据中的成员签名</h4>
+<p>每个位置——包括字段、参数、方法返回值和属性都有一个类型，其类型的规范在元数据中进行了描述。</p>
+<p>值类型描述了以位序列表示的值。引用类型描述了以位序列位置表示的值。CLI 提供了一组明确的内置类型，每种类型在运行时都有一个默认的形式，可以是值类型或引用类型。元数据 API 可以用来声明额外的类型，变量的类型规范的一部分编码了类型的标识以及该类型在运行时采取的形式（值或引用）。</p>
+<p>表示编码类型的元数据标志被传递给接受类型的 CIL 指令（<code>newobj</code>、<code>newarr</code>、<code>ldtoken</code>）。这些编码类型的元数据标志也嵌入在成员签名中。为了优化字段访问和方法调用的运行时绑定，与字段和方法相关的类型和位置签名被编码到元数据的成员签名中。成员签名包含了所有的协议信息，这些信息用于决定对成员的引用是成功或还是失败。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E9%9D%9E%E6%89%98%E7%AE%A1%E4%BB%A3%E7%A0%81">非托管代码</h3>
+<p>可以将数据从 CLI 管理的代码传递到非托管代码。这总是涉及从托管代码到非托管代码的转换，这有一些运行时成本，但数据通常可以在不复制的情况下传输。当数据必须被重新格式化时，VES 提供了一个合理的默认行为规范，但可以使用元数据来明确要求其他形式的 <strong>编组</strong>（<em>marshalling</em>，重新格式化的副本）。元数据还允许通过实现特定的预先存在的机制来访问非托管方法。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E6%96%B9%E6%B3%95%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%85%83%E6%95%B0%E6%8D%AE">方法实现的元数据</h3>
+<p>对于在当前 CLI 模块中提供实现的每个方法，工具或编译器将发出由 CIL 到本机代码编译器、CLI 加载器和其他 CLI 服务使用的信息。这些信息包括：</p>
+<ul>
+<li>代码是托管的还是非托管的。</li>
+<li>实现是在本机代码中还是在 CIL 中（所有的 CIL 代码都是托管的）。</li>
+<li>方法体在当前模块中的位置，作为相对于其所在模块文件开始的地址（<strong>相对虚拟地址</strong>，<em>Relative Virtual Address</em>，RVA）。或者，RVA 被编码为 0，使用其他元数据来告诉 CLI 在哪里可以找到方法实现，包括：
+<ul>
+<li>通过此标准之外描述的特定于实现的方法来定位的方法实现。</li>
+<li>通过导入的全局静态方法转发调用。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E7%B1%BB%E5%B8%83%E5%B1%80">类布局</h3>
+<p>在一般情况下，CLI 加载器可以自由地按照它选择的任何方式布局一个类的实例，这与 CTS 的规则一致。然而，有时候工具或编译器需要对布局有更多的控制。在元数据中，一个类可以标记有一个特性用来指示其布局规则：</p>
+<ul>
+<li><strong>autolayout</strong>：标记为 <code>autolayout</code> 的类表示加载器可以自由地按照它认为合适的方式布局类；任何可能已经指定的布局信息都会被忽略。这是默认的。</li>
+<li><strong>sequentiallayout</strong>：标记为 <code>sequentiallayout</code> 的类指示加载器保留字段的顺序，但是具体的偏移量是基于字段的 CLI 类型计算的；这些可以通过显式偏移、填充和（或）对齐信息进行调整。</li>
+<li><strong>explicitlayout</strong>：标记为 <code>explicitlayout</code> 的类使得加载器忽略字段序列，并使用提供的显式布局规则，以字段偏移和（或）整体类大小或对齐的形式。</li>
+</ul>
+<p>也可以为一个类指定一个总体大小。这使得工具或编译器可以发出一个值类型规范，其中只提供了类型的大小，这在声明 CLI 内置类型（如 32 位整数）时很有用。在结构化值类型成员的数据类型在 CLI 元数据中没有表示（例如，C++ 位字段）的情况下也很有用。在后一种情况下，只要工具或编译器控制布局，CLI 不需要知道细节或在布局中发挥作用。这意味着 VES 可以移动位，但不能跨机器编组 —— <em>Emitting</em> 发出工具或编译器将需要处理编组（<em>marshalling</em>）。</p>
+<p>可选地，开发者可以为一个类指定一个打包大小。这是不常用的布局信息，但它允许开发者控制字段的对齐。它本身不是对齐规范，而是作为一个修饰符，对所有对齐设置一个上限。典型的值是 1、2、4、8 或 16。泛型类型不应被标记为<code>explicitlayout</code>。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E7%A8%8B%E5%BA%8F%E9%9B%86%E4%B8%AD%E7%9A%84%E7%B1%BB%E5%9E%8B%E5%90%8D%E7%A7%B0%E8%8C%83%E5%9B%B4">程序集中的类型名称范围</h3>
+<p>一个程序集是一组资源的集合，这些资源被构建为一起工作，以提供一套连贯的功能。程序集包含了确保这种连贯性所必需的所有规则，它是 CLI 中访问资源的单元。</p>
+<p>从外部来看，程序集是一组导出资源的集合，包括类型在内。资源是通过名称导出的。从内部来看，程序集是一组公共（导出）和私有（程序集内部）资源的集合。是程序集决定哪些资源将被导出到程序集之外，哪些资源只在当前程序集范围内可访问。是程序集控制如何将对资源（公共或私有）的引用映射到实现资源的位上。对于类型来说，程序集还可以提供运行时配置信息。CLI 模块可以被认为是类型声明和实现的打包，其中打包决策可以在不影响程序集客户端的情况下在幕后改变。</p>
+<p>类型的标识是其程序集范围和其声明的名称。在两个不同的程序集中定义的相同的类型被认为是两种不同的类型。</p>
+<p><strong>程序集依赖</strong>（<em>Assembly Dependencies</em>）：一个程序集可以依赖于其他程序集。例如在一个程序集的范围内的实现引用了在另一个程序集的范围内的实现或资源。</p>
+<ul>
+<li>所有对其他程序集的引用都在当前程序集范围的控制下解析。程序集可以控制如何将对另一个程序集的引用映射到该引用程序集的特定版本（或其他特性）上（尽管目标程序集对 “如何将引用的资源解析为实现” 具有唯一的控制权）。</li>
+<li>总是可以确定一个特定的实现正在运行在哪个程序集范围内。所有来自该程序集范围的请求都相对于该范围进行解析。</li>
+</ul>
+<p>从部署的角度来看，可以单独部署一个程序集，假设在部署的环境中有任何其他引用的程序集可用。或者，它可以与其依赖的程序集一起部署。</p>
+<p><strong>清单</strong>（<em>Manifests</em>）：每个程序集都有一个清单，声明程序集由哪些文件组成，可以导出哪些类型，以及在程序集内解析类型引用时需要哪些其他的程序集。就像 CLI 组件通过 CLI 组件中的元数据进行自描述一样，程序集也通过它们的清单进行自描述。当一个文件组成一个程序集时，它既包含描述程序集中定义的类型的元数据，也包含描述程序集本身的元数据。当一个程序集包含多个带有元数据的文件时，每个文件都描述了在文件中定义的类型（如果有的话），其中一个文件还包含描述程序集的元数据（包括其他文件的名称、它们的加密哈希以及它们导出到程序集外的类型）。</p>
+<p><strong>应用程序</strong>（<em>Applications</em>）：程序集为应用程序引入了隔离语义。一个应用程序只是一个程序集，它有一个外部入口点，该入口点触发（或导致托管环境 “如浏览器” 触发）创建新的<strong>应用程序域</strong>（<em>Application Domain</em>）。这个入口点实际上是请求调用和解析树的根。有些应用程序是一个单一的、自包含的程序集。另一些程序集则需要其他程序集提供它所需的资源。无论是哪种情况下，当一个请求被解析为要加载的模块时，该模块被加载到该请求发出的同一个应用程序域中。可以通过应用程序域监视或停止应用程序。</p>
+<p><strong>引用</strong>（<em>References</em>）：对类型的引用总是将类型名称限定在要解析引用的程序集范围内；也就是说，程序集建立了可用资源的名称范围。但是，不是在单个模块和引用的程序集之间建立关系，而是通过当前程序集解析每个引用。这使得每个程序集对如何解析引用具有绝对的控制权。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E5%85%83%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8F%AF%E6%89%A9%E5%B1%95%E6%80%A7">元数据的可扩展性</h3>
+<p>CLI 元数据是可扩展的。这有三个重要的原因：</p>
+<ul>
+<li>CLS 是一种规范，语言和工具同意以统一的方式支持这些规范，以实现更好的语言集成。CLS 约束了 CTS 模型的部分内容，并在 CTS 之上引入了更高级的抽象。元数据能够捕获这些开发时抽象，即使它们没有被 CLI 明确识别或支持。</li>
+<li>应该可以在元数据中表示既不是 CLI 也不是 CLS 语言抽象的特定于语言的抽象。例如，随着时间的推移，应该有可能使像 C++ 这样的语言不需要单独的头文件或 IDL 文件就可以使用由编译模块导出的类型、方法和数据成员。</li>
+<li>在成员签名中，应该可以对特定于语言的重载中使用的类型和类型修饰符进行编码。例如，即使在 <code>int</code> 和 <code>long</code> 都映射到底层类型 <code>int32</code> 的 32 位机器上，也应该允许 C++ 区分 <code>int</code> 和 <code>long</code>。</li>
+</ul>
+<p>这种可扩展性以以下形式存在：</p>
+<ul>
+<li>
+<p>每个元数据对象都可以包含自定义特性，元数据 API 提供了一种声明、枚举和检索自定义特性的方法。自定义特性可以通过一个简单的名称来标识，其中值编码是不透明的，只有定义它的特定工具、语言或服务知道。或者说，自定义特性可以通过类型引用来标识，其中特性的结构是自描述的（通过在类型上声明的数据成员），任何工具包括 CLI 反射服务都可以浏览其值编码。</p>
+<blockquote>
+<blockquote>
+<p><a id="R34"></a>CLS Rule 34：CLS 只允许自定义特性的一部分编码。在这些编码中仅支持的类型是 <code>System.Type</code>、  <code>System.String</code>、<code>System.Char</code>、<code>System.Boolean</code>、<code>System.Byte</code>、<code>System.Int16</code>、<code>System.  Int32</code>、<code>System.Int64</code>、<code>System.Single</code>、<code>System.Double</code>，以及任何基于 <em>CLS-Compliant</em> 兼容的基  础整数类型的枚举类型。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：应该能够读取使用受限方案编码的特性。
+For <em>extender</em>：必须满足所有 CLS <em>consumer</em> 的要求，并能够创建新的类和新的特性。应该能够将基  于现有特性类的特性附加到发出的任何元数据上。应该实现 <code>System.AttributeUsageAttribute</code>。
+For <em>framework</em>：只应该外部暴露那些在 CLS 规则内编码的特性，并遵循 <code>System.  AttributeUsageAttribute</code> 指定的约定。</p>
+</blockquote>
+</blockquote>
+</li>
+</ul>
+<ul>
+<li>除了 CTS 类型的可扩展性，还可以将自定义修饰符发出（<em>Emit</em>）到成员签名中。CLI 将尊重这些修饰符用于方法重载和隐藏、以及绑定，但不会强制执行任何语言特定的语义。这些修饰符可以引用方法的返回类型或任何参数，或字段的类型。它们有两种类型：<strong>必需修饰符</strong>（<em>required modifiers</em>），任何使用成员的人都必须理解它才能正确使用它；<strong>可选修饰符</strong>（<em>optional modifiers</em>），可以忽略那些不被理解的修饰符。
+<blockquote>
+<blockquote>
+<p><a id="R35"></a>CLS Rule 35：CLS 不允许公开可见的必需修饰符（<strong>modreq</strong>），但是允许它不理解的可选修饰符    （<strong>modopt</strong>）。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：应该能够读取包含可选修饰符的元数据，并正确地复制包含它们的签名。可以在类型匹配    和重载解析中忽略这些修饰符。可以忽略在选择修饰符时变得模糊不清的类型。
+For <em>extender</em>：应该能够为包含可选修饰符的签名的继承方法编写重写。因此，<em>extender</em> 必须能够从    它导入的元数据中复制这样的修饰符。不要求支持必需修饰符，也不要求在它们的签名中编写具有任何类型修饰    符的新方法。
+For <em>framework</em>：除非它们被标记为不兼容 CLS，否则不应在外部可见的签名中使用必需修饰符。</p>
+</blockquote>
+<blockquote>
+<p>不应该暴露一个类上的两个成员（它们的区别仅仅是在其签名中使用了可选修饰符），除非只有一个被标记    为 <em>CLS-compliant</em>。</p>
+</blockquote>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E5%85%A8%E5%B1%80%E5%AF%BC%E5%85%A5%E5%92%8C%E5%AF%BC%E5%87%BA">全局，导入和导出</h3>
+<p>CTS 没有 <strong>全局静态</strong>（<em>global statics</em>）的概念：所有的静态都与特定的类相关联。然而，元数据被设计为支持依赖于静态数据的语言，这些静态数据（通过其相对虚拟地址进行访问）直接存储在 PE / COFF 文件中。此外，虽然对托管数据和托管函数的访问完全通过元数据本身进行，但元数据提供了一种访问非托管数据和非托管代码的机制。</p>
+<blockquote>
+<blockquote>
+<p><a id="R36"></a>CLS Rule 36：全局静态字段和方法不兼容 CLS。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要支持全局静态字段或方法。
+For <em>extender</em>：不需要编写全局静态字段或方法。
+For <em>framework</em>：不应定义全局静态字段或方法。</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E8%8C%83%E5%9B%B4%E9%9D%99%E6%80%81">范围静态</h3>
+<p>CTS 并没有包含针对文件或函数作用域内的静态函数或数据成员的模型。然而，有时候编译器需要一个元数据标志，来为作用域内的函数或数据成员发出 CIL。元数据允许标记成员，使它们永远不会在声明它们的 PE/COFF 文件外可见或可访问，编译器确保执行所有的访问规则。</p>
+<hr>
+<h2 id="cls-%E7%9A%84%E5%90%8D%E7%A7%B0%E5%92%8C%E7%B1%BB%E5%9E%8B%E8%A7%84%E5%88%99">CLS 的名称和类型规则</h2>
+<h3 id="%E6%A0%87%E8%AF%86%E7%AC%A6">标识符</h3>
+<p>无论是区分大小写还是不区分大小写的语言都可以支持 CLS。由于其规则仅适用于导出给其他语言的项目，因此不从程序集中导出的 <strong>私有</strong> 成员或类型可以使用它们选择的任何名称。然而对于互操作性，有一些限制。</p>
+<p>为了使工具能够很好地与区分大小写的语言一起工作，保持标识符的确切大小写是很重要的。当处理以 Unicode 编码的非英语语言时，可能有多种方式来表示包含组合字符的完全相同的标识符。CLS 要求标识符遵守适当的 Unicode 标准的限制，并以规范形式 C（<em>Normalization Form C</em>，NFC）保存下来，该形式保留大小写，但强制将组合字符转换为标准表示。</p>
+<p>同时，在不区分大小写的编程语言中使用外部可见的名称时，应确保它们之间不产生冲突。因此，所有的标识符比较都应该在兼容 CLS 且内部使用规范形式 KC（<em>Normalization Form KC</em>，NFKC）的工具内部进行，该形式首先将字符转换为它们的 KC 规范表示。</p>
+<p>当一个兼容 CLS 语言的编译器支持与不兼容 CLS 语言的互操作性时，它必须意识到 CTS 和 VES 使用代码点（字节对字节）比较执行所有比较。因此，即使 CLS 要求持久化的标识符使用规范形式 C，对非 CLS 标识符的引用也必须使用非 CLS 语言选择使用的任何编码进行持久化。这是一个语言设计问题，CTS 和 CLS 并未涵盖如何精确处理这个问题。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E9%87%8D%E8%BD%BD">重载</h3>
+<p>尽管 CTS 描述了继承、对象布局、名称隐藏和虚方法的重写，但它并没有讨论重载。这是因为重载完全由针对 CTS 的编译器处理，而不是类型系统本身。在元数据中，所有对类型和类型成员的引用都被完全解析，并包含预期的精确签名。这个选择是因为每种编程语言都有自己的一套强制类型转换的规则，而 VES 并没有提供表达这些规则的方法。</p>
+<p>遵循 CTS 的规则，只要它们在种类（字段、方法等）或签名上有所不同，就可以在同一范围内定义重复的名称。CLS 对重载方法施加了更强的限制。在单一的范围内，给定的名称可以引用任意数量的方法，只要它们在以下任何一点上有所不同：</p>
+<ul>
+<li>参数的数量</li>
+<li>任何参数的类型</li>
+</ul>
+<p>签名可以包含更多的信息，但符合 CLS 的语言不需要生成或使用只由以下额外信息区分的类：</p>
+<ul>
+<li>调用约定</li>
+<li>自定义修饰符</li>
+<li>返回类型</li>
+<li>参数是按值还是按引用传递</li>
+</ul>
+<p>这个规则有一个例外。对于 <code>op_Implicit</code> 和 <code>op_Explicit</code> 方法，可以提供只由返回类型不同的方法。这些方法被特别标记，可以被不支持运算符重载的编译器忽略。</p>
+<p>属性不应该根据类型（根据 <strong>getter</strong> 方法的返回类型）进行重载，但它们可以根据不同的数量或类型的索引（根据 <strong>getter</strong> 方法的参数的数量和类型）进行重载。属性的重载规则与方法的重载规则相同。</p>
+<blockquote>
+<blockquote>
+<p><a id="R37"></a>CLS Rule 37：只有属性和方法可以被重载。</p>
+</blockquote>
+<blockquote>
+<p><a id="R38"></a>CLS Rule 38：属性和方法的重载只能基于它们的参数的数量和类型，除了名为 <code>op_Implicit</code> 和 <code>op_Explicit</code> 的转换运算符，它们也可以根据它们的返回类型进行重载。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：可以假设只有属性和方法是重载的，并且不需要支持基于返回类型的重载，除非提供了操作符重载的特殊语法。如果不支持返回类型重载，那么 <code>op_Implicit</code> 和 <code>op_Explicit</code> 可以被忽略，因为功能应该由符合 CLS 的框架以其他方式提供。<em>consumer</em> 必须首先应用隐藏名称（<em>hide-by-name</em>）和隐藏签名和名称（<em>hide-by-signature-and-name</em>）的规则，以避免任何歧义。
+For <em>extender</em>：不应允许编写除这里指定的重载之外的重载。完全不需要支持运算符重载，因此可以完全避免支持基于返回类型的重载。
+For <em>framework</em>：不应公开暴露除此处指定的重载之外的重载。框架作者应该记住，包括面向对象的语言在内的许多编程语言都不支持重载，并且还会通过混淆的名称暴露重载的方法或属性。大多数语言既不支持运算符重载，也不支持基于返回类型的重载，所以 <code>op_Implicit</code> 和 <code>op_Explicit</code> 应该总是用一些替代的方式来获得相同的功能。</p>
+</blockquote>
+</blockquote>
+<p>在任何类 <code>C</code> 上可见的名称，是在该类及其基类中可见的名称。因此，仅通过 <em>MethodImpls</em> 在 <code>C</code> 实现的接口方法的名称在类 <code>C</code> 上不可见。在接口 <code>I</code> 上可见的名称仅由直接在此接口上定义的名称组成。因此，来自其他接口（接口派生）的方法的名称在 <code>I</code> 本身上不可见。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E8%BF%90%E7%AE%97%E7%AC%A6%E9%87%8D%E8%BD%BD">运算符重载</h3>
+<p>CLS 兼容的 <em>consumer</em> 和 <em>extender</em> 工具没有义务允许定义运算符重载，<em>consumer</em> 和 <em>extender</em> 工具也不必提供调用这些方法的特殊机制。</p>
+<p>这些内容由 CLS 处理，以便：</p>
+<ul>
+<li>提供运算符重载的语言可以以其它语言可以理解的方式描述它们的规则，以及</li>
+<li>不提供运算符重载的语言仍然可以访问底层功能，而无需添加特殊的语法。</li>
+</ul>
+<p>运算符重载是通过使用下面指定的名称，并在元数据中设置一个特殊的位（<code>SpecialName</code>），以便它们不与用户的名称空间冲突来描述的。一个符合 CLS 的生产工具应该提供某种方式来设置这个位。如果使用了这些名称，那么它们应该完全符合这里描述的语义。</p>
+<h4 id="%E4%B8%80%E5%85%83%E8%BF%90%E7%AE%97%E7%AC%A6">一元运算符</h4>
+<h2 id="i1031-%E4%B8%80%E5%85%83%E8%BF%90%E7%AE%97%E7%AC%A6">I.10.3.1 一元运算符</h2>
+<p>一元运算符接受一个操作数，对其执行某些操作，并返回结果。它们被表示为类上的静态方法，该类定义了这些方法唯一操作数的类型。下面列出了已定义的名称：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>ISO/IEC 14882:2003 C++ 运算符符号</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>op_Decrement</code></td>
+<td>类似于 <code>--</code><sup>1</sup></td>
+</tr>
+<tr>
+<td><code>op_Increment</code></td>
+<td>类似于 <code>++</code><sup>1</sup></td>
+</tr>
+<tr>
+<td><code>op_UnaryNegation</code></td>
+<td><code>-</code> (一元)</td>
+</tr>
+<tr>
+<td><code>op_UnaryPlus</code></td>
+<td><code>+</code> (一元)</td>
+</tr>
+<tr>
+<td><code>op_LogicalNot</code></td>
+<td><code>!</code></td>
+</tr>
+<tr>
+<td><code>op_True</code> <sup>2</sup></td>
+<td>未定义</td>
+</tr>
+<tr>
+<td><code>op_False</code> <sup>2</sup></td>
+<td>未定义</td>
+</tr>
+<tr>
+<td><code>op_AddressOf</code></td>
+<td><code>&amp;</code> (一元)</td>
+</tr>
+<tr>
+<td><code>op_OnesComplement</code></td>
+<td><code>~</code></td>
+</tr>
+<tr>
+<td><code>op_PointerDereference</code></td>
+<td><code>*</code> (一元)</td>
+</tr>
+</tbody>
+</table>
+<p><sup>1</sup> 从纯粹的 C++ 观点来看，为 CLI 编写这些函数的方式在一个非常重要的方面有所不同。在 C++ 中，这些方法必须直接增加或减少它们的操作数，而在 CLI 中，它们不必这样做；相反，它们可以设计成只是返回它们操作数 +/- 1 的值，而不修改它们的操作数。操作数必须由生成 <code>++</code>/<code>--</code> 运算符代码的编译器执行增加或减少操作，与这些方法的调用分开。</p>
+<p><sup>2</sup> <code>op_True</code> 和 <code>op_False</code> 运算符在 C++ 中不存在。它们是为了支持三态布尔类型而提供的，比如那些在数据库语言中使用的类型。</p>
+<h4 id="%E4%BA%8C%E5%85%83%E8%BF%90%E7%AE%97%E7%AC%A6">二元运算符</h4>
+<h2 id="i1032-%E4%BA%8C%E5%85%83%E8%BF%90%E7%AE%97%E7%AC%A6">I.10.3.2 二元运算符</h2>
+<p>二元运算符接受两个操作数，对它们执行某些操作，并返回一个值。它们被表示为类上的静态方法，该类定义了这些方法操作数的类型。下面列出了已定义的名称：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>ISO/IEC 14882:2003 C++ 运算符符号</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>op_Addition</code></td>
+<td><code>+</code> (二元)</td>
+</tr>
+<tr>
+<td><code>op_Subtraction</code></td>
+<td><code>-</code> (二元)</td>
+</tr>
+<tr>
+<td><code>op_Multiply</code></td>
+<td><code>*</code> (二元)</td>
+</tr>
+<tr>
+<td><code>op_Division</code></td>
+<td><code>/</code></td>
+</tr>
+<tr>
+<td><code>op_Modulus</code></td>
+<td><code>%</code></td>
+</tr>
+<tr>
+<td><code>op_ExclusiveOr</code></td>
+<td><code>^</code></td>
+</tr>
+<tr>
+<td><code>op_BitwiseAnd</code></td>
+<td><code>&amp;</code> (二元)</td>
+</tr>
+<tr>
+<td><code>op_BitwiseOr</code></td>
+<td><code>\|</code></td>
+</tr>
+<tr>
+<td><code>op_LogicalAnd</code></td>
+<td><code>&amp;&amp;</code></td>
+</tr>
+<tr>
+<td><code>op_LogicalOr</code></td>
+<td><code>\|\|</code></td>
+</tr>
+<tr>
+<td><code>op_Assign</code></td>
+<td>未定义 (<code>=</code> 不同)</td>
+</tr>
+<tr>
+<td><code>op_LeftShift</code></td>
+<td><code>&lt;&lt;</code></td>
+</tr>
+<tr>
+<td><code>op_RightShift</code></td>
+<td><code>&gt;&gt;</code></td>
+</tr>
+<tr>
+<td><code>op_SignedRightShift</code></td>
+<td>未定义</td>
+</tr>
+<tr>
+<td><code>op_UnsignedRightShift</code></td>
+<td>未定义</td>
+</tr>
+<tr>
+<td><code>op_Equality</code></td>
+<td><code>==</code></td>
+</tr>
+<tr>
+<td><code>op_GreaterThan</code></td>
+<td><code>&gt;</code></td>
+</tr>
+<tr>
+<td><code>op_LessThan</code></td>
+<td><code>&lt;</code></td>
+</tr>
+<tr>
+<td><code>op_Inequality</code></td>
+<td><code>!=</code></td>
+</tr>
+<tr>
+<td><code>op_GreaterThanOrEqual</code></td>
+<td><code>&gt;=</code></td>
+</tr>
+<tr>
+<td><code>op_LessThanOrEqual</code></td>
+<td><code>&lt;=</code></td>
+</tr>
+<tr>
+<td><code>op_UnsignedRightShiftAssignment</code></td>
+<td>未定义</td>
+</tr>
+<tr>
+<td><code>op_MemberSelection</code></td>
+<td><code>-&gt;</code></td>
+</tr>
+<tr>
+<td><code>op_RightShiftAssignment</code></td>
+<td><code>&gt;&gt;=</code></td>
+</tr>
+<tr>
+<td><code>op_MultiplicationAssignment</code></td>
+<td><code>*=</code></td>
+</tr>
+<tr>
+<td><code>op_PointerToMemberSelection</code></td>
+<td><code>-&gt;*</code></td>
+</tr>
+<tr>
+<td><code>op_SubtractionAssignment</code></td>
+<td><code>-=</code></td>
+</tr>
+<tr>
+<td><code>op_ExclusiveOrAssignment</code></td>
+<td><code>^=</code></td>
+</tr>
+<tr>
+<td><code>op_LeftShiftAssignment</code></td>
+<td><code>&lt;&lt;=</code></td>
+</tr>
+<tr>
+<td><code>op_ModulusAssignment</code></td>
+<td><code>%=</code></td>
+</tr>
+<tr>
+<td><code>op_AdditionAssignment</code></td>
+<td><code>+=</code></td>
+</tr>
+<tr>
+<td><code>op_BitwiseAndAssignment</code></td>
+<td><code>&amp;=</code></td>
+</tr>
+<tr>
+<td><code>op_BitwiseOrAssignment</code></td>
+<td><code>\|=</code></td>
+</tr>
+<tr>
+<td><code>op_Comma</code></td>
+<td><code>,</code></td>
+</tr>
+<tr>
+<td><code>op_DivisionAssignment</code></td>
+<td><code>/=</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="%E8%BD%AC%E6%8D%A2%E8%BF%90%E7%AE%97%E7%AC%A6">转换运算符</h4>
+<p>转换运算符是一元运算，允许从一种类型转换为另一种类型。转换运算符方法应定义为操作数或返回类型的静态方法。有两种类型的转换：</p>
+<ul>
+<li>隐式（<strong>扩大</strong>，<em>widening</em>）强制转换不应丢失任何大小或精度。它们应由使用名为 <code>op_Implicit</code> 的方法提供。</li>
+<li>显式（<strong>缩小</strong>，<em>narrowing</em>）强制转换可以丢失大小或精度。它们应由使用名为 <code>op_Explicit</code> 的方法提供。</li>
+</ul>
+<p>转换提供了无法通过其他方式生成的功能，许多语言不支持通过特殊语法使用转换运算符。因此，CLS 规则要求通过替代机制提供相同的功能。建议使用常见的 <code>ToXxx</code>（其中 <code>Xxx</code> 是目标类型）和 <code>FromYyy</code>（其中 <code>Yyy</code> 是源类型）命名模式。</p>
+<p>因为这些操作可以存在于它们操作数类型的类（所谓的 <em>from</em> 转换）上，并且因此只会在它们的返回类型上有所不同，CLS 特别允许这两个运算符基于它们的返回类型进行重载。但是 CLS 也要求，如果使用了这种形式的重载，那么语言应该提供一种替代的方法来提供相同的功能，因为并非所有的 CLS 语言都会实现具有特殊语法的运算符。</p>
+<blockquote>
+<blockquote>
+<p><a id="R39"></a>CLS Rule 39：如果提供了 <code>op_Implicit</code> 或 <code>op_Explicit</code>，则应提供提供强制转换的替代方法。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：在适合语言设计的地方，使用 <code>op_Implicit</code> 和（或） <code>op_Explicit</code> 来选择方法重载和生成自动强制转换。
+For <em>extender</em>：在适合语言设计的地方，使用相应的 <code>op_Implicit</code>、<code>op_Explicit</code>、<code>ToXxx</code> 和（或）<code>FromXxx</code> 方法实现用户定义的隐式或显式强制转换运算符。
+For <em>framework</em>：如果支持强制转换操作，它们应由 <code>FromXxx</code> 和 <code>ToXxx</code> 提供，也可以选择性地提供 <code>op_Implicit</code> 和 <code>op_Explicit</code>。鼓励 CLS 框架提供这样的强制转换操作。</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E5%91%BD%E5%90%8D%E6%A8%A1%E5%BC%8F">命名模式</h3>
+<p>虽然 CTS 并未规定属性或事件的命名，但 CLS 确实规定了一个需要遵循的模式。</p>
+<p>对于事件，通过选择或定义用于表示事件的委托类型来创建单个事件。然后根据事件的名称和固定签名创建三个方法。例如，我们定义了一个名为 <code>Click</code> 的事件，它使用名为 <code>EventHandler</code> 的委托类型。</p>
+<pre class="hljs"><code><div>EventAdd，用于添加事件处理程序
+    模式：void add_&lt;EventName&gt; (&lt;DelegateType&gt; handler)
+    示例：void add_Click (EventHandler handler);
+
+EventRemove，用于移除事件处理程序
+    模式：void remove_&lt;EventName&gt; (&lt;DelegateType&gt; handler)
+    示例：void remove_Click (EventHandler handler); 
+
+EventRaise，用于表示事件已经发生
+    模式：void family raise_&lt;EventName&gt; (Event e)
+</div></code></pre>
+<p>对于属性，通过确定 <em>getter</em> 方法返回的类型以及 <em>getter</em> 的参数类型（如果有）来创建单个属性。然后，根据属性的名称和这些类型创建两个方法。例如，我们定义了两个属性：<code>Name</code> 不接受参数并返回 <code>System.String</code>，<code>Item</code> 接受一个 <code>System.Object</code> 参数并返回 <code>System.Object</code>。<code>Item</code> 被称为索引属性，意味着它可以接受参数，因此对用户来说，它就像是带有索引的数组。</p>
+<pre class="hljs"><code><div>PropertyGet，用于读取属性的值
+    模式：&lt;PropType&gt; get_&lt;PropName&gt; (&lt;Indices&gt;)
+    示例：System.String get_Name ();
+    示例：System.Object get_Item (System.Object key); 
+
+PropertySet，用于修改属性的值
+    模式：void set_&lt;PropName&gt; (&lt;Indices&gt;, &lt;PropType&gt;)
+    示例：void set_Name (System.String name);
+    示例：void set_Item (System.Object key, System.Object value);
+</div></code></pre>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E5%BC%82%E5%B8%B8">异常</h3>
+<p>CLI 支持一个异常处理模型。兼容 CLS 的框架可以定义和抛出外部可见的异常，但对抛出的对象类型有限制：</p>
+<blockquote>
+<blockquote>
+<p><a id="R40"></a>CLS Rule 40：抛出的对象应该是 <code>System.Exception</code> 类型或从它继承的类型。但是，兼容 CLS 的方法不需要阻止其他类型的异常的传播。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要支持抛出或捕获不是指定类型的对象。
+For <em>extender</em>：必须支持抛出 <code>System.Exception</code> 类型或从它继承的类型的对象。不需要支持抛出其他类型的对象。
+For <em>framework</em>：不应公开抛出不是 <code>System.Exception</code> 类型或从它继承的类型的对象。</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E8%87%AA%E5%AE%9A%E4%B9%89%E7%89%B9%E6%80%A7">自定义特性</h3>
+<p>为了让各种语言能够在语言边界上提供一致的自定义特性视图，基类库（BCL）提供了对以下 CLS 定义的规则的支持：</p>
+<blockquote>
+<blockquote>
+<p><a id="R41"></a>CLS Rule 41：特性应该是 <code>System.Attribute</code> 类型，或者从它继承的类型。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要支持不是指定类型的特性。
+For <em>extender</em>：必须支持自定义特性的编写。
+For <em>framework</em>：不应公开不是 <code>System.Attribute</code> 类型或从它继承的类型的特性。</p>
+</blockquote>
+</blockquote>
+<p>通过在特性类上放置一个特性，可以以各种方式限制特定特性类的使用。<code>System.AttributeUsageAttribute</code> 用于指定这些限制。<code>System.AttributeUsageAttribute</code> 支持的限制包括：</p>
+<ul>
+<li>可以将特性应用到哪些构造（类型、方法、程序集等）。默认情况下，特性类的实例可以应用到任何构造上。这是通过设置 <code>System.AttributeUsageAttribute</code> 的 <code>ValidOn</code> 属性的值来指定的。可以组合多个构造。</li>
+<li>可以将特性类的多个实例应用到给定的元数据。默认情况下，任何给定的特性类的一个实例只能应用到单个元数据项。<code>AttributeUsageAttribute</code> 的 <code>AllowMultiple</code> 属性用于指定是否可以将特性的多个实例应用到单个元数据项。</li>
+<li>当应用到类型时，一般不继承特性。默认情况下，任何附加到类型的特性应该它派生的类型继承。如果允许特性类的多个实例，那么继承将应用从基类继承的特性和显式应用到派生类类型的特性的并集。如果不允许多个实例，那么直接应用附加派生类对应类型的特性并覆盖基类提供的属性。这是通过设置 <code>System.AttributeUsageAttribute</code> 的 <code>Inherited</code> 属性来为指定所需的值。</li>
+</ul>
+<p>由于这些是 CLS 规则，而不是 CTS 本身的一部分，因此工具需要明确指定应用到任意给定元数据项的自定义特性。也就是说，生成元数据的编译器或其他工具必须实现 <code>AllowMultiple</code> 和 <code>Inherit</code> 规则。CLI 不会自动提供属性。</p>
+<blockquote>
+<hr>
+</blockquote>
+<h3 id="%E6%B3%9B%E5%9E%8B%E7%B1%BB%E5%9E%8B%E5%92%8C%E6%B3%9B%E5%9E%8B%E6%96%B9%E6%B3%95">泛型类型和泛型方法</h3>
+<h4 id="%E5%86%85%E5%B5%8C%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%9A%84%E9%87%8D%E5%A3%B0%E6%98%8E">内嵌类型参数的重声明</h4>
+<p>任何由兼容 CLS 的框架导出的、嵌套在泛型类型中的类型，都可以按位置声明该封闭类型的所有泛型参数。嵌套类型也可以引入新的泛型参数。因此，任何嵌套在泛型类型内部的兼容 CLS 的类型本身都是泛型的。这样重新声明的泛型参数应该在任何新引入的泛型参数之前。</p>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">A</span>&lt;<span class="hljs-title">T</span>&gt; {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">B</span> {}
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">C</span>&lt;<span class="hljs-title">U</span>,<span class="hljs-title">V</span>&gt; {
+        <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">D</span>&lt;<span class="hljs-title">W</span>&gt; {}
+    }
+}
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">X</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Y</span>&lt;<span class="hljs-title">T</span>&gt; {}
+}
+</div></code></pre>
+<p>对应 ILAsm 代码是：</p>
+<pre class="hljs"><code><div>.class … A`1&lt;T&gt; … {                           // 引入 T
+    .class … nested … B&lt;T&gt; … { }              // 重新声明 T
+    .class … nested … C`2&lt;T,U,V&gt; … {          // 重新声明 T，并引入 U 和 V
+        .class … nested … D`1&lt;T,U,V,W&gt; … { }  // 重新声明 T、U 和 V，并引入 W
+    }
+}
+.class … X … {
+    .class … nested Y`1&lt;T&gt; … { }              // 没有重新声明；引入 T
+}
+</div></code></pre>
+<p>由于泛型参数重新声明是基于参数位置匹配，而不是参数名称匹配，所以重新声明的泛型参数的名称不必与它重新声明的参数相同。例如：</p>
+<pre class="hljs"><code><div>.class … A`1&lt;T&gt; … {                               // 引入 T
+    .class … nested … B&lt;Q&gt; … { }                  // 重新声明 T（作为 Q）
+    .class … nested … C`2&lt;T1,U,V&gt; … {             // 重新声明 T（作为 T1）；引入 U 和 V
+        .class … nested … D`1&lt;R1,R2,R3,W&gt; … { }   // 重新声明 T1、U 和 V（作为 R1、R2 和 R3）；引入 W
+    }
+}
+</div></code></pre>
+<p>因此，兼容 CLS 的框架应该公开以下类型：</p>
+<table>
+<thead>
+<tr>
+<th>词法名称</th>
+<th>总泛型参数</th>
+<th>重新声明的泛型参数</th>
+<th>引入的泛型参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A&lt;T&gt;</code></td>
+<td>1 (<code>T</code>)</td>
+<td>0</td>
+<td>1 <code>T</code></td>
+</tr>
+<tr>
+<td><code>A&lt;T&gt;.B</code></td>
+<td>1 (<code>T</code>)</td>
+<td>1 <code>T</code></td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>A&lt;T&gt;.C&lt;U,V&gt;</code></td>
+<td>3 (<code>T</code>,<code>U</code>,<code>V</code>)</td>
+<td>1 <code>T</code></td>
+<td>2 <code>U</code>,<code>V</code></td>
+</tr>
+<tr>
+<td><code>A&lt;T&gt;.C&lt;U,V&gt;.D&lt;W&gt;</code></td>
+<td>4 (<code>T</code>,<code>U</code>,<code>V</code>,<code>W</code>)</td>
+<td>3 <code>T</code>,<code>U</code>,<code>V</code></td>
+<td>1 <code>W</code></td>
+</tr>
+<tr>
+<td><code>X</code></td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>X.Y&lt;T&gt;</code></td>
+<td>1 (<code>T</code>)</td>
+<td>0</td>
+<td>1 <code>T</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<blockquote>
+<p><a id="R42"></a>CLS Rule 42：嵌套类型应该至少有与封闭类型一样多的泛型参数。嵌套类型中的泛型参数按位置对应于其封闭类型中的泛型参数。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要使用违反此规则的类型。
+For <em>extender</em>：与 <em>consumer</em> 相同。选择支持定义嵌套在泛型类型中的类型的 <em>extender</em>，对于外部可见的类型应遵循此规则。
+For <em>framework</em>：不应公开违反此规则的类型。</p>
+</blockquote>
+</blockquote>
+<h4 id="%E6%B3%9B%E5%9E%8B%E7%B1%BB%E5%9E%8B%E5%90%8D%E7%A7%B0%E7%BC%96%E7%A0%81">泛型类型名称编码</h4>
+<p>兼容 CLS 的泛型类型名称使用 <code>name[`arity]</code> 格式进行编码，其中 <code>[...]</code> 表示中的 &quot;<code>`</code>&quot; 和 ·arity* 是可选的。编码的名称应遵循以下规则：</p>
+<ol>
+<li><em>name</em> 应该是一个 ID，不包含 &quot;<code>`</code>&quot; 字符。</li>
+<li><em>arity</em> 是指定为无前导零或空格的无符号十进制数。</li>
+<li>对于普通的泛型类型，<em>arity</em> 是在类型上声明的类型参数的数量。</li>
+<li>对于嵌套的泛型类型，<em>arity</em> 是新引入的类型参数的数量。</li>
+</ol>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">A</span>&lt;<span class="hljs-title">T</span>&gt; {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">B</span> {}
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">C</span>&lt;<span class="hljs-title">U</span>,<span class="hljs-title">V</span>&gt; {
+        <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">D</span>&lt;<span class="hljs-title">W</span>&gt; {}
+    }
+}
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">X</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Y</span>&lt;<span class="hljs-title">T</span>&gt; {}
+}
+</div></code></pre>
+<p>相关的对应 ILAsm 代码是：</p>
+<pre class="hljs"><code><div>.class … A`1&lt;T&gt; … {                           // 引入 T
+    .class … nested … B&lt;T&gt; … { }              // 重新声明 T
+    .class … nested … C`2&lt;T,U,V&gt; … {          // 重新声明 T；引入 U 和 V
+        .class … nested … D`1&lt;T,U,V,W&gt; … { }  // 重新声明 T、U 和 V；引入 W
+    }
+}
+.class … X … {
+    .class … nested Y`1&lt;T&gt; … { }                // 没有重新声明；引入 T
+}
+</div></code></pre>
+<p>遵从 CLS 的框架应该公开以下类型：</p>
+<table>
+<thead>
+<tr>
+<th>词法名称</th>
+<th>总泛型参数</th>
+<th>重新声明的泛型参数</th>
+<th>引入的泛型参数</th>
+<th>元数据编码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A&lt;T&gt;</code></td>
+<td>1 (<code>T</code>)</td>
+<td>0</td>
+<td>1 <code>T</code></td>
+<td><code>A`1</code></td>
+</tr>
+<tr>
+<td><code>A&lt;T&gt;.B</code></td>
+<td>1 (<code>T</code>)</td>
+<td>1 <code>T</code></td>
+<td>0</td>
+<td><code>B</code></td>
+</tr>
+<tr>
+<td><code>A&lt;T&gt;.C&lt;U,V&gt;</code></td>
+<td>3 (<code>T</code>,<code>U</code>,<code>V</code>)</td>
+<td>1 <code>T</code></td>
+<td>2 <code>U</code>,<code>V</code></td>
+<td><code>C`2</code></td>
+</tr>
+<tr>
+<td><code>A&lt;T&gt;.C&lt;U,V&gt;.D&lt;W&gt;</code></td>
+<td>4 (<code>T</code>,<code>U</code>,<code>V</code>,<code>W</code>)</td>
+<td>3 <code>T</code>,<code>U</code>,<code>V</code></td>
+<td>1 <code>W</code></td>
+<td><code>D`1</code></td>
+</tr>
+<tr>
+<td><code>X</code></td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td><code>X</code></td>
+</tr>
+<tr>
+<td><code>X.Y&lt;T&gt;</code></td>
+<td>1 (<code>T</code>)</td>
+<td>0</td>
+<td>1 <code>T</code></td>
+<td><code>Y`1</code></td>
+</tr>
+</tbody>
+</table>
+<p>虽然在元数据中编码的类型名称并没有明确提到其封闭类型，但 CIL 和反射类型名称语法确实包含了这个细节：</p>
+<table>
+<thead>
+<tr>
+<th>词法名称</th>
+<th>元数据编码</th>
+<th>CIL</th>
+<th>反射</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A&lt;T&gt;</code></td>
+<td><code>A`1</code>    | <code>A`1</code></td>
+<td><code>A`1[T]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>A&lt;T&gt;.B</code></td>
+<td><code>B</code></td>
+<td><code>A`1/B</code>       | <code>A`1+B[T]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>A&lt;T&gt;.C&lt;U,V&gt;</code></td>
+<td><code>C`2</code>    | <code>A`1/C`2</code>     | <code>A`1+C`2[T,U,V]</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>A&lt;T&gt;.C&lt;U,V&gt;.D&lt;W&gt;</code></td>
+<td><code>D`1</code>    | <code>A`1/C`2/D`1</code></td>
+<td><code>A`1+C`2+D`1[T,U,V,W]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>X</code></td>
+<td><code>X</code></td>
+<td><code>X</code></td>
+<td><code>X</code></td>
+</tr>
+<tr>
+<td><code>X.Y&lt;T&gt;</code></td>
+<td><code>Y`1</code>    | <code>X/Y`1</code></td>
+<td><code>X+Y`1[T]</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<blockquote>
+<p><a id="R43"></a>CLS Rule 43：泛型类型的名称应根据上述规则，编码非嵌套类型上声明的类型参数的数量，或者如果嵌套，则编码新引入到类型的类型参数的数量。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要使用违反此规则的类型。
+For <em>extender</em>：与 <em>consumer</em> 相同。对于外部可见的类型，选择支持定义泛型类型的 <em>extender</em> 应该遵循此规则。
+For <em>framework</em>：不应公开违反此规则的类型。</p>
+</blockquote>
+</blockquote>
+<h4 id="%E7%B1%BB%E5%9E%8B%E7%BA%A6%E6%9D%9F%E7%9A%84%E9%87%8D%E5%A3%B0%E6%98%8E">类型约束的重声明</h4>
+<p>兼容 CLS 的框架应确保泛型类型显式地重新声明其基类和所有实现的接口中的泛型参数上存在的任何约束。CLS <em>extender</em> 和 <em>consumer</em> 应该能够只检查特定的类型，以确定需要满足的约束集合。</p>
+<blockquote>
+<blockquote>
+<p><a id="R44"></a>CLS Rule 44：泛型类型应重新声明足够的约束，以保证基类型或接口上的任何约束都能被泛型类型约束满足。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要使用违反此规则的类型。检查约束的 <em>consumer</em> 只需要查看正在实例化的类型，以确定适用的约束。
+For <em>extender</em>：与 <em>consumer</em> 相同。选择支持定义泛型类型的 <em>extender</em> 应遵循此规则。
+For <em>framework</em>：不应公开违反此规则的类型。</p>
+</blockquote>
+</blockquote>
+<h4 id="%E7%BA%A6%E6%9D%9F%E7%B1%BB%E5%9E%8B%E9%99%90%E5%88%B6">约束类型限制</h4>
+<blockquote>
+<blockquote>
+<p><a id="R45"></a>CLS Rule 45：用作泛型参数约束的类型本身应兼容 CLS。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要使用违反此规则的类型。
+For <em>extender</em>：与 <em>consumer</em> 相同。选择支持定义泛型类型的 <em>extender</em> 在检查 CLS 兼容性时应遵循此规则，并且不需要提供违反此规则的语法。
+For <em>framework</em>：不应公开违反此规则的类型。</p>
+</blockquote>
+</blockquote>
+<h4 id="cls-%E6%A1%86%E6%9E%B6%E5%92%8C%E5%B5%8C%E5%A5%97%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%8F%AF%E8%AE%BF%E9%97%AE%E6%80%A7">CLS 框架和嵌套类型的可访问性</h4>
+<p>CLI 泛型将泛型类型声明和该泛型类型的所有实例视为具有相同的可访问性范围。然而，语言的可访问性规则在这方面可能有所不同，有些选择遵循 CLI 的可访问性模型，而有些则使用更为严格的、单实例化模型。为了使所有 CLS 语言都能使用，CLS 框架应设计为考虑到保守的每个实例的可访问性模型，并且不暴露嵌套类型受保护的成员，或要求基于泛型类型的特定替代实例来访问受保护的成员。</p>
+<p>这对于包含具有 <strong>family</strong> 可访问性的嵌套类型的签名有影响。开放的泛型类型不应公开包含具有 <strong>family</strong> 可访问性的嵌套泛型类型特定实例的字段或成员的签名。非泛型类型扩展泛型基类或接口的特定实例，不应公开包含嵌套泛型类型不同实例的字段或成员的签名。</p>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">C</span>&lt;<span class="hljs-title">T</span>&gt;
+{
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">class</span> <span class="hljs-title">N</span> {…}
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">M1</span>(<span class="hljs-params">C&lt;<span class="hljs-keyword">int</span>&gt;.N n</span>)</span> {…}  <span class="hljs-comment">// 不符合 CLS - 在所有语言中，C&lt;int&gt;.N 在 C&lt;T&gt; 内部不可访问</span>
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">M2</span>(<span class="hljs-params">C&lt;T&gt;.N n</span>)</span> {…}    <span class="hljs-comment">// 符合 CLS – C&lt;T&gt;.N 在 C&lt;T&gt; 内部可访问</span>
+}
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">D</span> : <span class="hljs-title">C</span>&lt;<span class="hljs-title">long</span>&gt;
+{
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">M3</span>(<span class="hljs-params">C&lt;<span class="hljs-keyword">int</span>&gt;.N n</span>)</span> {…}  <span class="hljs-comment">// 不符合 CLS – C&lt;int&gt;.N 在 D（扩展 C&lt;long&gt;）中不可访问</span>
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">M4</span>(<span class="hljs-params">C&lt;<span class="hljs-keyword">long</span>&gt;.N n</span>)</span> {…} <span class="hljs-comment">// 符合 CLS，C&lt;long&gt;.N 在 D（扩展 C&lt;long&gt;）中可访问</span>
+}
+</div></code></pre>
+<p>相关的对应 ILASM 代码是：</p>
+<pre class="hljs"><code><div>.class public … C`1&lt;T&gt; … {
+    .class … nested … N&lt;T&gt; … {}
+    .method family hidebysig instance void  M1(class C`1/N&lt;int32&gt; n) … {}
+    // 不符合 CLS - C&lt;int&gt;.N 在所有语言中，C&lt;T&gt; 内部不可访问
+    .method family hidebysig instance void  M2(class C`1/N&lt;!0&gt; n) … {}
+    // 符合 CLS – C&lt;T&gt;.N 在 C&lt;T&gt; 内部可访问
+}
+.class public … D extends class C`1&lt;int64&gt; {
+    .method family hidebysig instance void  M3(class C`1/N&lt;int32&gt; n) … {}
+    // 不符合 CLS – C&lt;int&gt;.N 在 D（扩展 C&lt;long&gt;）中不可访问
+    .method family hidebysig instance void  M4(class C`1/N&lt;int64&gt; n) … {}
+    // 符合 CLS，C&lt;long&gt;.N 在 D（扩展 C&lt;long&gt;）中可访问
+}
+</div></code></pre>
+<blockquote>
+<blockquote>
+<p><a id="R46"></a>CLS Rule 46：在实例化的泛型类型中，成员（包括嵌套类型）的可见性和可访问性应被视为限定在特定实例，而不是整个泛型类型声明。假设这一点，CLS Rule 12 的可见性和可访问性规则仍然适用。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：不需要使用违反此规则的类型。
+For <em>extender</em>：在确定 CLS 兼容性时，应使用这种更为严格的可访问性概念。
+For <em>framework</em>：不应公开违反此规则的成员。</p>
+</blockquote>
+</blockquote>
+<h4 id="cls-%E6%A1%86%E6%9E%B6%E5%92%8C%E6%8A%BD%E8%B1%A1%E6%88%96%E8%99%9A%E6%96%B9%E6%B3%95">CLS 框架和抽象或虚方法</h4>
+<p>CLS 框架不应公开需要 CLS <em>extenders</em> 重写或实现泛型方法以使用框架的库。这并不意味着虚拟或抽象的泛型方法不符合规范；相反，框架还应提供具有适当默认行为的具体实现。</p>
+<blockquote>
+<blockquote>
+<p><a id="R47"></a>CLS Rule 47：对于每个抽象或虚泛型方法，应该有一个默认的具体（非抽象）实现。</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：没有影响。
+For <em>extender</em>：不需要提供重写泛型方法的语法。
+For <em>framework</em>：不应公开违反此规则的泛型方法，除非也提供了适当的具体实现。</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+<p>CLS Rule ：</p>
+</blockquote>
+<blockquote>
+<p>For <em>consumer</em>：
+For <em>extender</em>：
+For <em>framework</em>：</p>
+</blockquote>
+</blockquote>
+<p>接下来你会翻译我说的每句英文为中文</p>
+
+</body>
+</html>
