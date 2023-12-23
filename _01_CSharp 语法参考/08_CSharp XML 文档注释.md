@@ -3,7 +3,7 @@
 C# 源文件可以具有结构化注释，这些注释生成这些文件中定义的类型的 API 文档。编译器会生成一个 XML 文件，其中包含表示注释和 API 签名的结构化数据。
 
 ---
-## 创建 XML 文档输出
+## 1. 创建 XML 文档输出
 
 ```csharp
 /// <summary>
@@ -57,7 +57,7 @@ class SeeExample;
 ```
 
 >---
-### ID 字符串
+### 1.1. ID 字符串
 
 每个类型或成员均存储在输出 XML 文件的元素中，其中每个元素都具有唯一的 ID 字符串用于标识类型或成员。ID 字符串必须考虑运算符、参数、返回值、泛型类型参数、`ref`、`in` 和 `out` 参数。若要对所有这些潜在元素进行编码，编译器应遵循明确定义的用于生成 ID 字符串的规则。处理 XML 文件的程序使用 ID 字符串来标识文档应用于的相应 .NET 元数据或反射项目。
 
@@ -291,10 +291,10 @@ namespace Acme
 ```
 
 ---
-## XML 文档标记元素
+## 2. XML 文档标记元素
 
-### 常规标记
-#### summary
+### 2.1. 常规标记
+#### 2.1.1. summary
 
 ```xml
 <summary>description</summary>
@@ -315,7 +315,7 @@ namespace MyNamespace
 
 <br>
 
-#### remarks
+#### 2.1.2. remarks
 
 ```xml
 <remarks>
@@ -328,8 +328,8 @@ description
 
 
 >---
-### 用于成员的标记
-#### returns
+### 2.2. 用于成员的标记
+#### 2.2.1. returns
 
 ```xml
 <returns>description</returns>
@@ -350,7 +350,7 @@ class MyClass
 
 <br>
 
-#### param
+#### 2.2.2. param
 
 ```xml
 <param name="name">description</param>
@@ -373,7 +373,7 @@ class MyClass
 
 <br>
 
-#### paramref
+#### 2.2.3. paramref
 
 ```xml
 <paramref name="name"/>
@@ -396,7 +396,7 @@ class MyClass
 
 <br>
 
-#### exception
+#### 2.2.4. exception
 
 ```xml
 <exception cref="member">description</exception>
@@ -415,7 +415,7 @@ class MyClass
 
 <br>
 
-#### value
+#### 2.2.5. value
 
 ```xml
 <value>property-description</value>
@@ -433,7 +433,7 @@ class MyClass
 
 <br>
 
-#### permission
+#### 2.2.6. permission
 
 ```xml
 <permission cref="member">description</permission>
@@ -457,8 +457,8 @@ public class MyClass
 ```
 
 >---
-### 设置文档输出格式
-#### para
+### 2.3. 设置文档输出格式
+#### 2.3.1. para
 
 ```xml
 <remarks>
@@ -489,7 +489,7 @@ namespace MyNamespace
 
 <br>
 
-#### list
+#### 2.3.2. list
 
 ```xml
 <list type="bullet|number|table">
@@ -548,7 +548,7 @@ namespace MyNamespace
 
 <br>
 
-#### c
+#### 2.3.3. c
 
 ```xml
 <c>text</c>
@@ -569,7 +569,7 @@ class MyClass
 
 <br>
 
-#### code
+#### 2.3.4. code
 
 ```xml
 <code>
@@ -597,7 +597,7 @@ class MyClass
 
 <br>
 
-#### example
+#### 2.3.5. example
 
 ```xml
 <example>
@@ -632,8 +632,8 @@ class MyClass
 ```
 
 >---
-### 重用文档文本
-#### inheritdoc
+### 2.4. 重用文档文本
+#### 2.4.1. inheritdoc
 
 ```xml
 <inheritdoc [cref=""] [path=""]/>
@@ -677,7 +677,7 @@ public class DerivedClassWithInheritedDocs : BaseInheritDoc;
 
 <br>
 
-#### include
+#### 2.4.2. include
 
 ```xml
 <include file='filename' path='tagpath[@name="id"]' />
@@ -721,8 +721,8 @@ class Test2;
 ```
 
 >---
-### 生成链接和引用
-#### see
+### 2.5. 生成链接和引用
+#### 2.5.1. see
 
 ```xml
 <see cref="member"/>
@@ -751,7 +751,7 @@ class SeeExample;
 
 <br>
 
-#### seealso
+#### 2.5.2. seealso
 
 ```xml
 <seealso cref="member"/>
@@ -776,8 +776,8 @@ class SeeExample;
 
 >---
 
-### 用于泛型类型和方法的标记
-#### typeparam
+### 2.6. 用于泛型类型和方法的标记
+#### 2.6.1. typeparam
 
 ```xml
 <typeparam name="TResult">The type returned from this method</typeparam>
@@ -795,7 +795,7 @@ class LambdaExpression<TDelegate>;
 
 <br>
 
-#### typeparamref
+#### 2.6.2. typeparamref
 
 ```xml
 <typeparamref name="TKey"/>
@@ -818,14 +818,14 @@ class LambdaExpression
 
 >---
 
-### 用户定义标记
+### 2.7. 用户定义标记
 
 上述所有标记均表示由 C# 编译器识别的标记，用户可以随意定义自己的标记。Sandcastle 等工具支持其他标记，例如 `<event>` 和 `<note>`，甚至支持编制命名空间文档。自定义或内部文档生成工具也可与标准标记配合使用，并支持 HTML 到 PDF 等多种输出格式。
 
 
 >---
-### XML 标记案例
-#### 记录类和接口的层次结构
+### 2.8. XML 标记案例
+#### 2.8.1. 记录类和接口的层次结构
 
 ```csharp
 /// <summary>
@@ -907,7 +907,7 @@ public class InheritAllButRemarks
 }
 ```
 
-#### 泛型类型
+#### 2.8.2. 泛型类型
 
 ```csharp
 /// <summary>
@@ -937,16 +937,16 @@ public class ParamsAndParamRefs
 ```
 
 ---
-## XML 文档创建输出工具
+## 3. XML 文档创建输出工具
 
-### [DocFX](https://dotnet.github.io/docfx/docs/basic-concepts.html)
-
->---
-
-### [Sandcastle](https://github.com/EWSoftware/SHFB)
+### 3.1. [DocFX](https://dotnet.github.io/docfx/docs/basic-concepts.html)
 
 >---
 
-### [Doxygen](https://github.com/doxygen/doxygen)
+### 3.2. [Sandcastle](https://github.com/EWSoftware/SHFB)
+
+>---
+
+### 3.3. [Doxygen](https://github.com/doxygen/doxygen)
 
 ---

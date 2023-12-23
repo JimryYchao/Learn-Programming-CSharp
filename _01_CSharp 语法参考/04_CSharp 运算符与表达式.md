@@ -3,7 +3,7 @@
 表达式是运算符和操作数的序列，该子句定义了语法、操作数和运算符的求值顺序以及表达式的含义。
 
 ---
-## 静态绑定和动态绑定
+## 1. 静态绑定和动态绑定
 
 *绑定（Binding）* 是根据表达式的类型或值（参数、操作数、接收方）来确定一个操作含义的过程。例如，方法调用的绑定是根据接收方和参数的类型确定的。运算符的绑定是根据其操作数的类型确定的。
 
@@ -28,7 +28,7 @@ Console.WriteLine(d);  // dynamic binding to Console.WriteLine(int)  运行时�
 
 >---
 
-### 动态绑定
+### 1.1. 动态绑定
 
 动态绑定允许 C# 程序与 *动态对象* 交互，包括 C# 类型对象和不遵循 C# 类型系统常规规则的对象。也就是说，动态对象可以是具有不同类型系统的其他编程语言中的对象，也可以是以编程方式实现不同操作的绑定语义的对象。
 
@@ -36,7 +36,7 @@ Console.WriteLine(d);  // dynamic binding to Console.WriteLine(int)  运行时�
 
 >---
 
-### 子表达式的类型
+### 1.2. 子表达式的类型
 
 当一个操作被静态绑定时，子表达式的类型（例如，接收者、参数、索引或操作数）总是被认为是该表达式的编译时类型。
 
@@ -46,7 +46,7 @@ Console.WriteLine(d);  // dynamic binding to Console.WriteLine(int)  运行时�
 - 否则，子表达式被认为具有其编译时类型。
 
 ---
-## 运算符
+## 2. 运算符
 
 表达式有操作数和运算符构造，表达式的运算符指示对操作数应用哪些操作。包含三种类型的运算符：
 - 一元运算符：接受一个操作数，并使用前缀（`-x`）或后缀表示法（`x++`）。
@@ -59,7 +59,7 @@ Console.WriteLine(d);  // dynamic binding to Console.WriteLine(int)  运行时�
 
 >---
 
-### 运算符优先级和结合性
+### 2.1. 运算符优先级和结合性
 
 优先级从高到底的顺序列举 C# 支持的运算符：
 
@@ -97,7 +97,7 @@ Console.WriteLine($"a = {a}, b = {b}");  // output: a = 1, b = 6
 
 >---
 
-### 运算符重载
+### 2.2. 运算符重载
 
 用户定义类型可以重载一元和二元运算符。相应的复合运算符也会隐式重载。
 
@@ -118,7 +118,7 @@ record struct Point(double x, double y)
 }
 ```
 
-#### 可重载的运算符
+#### 2.2.1. 可重载的运算符
 
 - 算数运算符：一元 `++`、`--`、`+`、`-` 和二元 `*`、`/`、`%`、`+`、`-` 算术运算符。
 - 逻辑运算符：一元 `!` 和二元 `&`、`|`、`^`。
@@ -128,7 +128,7 @@ record struct Point(double x, double y)
 - 一元 `true` 和 `false` 运算符，只能返回 `bool` 类型。用户类型定义了 `&` 或 `|` 运算符重载时，可以使用相应的条件逻辑运算符 `&&` 或 `||`。
 
 ---
-## 基本表达式
+## 3. 基本表达式
 
 基本表达式包含一些简单形式的表达式。
 
@@ -171,7 +171,7 @@ primary_no_array_creation_expression
 
 >---
 
-### 文本
+### 3.1. 文本
 
 由文本组成的表达式归类为值，是值的源代码表示形式。文本字面值包含布尔值 `true` 和 `false`、整数和实数字面值、字符、字符串、`null`。
 
@@ -186,7 +186,7 @@ object obj = null;
 
 >---
 
-### 内插字符串
+### 3.2. 内插字符串
 
 内插字符串由 `$`、`@$` 或 `$@` 作为前缀，后接字符串字面值。在文本中，包含零个到多个内插表达式 `{ expr }`，每个插入包含一个表达式和一个可选的格式规范。
 
@@ -222,7 +222,7 @@ string message = $"The usage policy for {safetyScore} is {
 
 >---
 
-### 成员访问
+### 3.3. 成员访问
 
 - `.`（成员访问）：用于访问命名空间、类型、对象的成员。
 - `[]`（数组元素或索引器访问）：用于访问数组元素或类型索引器。
@@ -250,7 +250,7 @@ Print("Hello, World");
 
 >---
 
-### this 访问
+### 3.4. this 访问
 
 只能在类或结构的实例构造函数、实例方法、实例访问器或终结器的块中使用 `this`。接口提供实现的实例成员块中也可以使用 `this`。`this` 有以下含义之一：
 
@@ -276,7 +276,7 @@ class Sample
 
 >---
 
-### base 访问
+### 3.5. base 访问
 
 `base` 通常用于访问当前类或结构中类似命名的被隐藏的基类成员。只能在实例构造函数、实例方法、实例访问器、终结器的块中使用 `base`。在类中充当 `base` 基类对象的引用，对于结构类型则是对其直接基类 `System.ValueType` 的引用。 
 
@@ -298,7 +298,7 @@ class Sample : Base
 
 >---
 
-### new 运算符
+### 3.6. new 运算符
 
 `new` 运算符用于创建类型的新实例，主要是：
 - 对象创建表达式用于创建类或值类型的新实例。
@@ -306,7 +306,7 @@ class Sample : Base
 - 委托创建表达式用于创建委托类型的新实例。
 - 匿名对象创建表达式用于构造匿名类型的新实例。
 
-#### 对象创建
+#### 3.6.1. 对象创建
 
 ```ANTLR
 object_creation_expression
@@ -354,7 +354,7 @@ class Rectangle
 }
 ```
 
-#### 对象初始值设定项
+#### 3.6.2. 对象初始值设定项
 
 对象初始值设定项为对象的零个或多个可访问的字段、属性、索引元素指定值。
 
@@ -407,7 +407,7 @@ public class Person
 ```
 
 
-#### 集合初始值设定项
+#### 3.6.3. 集合初始值设定项
 
 集合初始化项指定集合的元素，集合对象必须是实现 `IEnumerable` 的类型，且包含一个可访问的 `Add` 实例方法或扩展方法。
 
@@ -450,7 +450,7 @@ public class Persons
 }
 ```
 
-#### 委托创建
+#### 3.6.4. 委托创建
 
 ```ANTLR
 delegate_creation_expression
@@ -473,7 +473,7 @@ class Sample
 }
 ```
 
-#### 匿名类型创建
+#### 3.6.5. 匿名类型创建
 
 ```ANTLR
 anonymous_object_creation_expression
@@ -491,7 +491,7 @@ var p2 = new { Name = "Shovel", Price = 26.95 };
 p1 = p2;
 ```
 
-#### 数组的创建
+#### 3.6.6. 数组的创建
 
 ```csharp
 // 单维数组
@@ -537,7 +537,7 @@ var arr = new[] {
 
 >---
 
-### typeof 运算符
+### 3.7. typeof 运算符
 
 `typeof` 操作符用于获取 `System.Type` 的类型对象。运算符的参数可以是类型名称、未绑定的类型名称、`void`，不能是 `dynamic` 类型。`System.Type` 与 `System.Reflection` 中的类能够用来获取有关加载的程序集、`Type` 对象关联类型等的相关信息。
 
@@ -569,7 +569,7 @@ class Sample<T>
 
 >---
 
-### sizeof 运算符
+### 3.8. sizeof 运算符
 
 `sizeof` 运算符用于返回给定类型的变量所占用的 8 位字节数。`sizeof` 运算符的参数通常是一个非托管 `unmanaged` 类型的名称，或是一个限定为非托管类型的类型参数。
 
@@ -636,7 +636,7 @@ struct Sample<T>()
 
 >---
 
-### nameof 表达式
+### 3.9. nameof 表达式
 
 `nameof` 表达式用于以常量字符串的形式获取程序实体（可以是命名空间、类型名称、成员名称、变量名、类型参数名称、标识符等程序实体）的名称。`nameof` 表达式在运行时没有作用，它的值是命名实体的最后一个标识符，因此它的程序实体参数不能求值，不能是表达式。
 
@@ -696,7 +696,7 @@ void M(int parameter, [MyAttribute(nameof(parameter))] int other) { }  // 参数
 
 >---
 
-### 空合并运算符
+### 3.10. 空合并运算符
 
 `??` 和 `??=` 空合并运算符在左操作数为 `null` 时，返回右操作数。若左操作数计算结果非 `null` 时，运算符不会计算其右操作数。空合并运算符是右结合运算符。
 
@@ -737,7 +737,7 @@ public string Name
 
 >---
 
-### 弃元
+### 3.11. 弃元
 
 弃元（`_`）是一种在应用程序代码中人为取消使用的占位符变量，相当于未赋值的变量，但是它们没有值。弃元将意图传达给编译器和其他读取代码的文件：用户打算忽略表达式的结果。可以使用弃元用来忽略表达式的结果、元组表达式的一个或多个成员、方法的 `out` 参数或模式匹配表达式的目标。
 
@@ -844,7 +844,7 @@ private static bool RoundTrips(int _)
 
 >---
 
-### 空包容运算符
+### 3.12. 空包容运算符
 
 一元后缀 `!` 运算符是 `null` 包容运算符或 `null` 抑制运算符。在已启用的可为空的注释上下文中，使用 `null` 包容运算符来取消上述表达式的所有可为 `null` 警告。`null` 包容运算符在运行时不起作用，它仅通过更改表达式的 `null` 状态来影响编译器的静态流分析。
 
@@ -888,7 +888,7 @@ class Sample
 
 >---
 
-### checked 和 unchecked 运算符
+### 3.13. checked 和 unchecked 运算符
 
 `checked` 和 `unchecked` 运算符用于控制整型算数和转换的溢出检查上下文，可以是表达式或语句两种形式。运算符这会对计算结果进行是否溢出检查，而不会对函数调用有影响。
 
@@ -936,7 +936,7 @@ class Sample
 
 >---
 
-### default 表达式
+### 3.14. default 表达式
 
 `default` 表达式用于获取类型的默认值。表达式的结果是显式类型的默认值，或者是指定目标类型的默认值。当类型是简单值类型、任何枚举类型、已知引用类型的类型参数或引用类型时，`default` 表达式是一个常量表达时。
 
@@ -960,7 +960,7 @@ class Sample<T>
 
 >---
 
-### stackalloc 表达式
+### 3.15. stackalloc 表达式
 
 堆栈分配表达式从执行堆栈中分配一块内存。执行堆栈是存储局部变量的内存区域，不是托管堆的一部分。当当前函数返回时，用于本地变量存储的内存将自动恢复。
 
@@ -1043,7 +1043,7 @@ Span<byte> buffer = inputLength <= MaxStackLimit ?
 
 >---
 
-### with 表达式
+### 3.16. with 表达式
 
 使用 `with` 表达式创建左侧操作数的副本，附加需要修改的特性属性和字段。在 C#9 中，`with` 表达式的左侧操作数必须为记录类型。
 
@@ -1065,7 +1065,7 @@ record Sample(string name)
 
 >---
 
-### await 表达式
+### 3.17. await 表达式
 
 `await` 运算符用于暂停封闭异步函数的求值，直到操作数表示的异步操作完成为止。`await` 只允许在 `async` 声明的异步函数体中使用，在非异步的嵌套方法或匿名方法、`lock` 语句块中、不安全的上下文中不能使用 `await` 表达式，异步的匿名方法无法转换为表达式树类型。
 
@@ -1101,7 +1101,7 @@ public class AwaitOperator
 // Main: Downloaded 27700 bytes.
 ```
 
-#### awaitable expression
+#### 3.17.1. awaitable expression
 
 `await` 表达式的结果必须是可等待的，可等待的表达式 `E` 的结果类型具有一个 `GetAwaiter` 的可访问的无参非泛型的实例或扩展方法，并且返回类型 `A` 必须满足：
 - `A` 实现接口 `System.Runtime.CompilerServices.INotifyCompletion`。
@@ -1116,7 +1116,7 @@ public class AwaitOperator
 
 `GetResult` 方法的目的是在任务完成后获得任务的结果。该结果可能是成功完成，可能带有结果值，也可能是由 `GetResult` 方法抛出的异常。
 
-#### await 表达式的运行时求值顺序
+#### 3.17.2. await 表达式的运行时求值顺序
 
 对于表达式 `await E`：
 - 计算 `(E).GetAwaiter()` 求值获取一个 `Awaiter` 类型的等待器 `A`。
@@ -1131,7 +1131,7 @@ public class AwaitOperator
 
 >---
 
-### 匿名函数
+### 3.18. 匿名函数
 
 匿名函数是一个表示 “内联” 方法定义的表达式。匿名函数本身没有值或类型，但可以转换为兼容的委托或表达式树类型。匿名函数转换的求值取决于转换的目标类型：
 - 如果是委托类型，则转换的求值为引用匿名函数定义的方法的委托值。
@@ -1139,7 +1139,7 @@ public class AwaitOperator
 
 有两种形式的匿名方法表示方法，一种使用 `delegate` 声明匿名方法表达式（块主体），另一种使用简洁的 Lambda 表达式或语句（块或表达式主体）。
 
-#### delegate 匿名方法表达式
+#### 3.18.1. delegate 匿名方法表达式
 
 使用 `delegate` 声明匿名函数表达式，函数体仅支持语句块主体。
 
@@ -1158,7 +1158,7 @@ Func<int, int> fun2 = static delegate { return 1 + 1; };        // static
 var fun3 = async delegate (int sec){ await Task.Delay(sec); };  // async
 ```
 
-#### Lambda 表达式
+#### 3.18.2. Lambda 表达式
 
 使用 Lambda 表达式来创建匿名函数：
 
@@ -1219,7 +1219,7 @@ var concat = ([DisallowNull] string a, [DisallowNull] string b) => a + b;
 var fun = (string? mess = "") => Console.WriteLine(mess);
 ```
 
-#### 匿名函数签名
+#### 3.18.3. 匿名函数签名
 
 匿名函数的签名定义了匿名函数的形参的名称和可选的类型。如果匿名函数有一个显式类型声明的方法签名，那么兼容的委托类型和表达式树类型也必须具有相同参数类型、参数修饰符和相同的参数顺序的方法签名。与方法组转换委托不同，不支持匿名函数参数类型的协变转换。
 
@@ -1248,7 +1248,7 @@ class Sample
 }
 ```
 
-#### 匿名函数主体
+#### 3.18.4. 匿名函数主体
 
 匿名函数主体只能使用自身签名中声明的 `ref`、`in`、`out` 参数，无法使用外部范围的其他应用变量。
 
@@ -1330,7 +1330,7 @@ class Sample
 }
 ```
 
-#### 外部变量
+#### 3.18.5. 外部变量
 
 任何局部变量、值参数、参数数组等的作用域可以覆盖到匿名方法的函数体时，这些变量都被称为匿名函数的外部变量。在类的实例函数成员中，`this` 值被认为是值参数。
 
@@ -1361,7 +1361,7 @@ class Test
 在将匿名函数转换为表达式树时，对编译器生成的对象引用可以存储在表达式树中，对局部变量的访问可以表示为对这些对象的字段访问。这种方法的优点是，它允许在委托和表达式树之间共享 “提升” 的局部变量。
 
 ---
-## 算数运算符
+## 4. 算数运算符
 
 一元 `++`（增量）、`--`（减量）、`+`（加）和 `-`（减）运算符。
 二元 `*`（乘法）、`/`（除法）、`%`（余数）、`+`（加法）和 `-`（减法）运算符。
@@ -1416,7 +1416,7 @@ Console.WriteLine(c %= 3);  // c=c%3, output: 2
 ```
 
 ---
-## 关系运算符
+## 5. 关系运算符
 
 二元 `<`（小于）、`>`（大于）、`<=`（小于等于）、`>=`（大于等于）、`==`（等于）、`!=`（不等于）运算符。
 
@@ -1439,7 +1439,7 @@ Console.WriteLine('A' == 65);      // True
 Console.WriteLine('我' != '你');   // True
 ```
 
-### 相等性比较
+### 5.1. 相等性比较
 
 有时需要比较两个值是否相等。相等性可以测试 “值相等性” 或 “引用相等性”：
   - 值相等性也称为 “等效性”，指两个对象包含相同的一个或多个值。
@@ -1477,7 +1477,7 @@ class Test
 }
 ```
 
-#### 值相等性
+#### 5.1.1. 值相等性
 
 针对值相等性的测试，可以使用 `==` 运算符。对记录来说，值相等性是指如果记录类型的两个变量类型相匹配，且所有属性和字段值（或引用对象）都一致，那么记录类型的两个变量是相等的。字符串按值相等性比较。
 
@@ -1509,7 +1509,7 @@ struct Sample
 record rSample(string name, int num);
 ```
 
-#### 用户定义类型相等性
+#### 5.1.2. 用户定义类型相等性
 
 定义类或结构时，需确定为类型创建值相等性（或等效性）的自定义定义是否有意义。通常，预期将类型的对象添加到集合时，或者这些对象主要用于存储一组字段或属性时，需实现值相等性。可以基于类型中所有字段和属性的比较结果来定义值相等性，也可以基于子集进行定义。
 
@@ -1576,7 +1576,7 @@ struct Point2D(int x, int y) : IEquatable<Point2D>
 }
 ```
 
-#### 浮点值的相等性
+#### 5.1.3. 浮点值的相等性
 
 由于二进制计算机上的浮点算法不精确，因此浮点值（`double` 和 `float`）的相等比较会出现问题。若要被视为相等，两个 `double` 值必须表示相同的值。
 
@@ -1691,7 +1691,7 @@ static bool ZeroEquals(double val)
 }
 ```
 
-#### 为 ref 变量创建引用相等性比较 
+#### 5.1.4. 为 ref 变量创建引用相等性比较 
 
 对两个 `ref` 变量使用 `==` 或 `!=`，对于值类型则比较值相等性，对于引用类型则比较引用相等性。若要检查两个 `ref` 值类型是否引用同一个对象，则比较它们的地址值。
 
@@ -1725,9 +1725,9 @@ public static class ObjectExt
 ```
 
 ---
-## 类型测试
+## 6. 类型测试
 
-### is 运算符
+### 6.1. is 运算符
 
 `is` 运算有两种形式，一种是类型测试（右侧是一个类型），一种模式匹配（右侧是一个模式）。
 
@@ -1748,7 +1748,7 @@ class Base;
 class Derived : Base;
 ```
 
-#### 检查 null 值
+#### 6.1.1. 检查 null 值
 
 ```csharp
 using System.Diagnostics;
@@ -1766,7 +1766,7 @@ Trace.Assert(obj is not { });
 
 >---
 
-### as 运算符
+### 6.2. as 运算符
 
 `as` 运算符用于显式地将值转换为给定的引用类型或可空值类型。与强制转换表达式不同，`as` 运算符永远不会抛出异常。若指定的转换不可能，则结果值为 `null`。
 
@@ -1797,7 +1797,7 @@ class Sample
 
 >---
 
-### typeof 类型测试
+### 6.3. typeof 类型测试
 
 `typeof` 运算符用于获取某个类型的 `System.Type` 实例。`typeof` 运算符的实参必须是类型或类型形参的名称，不能是 `dynamic` 或任何可为 null 的引用类型。
 `Object.GetType()` 用以获取某个实例对象的相应类型的 `System.Type` 实例。使用 `typeof` 运算符和 `object.GetType()` 来检查表达式结果的运行时类型是否与给定的类型完全匹配。
@@ -1815,7 +1815,7 @@ class Giraffe : Animal;
 ```
 
 ---
-## 逻辑运算与条件逻辑运算
+## 7. 逻辑运算与条件逻辑运算
 
 一元 `!`（逻辑非）运算符。
 
@@ -1889,7 +1889,7 @@ False |= Second operand is evaluated >> result = True
 
 >---
 
-### 用户定义条件逻辑运算符
+### 7.1. 用户定义条件逻辑运算符
 
 若用户定义类型已包含 `|`（或 `&`）运算符重载，可以定义 `true` 和 `false` 的运算符重载以支持该类型执行条件逻辑运算 `||`（或 `&&`），唯一的要求是 `true` 和 `false` 运算符的操作数和返回类型都是其包含类型 `T`。
 
@@ -1943,7 +1943,7 @@ public class LaunchStatusTest
 ```
 
 ---
-## 条件运算符
+## 8. 条件运算符
 
 条件运算符 `? :` 也称为三元条件运算符，用于计算布尔表达式 `condition ? consequent : alternative`，并根据布尔表达式的计算结果为 `true` 还是 `false` 来返回两个表达式中的一个结果。
 
@@ -1958,7 +1958,7 @@ var x = condition ? 12 : (int?)null;
 
 >---
 
-### ref 条件表达式
+### 8.1. ref 条件表达式
 
 条件 `ref` 表达式可有条件地返回变量引用：`condition ? ref consequent : ref alternative`。在 `ref` 条件表达式中，`consequent` 和 `alternative` 的类型必须相同。
 
@@ -1983,7 +1983,7 @@ Console.WriteLine(string.Join(" ", largeArray));
 ```
 
 ---
-## 位运算和移位运算
+## 9. 位运算和移位运算
 
 一元 `~`（按位求补）运算符。
 
@@ -2036,7 +2036,7 @@ static class Ext
 ```
 
 ---
-## 类型转换
+## 10. 类型转换
 
 转换使表达式被转换为或被视为属于特定类型。转换可能涉及表示的变化，转换可以是隐式转换或显式强制转换。一些转换是语言定义的，用户可以自定义类型转换。
 
@@ -2048,11 +2048,11 @@ int c = (int)b;  // explicit
 
 >---
 
-### 隐式转换
+### 10.1. 隐式转换
 
 隐式转换可能会在多种情况下发生，包括函数成员调用、强制转换表达式、赋值运算等。预定义的隐式转换始终会成功，并且不会引发异常。
 
-#### 隐式恒等转换
+#### 10.1.1. 隐式恒等转换
 
 恒等转换将任意类型转换为相同类型，即类型 `T` 或类型 `T` 的表达式可转换为 `T` 本身：
 - `dynamic` 和 `object` 之间存在恒等转换。
@@ -2060,7 +2060,7 @@ int c = (int)b;  // explicit
 - 具有相同密度的元组类型之间，如果每对对应元素类型之间存在恒等转换时，元组之间存在恒等转换。
 
 
-#### 隐式数值转换
+#### 10.1.2. 隐式数值转换
 
 当某一数值类型 `T` 的值域在目标类型 `U` 的可表示值域范围内，则 `T` 可以隐式转换为 `U`，例如：
 - 从 `byte`、`sbyte` 到 `short`、`int`、`nint`、`long`、`float`、`double`、`decimal`。
@@ -2077,7 +2077,7 @@ int c = (int)b;  // explicit
 
 从整型到浮点数的转换可能会导致精度损失，但是不会导致范围损失。
 
-#### 隐式枚举转换
+#### 10.1.3. 隐式枚举转换
 
 隐式枚举转换允许将任意整数类型的 `0` 值常量转换为任意枚举类型和任何可空枚举类型。其他的整数类型数值需要强制转换运算。
 
@@ -2086,11 +2086,11 @@ TaskStatus status0 = 0;
 TaskStatus status = (TaskStatus)5;
 ```
 
-#### 隐式内插字符串转换
+#### 10.1.4. 隐式内插字符串转换
 
 隐式内插字符串转换允许将内插字符串转换为 `System.IFormattable` 或 `System.FormattableString`。
 
-#### 隐式可空转换
+#### 10.1.5. 隐式可空转换
 
 对于非空值类型的预定义隐式转换，也可以用于这些类型的可空值类型。非空值类型 `T` 到其可空类型 `T?` 之间存在隐式转换。
 
@@ -2107,11 +2107,11 @@ int? n_num = num;
 long? n_lnum = n_num;  // S? to T?
 ```
 
-#### null 的转换
+#### 10.1.6. null 的转换
 
 存在从 `null` 字面值到任何引用类型或可空值类型的隐式转换。对于引用类型转换为空引用，对于可空值类型则生成空值。
 
-#### 隐式引用转换
+#### 10.1.7. 隐式引用转换
 
 隐式引用转换是指那些可以证明总是成功的引用类型之间的转换，在运行时不需要检查。隐式引用转换有：
 - 从任意引用类型到 `object` 和 `dynamic` 的转换。
@@ -2130,7 +2130,7 @@ long? n_lnum = n_num;  // S? to T?
  
 引用转换永远不会改变被转换对象的引用标识。虽然引用转换可以更改引用的类型，但它不会更改引用对象的类型或值。
 
-#### 装箱转换
+#### 10.1.8. 装箱转换
 
 装箱转换允许将值类型隐式转换为引用类型，装箱转换有：
 - 从任意值类型到 `object`、`System.ValueType` 的转换。
@@ -2141,7 +2141,7 @@ long? n_lnum = n_num;  // S? to T?
 
 将非空值类型的值装箱包括分配一个对象实例并将值复制到该实例中。若可空值类型的值是空值，则其装箱为空引用，否则将展开底层值并生成该值装箱的引用。
 
-#### 隐式动态转换
+#### 10.1.9. 隐式动态转换
 
 存在从动态类型表达式到任意类型 `T` 的隐式动态转换，该转换是动态绑定的，这意味着将在运行时寻求从表达式的运行时类型到 `T` 的隐式转换，若无法成功转换，则抛出运行时异常。
 
@@ -2154,13 +2154,13 @@ string s2 = d;  // Compiles and succeeds at run-time
 int i     = d;  // Compiles but fails at run-time -- no conversion exists
 ```
 
-#### 隐式常量表达式转换
+#### 10.1.10. 隐式常量表达式转换
 
 隐式常量表达式的转换允许：
 - `int` 类型的常量表达式可以转换为 `sbyte`、`byte`、`short`、`ushort`、`uint`、`nint`、`nuint`、`ulong` 类型，前提是该常量值在目标类型的范围内。
 - `long` 类型的常量表达式可以转换为 `ulong` 类型，前提是非负值。
 
-#### 涉及类型参数的隐式转换
+#### 10.1.11. 涉及类型参数的隐式转换
 
 给定的类型参数 `T` 存在以下隐式转换： 
 
@@ -2172,7 +2172,7 @@ int i     = d;  // Compiles but fails at run-time -- no conversion exists
 
 - 从 `null` 到引用类型的类型参数 `T`。 
 
-#### 隐式元组转换
+#### 10.1.12. 隐式元组转换
 
 如果元组表达式 `E` 与元组类型 `T` 具有相同的密度，且存在从 `E` 中的每个元素到 `T` 中相应元素类型的隐式转换，则存在 `E` 到 `T` 的隐式转换。转换通过创建 `System.ValueTuple<...>` 类型，并从左到右的顺序初始化它的每个字段。
 
@@ -2186,25 +2186,25 @@ int i     = d;  // Compiles but fails at run-time -- no conversion exists
 (int i, string) t5 = (x: 5, s: "Five"); // Warning: Names are ignored
 ```
 
-#### 用户定义的隐式转换
+#### 10.1.13. 用户定义的隐式转换
 
 用户定义的隐式转换包括由从一个可选的标准隐式转换，到执行用户定义的隐式转换运算符，再到执行另一个可选的标准隐式转换。
 
-#### 匿名函数转换和方法组转换
+#### 10.1.14. 匿名函数转换和方法组转换
 
 匿名函数和方法组本身没有类型，它们可以隐式地转换为委托类型。一些 Lambda 表达式可以隐式转换为表达式树类型。
 
-#### 默认值转换
+#### 10.1.15. 默认值转换
 
 存在从 `default` 到任何类型的隐式转换，此转换将生成推断类型的默认值。
 
-#### 隐式抛出转换
+#### 10.1.16. 隐式抛出转换
 
 `throw` 表达式没有类型，但是它们可以隐式转换为任何类型。
 
 >---
 
-### 显式转换
+### 10.2. 显式转换
 
 显式转换可在强制转换表达式（`(type)value`）中发生。显式转换集包含所有的隐式转换，即隐式转换可以显式使用强制转换表达式。
 
@@ -2217,7 +2217,7 @@ int num2 = (int)obj;       // 显式强制转换
 
 不是隐式转换的显式转换是指不能证明总是成功的转换、已知可能丢失信息的转换以及跨类型域的转换，这些转换差异很大，必须显式标记。显式转换可能会存在无效的强制转换。
 
-#### 显式数字转换
+#### 10.2.1. 显式数字转换
 
 - 从 `sbyte` 到 `byte`、`ushort`、`uint`、`ulong`、`char`。
 - 从 `byte` 到 `sbyte`、`char`.
@@ -2243,13 +2243,13 @@ int num2 = (int)obj;       // 显式强制转换
 - 对于 `float`、`double` 到 `decimal` 的转换，将源值转换为 `decimal` 格式，并将第 28 位小数后舍入到最接近的数。若太小时结果为零，若是 `nan`、无穷大或值太大而无法表示为 `decimal` 时，将引发溢出异常。
 - 对于从 `decimal` 到浮点类型的转换，将源值舍入到最接近的目标类型值。这种转换可能会丢失精度，但不会引发异常。
 
-#### 显式枚举转换
+#### 10.2.2. 显式枚举转换
 
 显式枚举转换包括从任意数值类型到枚举类型的显式转换，从任意枚举类型到任意数值类型的转换，或任意枚举类型之间的转换。
 
 整数类型的 0 值可以隐式转换为枚举类型。
 
-#### 显式可空转换
+#### 10.2.3. 显式可空转换
 
 对于非空值类型的预定义显式转换，也可以用于这些类型的可空值类型。非空值类型 `T?` 到其可空类型 `T` 之间存在式转换。
 
@@ -2267,7 +2267,7 @@ long? l_num = lnum;   // T to T?
 int? n_num = (int?)l_num;  // (T?)S? to T?
 ```
 
-#### 显式引用转换
+#### 10.2.4. 显式引用转换
 
 显式引用转换是需要运行时检查以确保它们正确的引用类型之间的转换。如果显式引用转换失败，将引发 `System.InvalidCastException` 异常。
 
@@ -2281,7 +2281,7 @@ obj = 123;
 str = (string)obj;  // err : 源类型的运行时类型 int 无法隐式转换为 string
 ```
 
-#### 显式元组转换
+#### 10.2.5. 显式元组转换
 
 如果元组表达式 `E` 与元组类型 `T` 具有相同的密度，且存在从 `E` 中的每个元素到 `T` 中相应元素类型的显式转换，则存在 `E` 到 `T` 的显式转换。转换通过创建 `System.ValueTuple<...>` 类型，并从左到右的顺序初始化它的每个字段，并对每一个元素应用显式转换。
 
@@ -2294,17 +2294,17 @@ str = (string)obj;  // err : 源类型的运行时类型 int 无法隐式转换�
 (int i, string s) t4 = (ValueTuple<int, string>)(d: 3.1415, "Four"); // Warning: Names are ignored
 ```
 
-#### 拆箱转换
+#### 10.2.6. 拆箱转换
 
 拆箱转换允许将引用类型显式转换为值类型。拆箱转换操作包括：首先检查对象实例是否是给定值类型的装箱值，然后将该值从实例中复制出来。拆箱到可空值类型时，空引用生成为可空值类型的 `null` 值。拆箱空引用将引发 `System.NullReferenceException`
 
 前提是引用类型是包含目标类型的装箱类型或兼容类型，否则将引发 `System.InvalidCastException` 异常。
 
-#### 显式动态转换
+#### 10.2.7. 显式动态转换
 
 存在从 `dynamic` 到任何类型的 `T` 的显式动态转换，转换是动态绑定的，这意味着将在运行时检查表达式的运行时类型是否与目标类型存在显式转换。不存在任何转换时将产生异常。
 
-#### 涉及类型参数的显式转换
+#### 10.2.8. 涉及类型参数的显式转换
 
 给定的类型参数 `T` 存在以下显式转换： 
 
@@ -2330,13 +2330,13 @@ class Sample<T>
 }
 ```
 
-#### 用户定义的显式转换
+#### 10.2.9. 用户定义的显式转换
 
 用户定义的显式转换包括先可选的标准显式转换，然后执行用户定义的隐式或显式转换操作符，最后是另一个可选的标准显式转换。
 
 >---
 
-### 用户定义转换
+### 10.3. 用户定义转换
 
 用户定义的转换将源表达式转换为另一种类型。用户定义转换的求值以查找源表达式或目标类型的最特定的用户定义转换运算符为核心。当确定了最特定的用户定义转换运算符，则用户定义的转换最多执行：
 - （可选）首先，执行从源表达式到用户定义或提升的转换运算的操作数类型的标准转换。
@@ -2365,7 +2365,7 @@ class Point(double x, double y)
 
 >---
 
-### 匿名方法的转换
+### 10.4. 匿名方法的转换
 
 匿名方法表达式（`delegate`）和 Lambda 表达式或语句被归类为匿名方法。匿名方法没有类型，但可以隐式地转换为兼容的委托类型。一些 Lambda 表达式也可以转换为兼容的表达式树类型。
 
@@ -2400,7 +2400,7 @@ Action dele = (x, str) => { x = str.Length; };
 delegate void Action(int val, string str);
 ```
 
-#### 匿名方法转换到委托类型的求值
+#### 10.4.1. 匿名方法转换到委托类型的求值
 
 将匿名函数转换为委托类型会生成一个委托实例，该实例引用匿名函数并可能在转换时捕获处于活动状态的外部变量集（可能为空）。当调用委托时，将执行匿名函数体。主体中的代码使用委托引用捕获的外部变量集执行。
 
@@ -2432,7 +2432,7 @@ class Test
 }
 ```
  
-#### Lambda 表达式转换到表达式树类型的求值
+#### 10.4.2. Lambda 表达式转换到表达式树类型的求值
 
 将 Lambda 表达式转换为表达式树类型会生成表达式树类型，即 Lambda 表达式转换的结果产生一个表示 Lambda 表达式本身结构的对象结构。
 
@@ -2445,7 +2445,7 @@ class Test
 
 >---
 
-### 方法组的转换
+### 10.5. 方法组的转换
 
 存在从方法组 `E` 到兼容委托类型 `D` 的隐式转换。
 
@@ -2472,7 +2472,7 @@ class Test
 
 >---
 
-### 帮助程序类转换
+### 10.6. 帮助程序类转换
 
 若要在非兼容类型（如整数和 `System.DateTime` 对象，或十六进制字符串和字节数组）之间转换，可使用 `System.BitConverter` 类、`System.Convert` 类和内置数值类型的 `Parse` 方法（如 `Int32.Parse`）。
 
@@ -2494,7 +2494,7 @@ Console.WriteLine("byte array: " + BitConverter.ToString(bytes)); // 9A-50-07-0C
 ```
 
 ---
-## 模式匹配
+## 11. 模式匹配
 
 模式是一种语法形式，可以使用 `is` 表达式、`switch` 语句和 `switch` 表达式将输入表达式与任意数量的特征匹配。C# 支持多种模式，包括声明、类型、常量、关系、属性、列表、var 和弃元。可以使用布尔逻辑关键字 `and`、`or` 和 `not` 组合模式。
 
@@ -2512,9 +2512,9 @@ Console.WriteLine("byte array: " + BitConverter.ToString(bytes)); // 9A-50-07-0C
 
 >---
 
-### 模式匹配表达式
+### 11.1. 模式匹配表达式
 
-#### is 模式
+#### 11.1.1. is 模式
 
 ```csharp
 bool rt_2 = E is <pattern>;
@@ -2528,7 +2528,7 @@ if (jNullable is not null)  // 检查 null
         Console.WriteLine(a + b);  // output 76
 ```
 
-#### switch 语句
+#### 11.1.2. switch 语句
 
 ```csharp
 switch (<switch_on>)
@@ -2560,7 +2560,7 @@ void DisplayMeasurement(double measurement)
 }
 ```
 
-#### switch 表达式
+#### 11.1.3. switch 表达式
 
 ```csharp
 var rt = <switch_on> switch
@@ -2595,7 +2595,7 @@ public static class SwitchExample
 
 >---
 
-### 声明模式
+### 11.2. 声明模式
 
 使用声明模式检查表达式的运行时类型是否与给定类型兼容。声明模式的表达式结果 `E` 为非 null 且在运行时类型是 `T` 类型、或可隐式转换类型、或 `T` 的派生类型、或具有基础类型 `T` 的可为 null 的值类型、或存在从 `E` 的运行时类型到类型 `T` 的装箱或取消装箱转换，则模式匹配成功。  
 
@@ -2647,7 +2647,7 @@ static int GetSourceLabel<T>(IEnumerable<T> source) => source switch
 
 >---
 
-### 类型模式
+### 11.3. 类型模式
 
 使用类型模式检查表达式 `E` 的运行时类型是否与给定类型 `T` 兼容。类型模式的表达式结果 `E` 为非 null 且在运行时类型是 `T` 类型、或可隐式转换类型、或 `T` 的派生类型、或具有基础类型 `T` 的可为 null 的值类型、或存在从 `E` 的运行时类型到类型 `T` 的装箱或取消装箱转换，则模式匹配成功。
 
@@ -2693,7 +2693,7 @@ static int GetSourceLabel<T>(IEnumerable<T> source)
 
 >---
 
-### 常量模式
+### 11.4. 常量模式
 
 可使用常量模式来测试表达式结果是否等于指定的常量。
 
@@ -2726,7 +2726,7 @@ Console.WriteLine("INPUT: " + rt);
 
 >---
 
-### 关系模式
+### 11.5. 关系模式
 
 可使用关系模式将表达式结果与常量进行比较。在关系模式中，可使用关系运算符 `<`、`>`、`<=` 或 `>=` 中的任何一个。关系模式的右侧部分必须是常数表达式。
 
@@ -2746,7 +2746,7 @@ static string Classify(double measurement) => measurement switch
 
 >---
 
-### 逻辑模式
+### 11.6. 逻辑模式
 
 可使用 `not`、`and` 和 `or` 模式连结符来创建逻辑模式。其中优先级为 `not` > `and` > `or`。
 
@@ -2767,7 +2767,7 @@ static string Classify(double measurement) => measurement switch
 
 >---
 
-### 属性模式
+### 11.7. 属性模式
 
 可以使用属性模式将表达式的属性或字段与嵌套模式进行匹配。
 
@@ -2799,7 +2799,7 @@ static bool IsAnyEndOnXAxis(Segment segment) =>
 
 >---
 
-### 位置模式
+### 11.8. 位置模式
 
 可使用位置模式来解构表达式结果并将结果值与相应的嵌套模式匹配。
 
@@ -2847,7 +2847,7 @@ public record Vector2D(double X, double Y)
 
 >---
 
-### var 模式
+### 11.9. var 模式
 
 可使用 `var` 模式来匹配任何表达式（包括 `null`），并将其结果分配给新的局部变量。
 
@@ -2866,7 +2866,7 @@ public record Point(int X, int Y);
 
 >---
 
-### 弃元模式
+### 11.10. 弃元模式
 
 可使用弃元模式 `_` 来匹配任何表达式，包括 `null`。
 
@@ -2886,7 +2886,7 @@ static decimal GetDiscountInPercent(DayOfWeek? dayOfWeek) => dayOfWeek switch
 
 >---
 
-### 列表模式
+### 11.11. 列表模式
 
 从 C#11 开始，可以将数组或列表与模式的序列进行匹配。当每个嵌套模式与输入序列的相应元素匹配时，列表模式就会匹配。若要匹配任何元素，可使用弃元模式；若想要捕获元素，可使用 `var` 模式；若要仅匹配输入序列开头或 / 和结尾的元素，可使用切片模式 `..`，切片模式匹配零个或多个元素，最多可在列表模式中使用一个切片模式。
 
@@ -2931,7 +2931,7 @@ Validate(new[] { -1, 0, 2, 0, 1 });  // output: valid
 ```
 
 ---
-## LINQ 和查询表达式
+## 12. LINQ 和查询表达式
 
 语言集成查询 LINQ 是一系列直接将查询功能集成到 C# 语言的技术统称。LINQ 最明显的 “语言集成” 部分就是查询表达式。
 
@@ -2955,7 +2955,7 @@ foreach (int i in scoreQuery)
 
 >---
 
-### 查询表达式概述
+### 12.1. 查询表达式概述
 
 查询表达式可用于查询并转换所有启用了 LINQ 的数据源中的数据。例如，通过一个查询即可检索 SQL 数据库中的数据，并生成 XML 流作为输出。
 
@@ -2967,7 +2967,7 @@ foreach (int i in scoreQuery)
 
 >---
 
-### 查询操作的三个部分
+### 12.2. 查询操作的三个部分
 
 查询是一种从数据源检索数据的表达式，使用专门的查询语句来表示。LINQ 通过提供处理各种数据源和数据格式的数据的一致模型，简化了各种各样的查询语言（例如用于关系数据库的 SQL 和用于 XML 的 XQuery 等）。
 
@@ -2992,7 +2992,7 @@ foreach (int num in numQuery)
     Console.Write("{0,1} ", num);
 ```
 
-#### 获取数据源
+#### 12.2.1. 获取数据源
 
 查询在 `foreach` 语句中执行，因此支持 `IEnumerable`、`IEnumerable<T>` 或派生接口（如泛型 `IQueryable<T>`）的类型称为可查询类型。可查询类型不需要进行修改或特殊处理就可以用作 LINQ 数据源。
 
@@ -3002,7 +3002,7 @@ foreach (int num in numQuery)
 XElement contacts = XElement.Load(@"c:\myContactList.xml");
 ```
 
-#### 创建查询
+#### 12.2.2. 创建查询
 
 查询指定要从数据源中检索的信息，可以指定在返回这些信息之前如何对其进行排序、分组和结构化。查询存储在查询变量中，并用查询表达式进行初始化。可以使用查询语法或方法语法来构造查询表达式。
 
@@ -3025,7 +3025,7 @@ IEnumerable<int> numQuery2 = numbers
 Console.WriteLine(string.Join(", ", numQuery2)); // 6, 8, 10, 12
 ```
 
-#### 执行查询
+#### 12.2.3. 执行查询
 
 **查询延迟执行**：查询的实际执行将推迟到在 `foreach` 语句中循环访问查询变量之后进行。
 
@@ -3062,7 +3062,7 @@ int[] numQuery3 =
 
 >---
 
-### 查询表达式
+### 12.3. 查询表达式
 
 查询表达式是以查询语法表示的查询：
   - 以 `from` 子句开头，必须以 `select` 或 `group` 子句结尾。
@@ -3074,7 +3074,7 @@ int[] numQuery3 =
 ![](./.img/LINQ%20查询表达式.png)
 
 
-#### from-in 子句：获取数据源
+#### 12.3.1. from-in 子句：获取数据源
 
 查询表达式以 `from` 子句开头，用以指定将在其上运行查询或子查询的数据源序列（source sequence），并表示源序列中每个元素的本地范围变量（local range variable）。
 
@@ -3157,7 +3157,7 @@ foreach (var pair in joinQuery)
  */
 ```
 
-#### where 子句：筛选
+#### 12.3.2. where 子句：筛选
 
 `where` 子句用在查询表达式中，用于指定将在查询表达式中返回数据源中的哪些元素。它使用一个布尔条件（谓词，predicate）应用于每个源元素并返回满足条件的元素。
 
@@ -3177,7 +3177,7 @@ var queryLowNums =
         select num;
 ```
 
-#### select 子句：选择与投影
+#### 12.3.3. select 子句：选择与投影
 
 在查询表达式中，`select` 子句指定在执行查询时产生的值的类型。根据计算所有以前的子句以及根据 `select` 子句本身的所有表达式得出结果。查询表达式必须以 `select` 子句或 `group` 子句结尾。
 
@@ -3196,7 +3196,7 @@ foreach (var i in Numbers)
     Console.WriteLine($"Sin({i.x}) = {i.sin:F6} ");
 ```
 
-#### group 子句：分组
+#### 12.3.4. group 子句：分组
 
 `group` 子句返回一个 `IGrouping<TKey,TElement>` 对象序列，这些对象包含零个或更多与该组的键值匹配的项。`by` 用于指定应返回项的分组方式。
 
@@ -3270,7 +3270,7 @@ record Student
 }  
 ```
 
-#### into 子句：附加查询
+#### 12.3.5. into 子句：附加查询
 
 可使用 `into` 创建一个临时的标识符，并将 `group`、`join`、`select` 子句的结果存储到新的组中，该标识符成为附加查询命令的生成器。
 
@@ -3322,7 +3322,7 @@ foreach (var item in query)
 }
 ```
 
-#### orderby 子句：中间件排序
+#### 12.3.6. orderby 子句：中间件排序
 
 在查询表达式中，`orderby` 子句可导致返回的序列或子序列（组）以升序或降序排序。排序操作基于一个或多个属性对序列的元素进行排序。第一个排序条件对元素执行主要排序。通过指定第二个排序条件，可以对每个主要排序组内的元素进行次要排序。
 
@@ -3378,7 +3378,7 @@ Console.WriteLine(string.Join(", ", query));
 // the, fox, quick, jumps, brown
 ```
 
-#### join-in-on-equals 子句：联接
+#### 12.3.7. join-in-on-equals 子句：联接
 
 `join` 子句可用于将两个没有直接关系元素的源序列相关联（同等联接），要求每个序列中的元素具有能够与其他序列的相应属性进行比较的属性，或者包含一个这样的属性。`join` 子句使用 `equals` 关键字比较指定的键是否相等（值相等性）。
 
@@ -3438,7 +3438,7 @@ foreach (var product in leftOuterJoinQuery)
     Console.WriteLine("{0} : {1}", product.CatName, product.ProdName);
 ```
 
-#### let 子句：引入范围变量
+#### 12.3.8. let 子句：引入范围变量
 
 在查询表达式中，可以通过 `let` 子句创建一个新的范围变量并通过提供的表达式结果初始化该变量。
   
@@ -3473,7 +3473,7 @@ Console.WriteLine("Words start with a vowel : " + string.Join(",", earlyBirdQuer
 
 >---
 
-### 标准查询运算符
+### 12.4. 标准查询运算符
 
 标准查询运算符是组成 LINQ 模式的方法，这些方法中的大多数都作用于序列。其中序列指其类型实现 `IEnumerable<T>` 接口或 `IQueryable<T>` 接口的对象，`System.Linq.Enumerable` 的扩展方法作用于类型 `IEnumerable<T>` 的对象，`System.Linq.Queryable` 的扩展方法作用于类型 `IQueryable<T>` 的对象。
 
@@ -3519,7 +3519,7 @@ foreach (var obj in query)
 - `ThenByDescending`：对应 `orderBy ..., <... descending>`。
 - `Where` 方法：对应 `where <...>`。
 
-#### 筛选数据：OfType、Where
+#### 12.4.1. 筛选数据：OfType、Where
 
 筛选是指将结果集限制为仅包含满足指定条件的元素的操作。
   - `OfType<T>`：根据指定类型筛选 `IEnumerable` 或 `IQueryable` 的元素。
@@ -3545,7 +3545,7 @@ var queryFun = words.Where(str => str.Length > 3);
 // quick,brown,jumps
 ```
 
-#### 投影运算：Select、SelectMany、Zip
+#### 12.4.2. 投影运算：Select、SelectMany、Zip
 
 投影是指将序列中的每个元素投影到新表单。可以构造从每个元素生成的新类型，或对其执行数学函数等：
   - `Select`：投影基于转换函数的值。对应于查询表达式的 `Select` 子句。
@@ -3595,7 +3595,7 @@ var query = numbers.Zip(letters, resultSelector: (first, second) => new { number
 IEnumerable<(int First, char Second)> query2 = numbers.Zip(letters);
 ```
 
-#### 集合操作：Distinct、Except、Intersect、Union
+#### 12.4.3. 集合操作：Distinct、Except、Intersect、Union
 
 LINQ 中的集合操作指的是生成结果集的查询操作，该结果集基于相同或不同集合（或集）中是否存在等效元素：
   - `Distinct`、`DistinctBy`：返回序列中的非重复元素。可以指定 `IEqualityComparer<T>` 对值进行比较；`DistinctBy` 可以指定键选择器函数。
@@ -3617,7 +3617,7 @@ var queryUnion = numbers1.Union(numbers2);
 // 并集 : 1,3,4,5,7,8,10,20,23,45,6,9,12,25
 ```
 
-#### 排序操作：OrderBy、ThenBy、Reverse
+#### 12.4.4. 排序操作：OrderBy、ThenBy、Reverse
 
 排序操作基于一个或多个属性对序列的元素进行排序。第一个排序条件对元素执行主要排序，可以通过指定第二个排序条件，对每个主要排序组内的元素进行次要排序：
   - `Order`：按升序对序列的元素进行排序，此方法使用默认比较器。可以显式定义比较器接口。
@@ -3661,7 +3661,7 @@ var Reverse = words.Reverse();
 // 反转集合 : jumps,fox,brown,quick,the
 ```
 
-#### 限定符运算：All、Any、Contains
+#### 12.4.5. 限定符运算：All、Any、Contains
 
 限定符运算返回一个 `bool` 值，该值指示序列中是否有一些元素满足条件或是否所有元素都满足条件：
   - `All`：确定是否序列中的所有元素都满足条件。
@@ -3686,7 +3686,7 @@ var Contains = markets.Where(market => market.Items.Contains("kiwi"))
         .Select(market => market.Name + " market");   // Emily's market, Adam's market
 ```
 
-#### 数据分区：Skip、Take、Chunk
+#### 12.4.6. 数据分区：Skip、Take、Chunk
 
 LINQ 中的分区是指将输入序列划分为两个部分的操作，无需重新排列元素，然后返回其中一个部分：
   - `Skip`：省略序列从开头起 `Count` 个元素。
@@ -3722,7 +3722,7 @@ IEnumerable<int[]> Chunk = numbers.Chunk(3);
 // 三三分组 : (1,3,5), (7,9,2), (4,6,8), (0)
 ```
 
-#### 生成运算：DefaultIfEmpty、Empty、Range、Repeat
+#### 12.4.7. 生成运算：DefaultIfEmpty、Empty、Range、Repeat
 
 生成是指创建新的值序列：
   - `DefaultIfEmpty`：用默认值单一实例集合替换空集合。
@@ -3742,7 +3742,7 @@ foreach (var chars in Query)
         Console.Write(c);
 ```
 
-#### 相等运算：SequenceEqual
+#### 12.4.8. 相等运算：SequenceEqual
 
 两个序列，其相应元素相等且具有被视为相等的相同数量的元素：
   - `SequenceEqual`：通过以成对方式比较元素确定两个序列是否相等。长度不等或某一对元素不等，返回 `false`。
@@ -3753,7 +3753,7 @@ List<int> list = new List<int>{ 1, 2, 3, 4, 5 };
 var equals = arr.SequenceEqual(list);  // true
 ```
 
-#### 元素运算：ElementAt、First、Last、Single
+#### 12.4.9. 元素运算：ElementAt、First、Last、Single
 
 元素运算从序列中返回唯一、特定的元素：
   - `ElementAt`：返回集合中指定索引处的元素。
@@ -3785,7 +3785,7 @@ int SingleDefault = new int[0].SingleOrDefault();  // 0
 int? SingleDefault2 = numbers.SingleOrDefault(predicate: num => num > 100);  // null
 ```
 
-#### 转换数据类型：AsEnumerable、AsQueryable、OfType、ToArray、ToList、ToHashSet、ToDictionary、ToLookUp
+#### 12.4.10. 转换数据类型：AsEnumerable、AsQueryable、OfType、ToArray、ToList、ToHashSet、ToDictionary、ToLookUp
 
 转换方法可更改输入对象的类型：
   - `AsEnumerable`：返回类型化为 `IEnumerable<T>` 的输入。
@@ -3823,7 +3823,7 @@ ILookup<char, List<string>> ToLookup = (from string phrase in phrases
                                                   .ToLookup(keySelector: group => group.Key, elementSelector: g => g.ToList());
 ```
 
-#### 附加运算：Concat、Append、Prepend
+#### 12.4.11. 附加运算：Concat、Append、Prepend
 
 串联是指将一个序列或元素附加到另一个序列的操作：
   - `Concat`：连接两个序列以组成一个序列。
@@ -3843,7 +3843,7 @@ var Prepend = arr.Prepend(-100);
 // -100,1,2,3,4,5
 ```
 
-#### 聚合运算：Aggregate、Average、Count、LongCount、Max、Min、Sum
+#### 12.4.12. 聚合运算：Aggregate、Average、Count、LongCount、Max、Min、Sum
 
 聚合运算从值的集合中计算出单个值：
   - `Aggregate`：对集合的值执行自定义聚合运算。
@@ -3869,7 +3869,7 @@ var MinBy = numbers.MinBy(num => 1f / num);  // 50
 var Sum = numbers.Sum(selector: num => num < 10 ? num : 0); // 小于 10 的元素和：45
 ```
 
-#### 联接运算：Join、GroupJoin
+#### 12.4.13. 联接运算：Join、GroupJoin
 
 联接两个数据源就是将一个数据源中的对象与另一个数据源中具有相同公共属性的对象相关联：
   - `Join`：根据键选择器函数 `Join` 两个序列并提取值对。对应于查询表达式的 `join-in-on-equals` 子句。
@@ -4175,7 +4175,7 @@ foreach (var v in nonEquiJoinQuery)
  */
 ```
 
-#### 数据分组：GroupBy、ToLookUp
+#### 12.4.14. 数据分组：GroupBy、ToLookUp
 
 分组是指将数据分到不同的组，使每组中的元素拥有公共的属性：
   - `GroupBy`：对共享通用属性的元素进行分组。每组由一个 `IGrouping<TKey,TElement>` 对象表示。对应于查询表达式的 `group-by` 或 `group-by-into` 子句。
@@ -4211,7 +4211,7 @@ foreach (var group in queryToLookUp)
 ```
 
 ---
-## 集合表达式
+## 13. 集合表达式
 
 可以使用集合表达式来创建常见的集合值。集合表达式在 `[` 和 `]` 括号之间包含元素的序列。可以为一维数组类型、`System.Span<T>` 和 `System.ReadOnlySpan<T>`、支持集合初始化设定项的类型（例如 `System.Collections.Generic.List<T>` 等）使用集合表达式语法。
 
@@ -4226,7 +4226,7 @@ List<int> list = [1, 2, 3, 4, 5];
 
 >---
 
-### 内联集合值
+### 13.1. 内联集合值
 
 可以使用展开运算符 `..` 在集合表达式中使用内联集合值。
 
@@ -4240,7 +4240,7 @@ Console.WriteLine(string.Join(",", all));
 
 >--- 
 
-### 集合表达式转换
+### 13.2. 集合表达式转换
 
 集合表达式可转换为单维数组类型 `T[]`。
 
@@ -4313,7 +4313,7 @@ class MyList<T> : IReadOnlyList<T>  // IReadOnlyList<T> : IEnumerable<T>
 
 >---
 
-### 集合表达式实例的构造过程
+### 13.3. 集合表达式实例的构造过程
 
 当目标类型是实现 `System.Collections.IEnumerable` 接口的结构或类类型，且目标类型没有类似 `Create` 集合生成器的方法，则集合实例的构造如下：
 - 元素按顺序求值，部分或所有元素可能在下面的步骤中求值。编译器可以通过调用每个扩展元素表达式上的 `Length` 或 `Count` 属性来确定集合表达式的已知长度。
@@ -4343,7 +4343,7 @@ class MyList<T> : IReadOnlyList<T>  // IReadOnlyList<T> : IEnumerable<T>
 
 >---
 
-### 为 IDictionary 类型扩展集合表达式构造语法
+### 13.4. 为 IDictionary 类型扩展集合表达式构造语法
 
 ```csharp
 Dictionary<int, int> ArrDic = [(1, 1), (2, 2), (3, 3)];
@@ -4360,7 +4360,7 @@ public static class KYExt
 
 >---
 
-### 集合生成器
+### 13.5. 集合生成器
  
 集合表达式还可转换具有集合生成器的类型。类型通过编写绑定名称的生成器方法（例如 `Create`）和对集合类型应用 `System.Runtime.CompilerServices.CollectionBuilderAttribute` 来指示生成器方法来选择加入集合表达式支持。集合类型必须具有迭代器 `GetEnumerator`。
 
@@ -4400,7 +4400,7 @@ public class MyCollection
 MyCollection arr = [1,2,3,4];
 ```
 
-#### 泛型集合生成器
+#### 13.5.1. 泛型集合生成器
 
 `CollectionBuilderAttribute` 特性指定的集合生成器必须是非泛型类或结构，生成器方法是可以使用类型参数的。声明集合生成器的类不能嵌套在泛型类型中。
 
@@ -4421,7 +4421,7 @@ internal class MyCollectionBuilder
 ```
 
 ---
-## 索引与范围运算符
+## 14. 索引与范围运算符
 
 索引和范围运算符可以在序列的访问器中使用：
 - `^`（从末尾开始索引）：指示元素位置来自序列的末尾，`[^n] = [Length - n]`。
@@ -4443,7 +4443,7 @@ Console.WriteLine("Right Half : " + string.Join(",", rx_RightHalf));
 
 >---
 
-### Index 与 Range 
+### 14.1. Index 与 Range 
 
 索引 `System.Index` 和范围 `System.Range` 为访问序列中的单个元素或范围提供了简洁的语法。表达式 `^0` 属于 `System.Index` 类型，表达式 `a..b` 属于 `System.Range` 类型。若任何类型提供带 `Index` 或 `Range` 参数的索引器，则该类型可分别显式支持索引 `^n` 或范围 `a..b`。
 
@@ -4462,7 +4462,7 @@ var last = arr[^1];    // arr[i]
 
 >---
 
-### 索引和范围的类型支持
+### 14.2. 索引和范围的类型支持
 
 若任何类型提供带 `Index` 或 `Range` 参数的索引器，则该类型可分别显式支持索引或范围。
 
@@ -4488,7 +4488,7 @@ record struct PointArray(params Point[] ps)
 
 >---
 
-### 索引和范围的隐式支持
+### 14.3. 索引和范围的隐式支持
 
 若某个类型具有一个名为 `int Length{ get;}` 或 `int Count{ get;}` 实例属性和一个 `T this[int index]` 实例索引器，并且没有仅以 `System.Index` 类型为索引的索引器时，该类型隐式支持索引运算。首选使用 `Length`。
 
@@ -4523,7 +4523,7 @@ record struct PointArray(params Point[] ps)
 >---
 
 ---
-## 指针相关的运算符
+## 15. 指针相关的运算符
 
 - 一元 `&` 地址运算符，用于获取变量的地址。
 - 一元 `*` 间接运算符，用于获取指针指向的变量。

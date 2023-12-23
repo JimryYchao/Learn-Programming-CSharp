@@ -1,7 +1,7 @@
 # CSharp 语句
 
 ---
-## 声明语句
+## 1. 声明语句
 
 声明语句声明新的局部变量、局部常量或 `ref` 局部变量。 
 
@@ -17,7 +17,7 @@ void Sample()
 ```
 
 ---
-## 空语句
+## 2. 空语句
 
 当在需要语句的上下文中不需要执行任何操作时，使用空语句（`;`）。执行空语句只是将控制转移到语句的结束点。
 
@@ -43,9 +43,9 @@ void F(bool done)
 ```
 
 ---
-## 选择语句
+## 3. 选择语句
 
-### if 语句
+### 3.1. if 语句
 
 `if`、`if-else`、`if-else if` 语句根据布尔表达式的结果选择要遵循的若干代码路径的哪一个。
 
@@ -61,7 +61,7 @@ else Console.WriteLine(scan);
 
 >---
 
-### switch 语句
+### 3.2. switch 语句
 
 `switch` 语句根据与匹配表达式匹配的模式来选择要执行的语句列表。可以为 `switch` 语句的一部分指定多个 `case` 模式；`default` 模式始终匹配成功，最多只有一个 `default` 子句。在 `switch` 语句中，控制不能从一个 `case` 部分贯穿到下一个 `case` 部分。可以使用跳转语句将控制从 `switch` 传递出去。可以在 `case` 模式中使用 `when` 筛选。
 
@@ -104,9 +104,9 @@ switch (x)
 ```
 
 ---
-## 迭代语句
+## 4. 迭代语句
 
-### for 语句
+### 4.1. for 语句
 
 `for( 初始化表达式; 条件; 迭代器){ 循环体 }` 在指定条件的布尔表达式的计算结果为 `true` 时，`for` 语句会执行一条语句或一个语句块。“初始化表达式” 部分仅在进入循环前执行一次，并根据条件的值确定是否进入循环体。“条件” 部分在返回 `true` 或不存在时执行循环中的下一个迭代。“迭代器” 部分定义循环主体的每次执行后将执行的操作。`for` 语句的每部分都是可选的：`for(;;);`。
 
@@ -117,7 +117,7 @@ for (int i = 0; i < 10; i++)
 
 >---
 
-### foreach 语句
+### 4.2. foreach 语句
 
 `foreach(var t in ts)` 语句为类型实例中实现 `System.Collections.IEnumerable` 或 `System.Collections.Generic.IEnumerable<T>` 接口的每个元素执行语句或语句块。
 
@@ -177,7 +177,7 @@ foreach (ref readonly var item in storage)
 }
 ```
 
-#### foreach 编译时处理
+#### 4.2.1. foreach 编译时处理
 
 `foreach` 语句在编译时，首先确定表达式的集合类型、枚举器类型和迭代元素类型。
 
@@ -226,7 +226,7 @@ class Sample(int[] arr)
 }
 ```
 
-#### await foreach 异步流
+#### 4.2.2. await foreach 异步流
 
 C# 支持迭代器方法和异步方法，但不支持同时是迭代器和异步方法的方法。可以使用 `await foreach` 语句以支持异步数据流，这种迭代器返回 `IAsyncEnumerable<T>` 或 `IAsyncEnumerator<T>` 而不是 `IEnumerable<T>` 或 `IEnumerator<T>`。`IAsyncDisposable` 接口用于启用异步清理。
 
@@ -330,7 +330,7 @@ finally
 
 >---
 
-### do 语句
+### 4.3. do 语句
 
 `do{ .. } while(e)` 在指定的布尔表达式 `e` 的计算结果为 `true` 时，`do` 语句会执行一条语句或一个语句块。在每次执行循环之后都会计算此表达式，因此 `do` 循环会执行一次或多次。
 
@@ -347,7 +347,7 @@ do
 
 >---
 
-### while 语句
+### 4.4. while 语句
 
 `while(e) { .. }` 在指定的布尔表达式 `e` 的计算结果为 `true` 时，`while` 语句会执行一条语句或一个语句块。由于在每次执行循环之前都会计算此表达式，所以 `while` 循环会执行零次或多次。
 
@@ -363,9 +363,9 @@ while (n < 5)
 ```
 
 ---
-## 跳转语句
+## 5. 跳转语句
 
-### break 语句
+### 5.1. break 语句
 
 `break` 语句将终止最接近的封闭迭代语句（即 `for`、`foreach`、`while` 或 `do` 循环）或 `switch` 语句。`break` 语句将控制权转交给已终止语句后面的语句。在嵌套循环中，`break` 语句仅终止包含它的最内部循环。在循环内使用 `switch` 语句时，`switch` 节末尾的 `break` 语句仅从 `switch` 语句中转移控制权。
 
@@ -398,7 +398,7 @@ foreach (double measurement in measurements)
 
 >---
 
-### continue 语句
+### 5.2. continue 语句
 
 `continue` 语句启动最接近的封闭迭代语句（即 `for`、`foreach`、`while` 或 `do` 循环）的新迭代。
 
@@ -423,7 +423,7 @@ for (int i = 0; i < 5; i++)
 
 >---
 
-### return 语句
+### 5.3. return 语句
 
 `return` 语句终止它所在的函数的执行，并将控制权和函数结果（若有）返回给调用方。
 
@@ -441,7 +441,7 @@ double CalculateCylinderSurfaceArea(double baseRadius, double height)
 
 >---
 
-### goto 语句
+### 5.4. goto 语句
 
 `goto` 语句将控制权转交给带有标签的语句
 
@@ -520,7 +520,7 @@ public class GotoInSwitchExample
 
 >---
 
-### yield 语句
+### 5.5. yield 语句
 
 在迭代器中使用 `yield` 语句提供下一个值的 `yield return` 或表示迭代结束的 `yield break`。迭代器的返回类型可以是 `IEnumerable<T>`、`IEnumerable`、`IAsyncEnumerable<T>` 异步迭代。
 
@@ -571,7 +571,7 @@ async Task<int> Square(int num)
 ```
 
 ---
-### 异常处理语句
+### 5.6. 异常处理语句
 
 使用 `throw` 和 `try` 语句来处理异常，使用 `throw` 语句引发异常，使用 `try` 语句捕获和处理在执行代码块期间可能发生的异常。
 
@@ -579,7 +579,7 @@ async Task<int> Square(int num)
 
 >---
 
-#### throw 表达式或语句
+#### 5.6.1. throw 表达式或语句
 
 > throw 语句
 
@@ -614,7 +614,7 @@ class Person(string name)
 
 >---
 
-#### try-catch
+#### 5.6.2. try-catch
 
 - 用 `try-catch` 语句处理在执行代码块期间可能发生的异常。将代码置于 `try` 块中可能发生异常的位置，使用 `catch` 子句指定要在相应的 `catch` 块中处理的异常的基类型。
 - 可以提供多个 `catch` 子句，也可以为 `catch` 指定异常筛选器 `when`。可以在 `catch` 中使用 `throw` 语句重新引发异常。
@@ -675,7 +675,7 @@ static async Task<int> ProcessAsync(int input)
 
 >---
 
-#### try-finally
+#### 5.6.3. try-finally
 
 - 在 `try-finally` 语句中，当控件离开 `try` 块时，将执行 `finally` 块。控件可能会离开 `try` 块，由于 `try` 正常执行、或执行跳转语句、或发生异常。可以使用 `finally` 块来清理 `try` 块中使用的已分配资源。可以在 `finally` 块之前可选的使用 `catch` 块进行捕获异常处理。
 
@@ -697,7 +697,7 @@ finally
 ```
 
 ---
-## checked 和 unchecked 语句
+## 6. checked 和 unchecked 语句
 
 - `checked` 和 `unchecked` 语句指定整型类型算术运算和转换的溢出检查上下文。当发生整数算术溢出时，溢出检查上下文将定义发生的情况。在已检查的上下文中，引发 `System.OverflowException`；如果在常数表达式中发生溢出，则会发生编译时错误。在未检查的上下文中，会通过丢弃任何不适应目标类型的高序位来将操作结果截断。 
 
@@ -720,7 +720,7 @@ int Mul(int x, int y)
 ```
 
 ---
-## lock 语句
+## 7. lock 语句
 
 `lock(x){ .. }` 语句获取给定对象的互斥锁，执行语句块，然后释放锁，其中 `x` 是引用类型。当锁被持有时，持有该锁的线程可以再次获取并释放该锁。任何其他线程都被阻止获取锁并等待，直到锁被释放。`lock` 语句确保在任何时刻最多只有一个线程执行它的线程体。
 
@@ -768,7 +768,7 @@ class AccountTest
 当同步对共享资源的线程访问时，一般锁定专用对象实例（例如，`private readonly object balanceLock = new object();`）或另一个不太可能被代码无关部分用作 `lock` 对象的实例。避免对不同的共享资源使用相同的 `lock` 对象实例，因为这可能导致死锁或锁争用。避免使用 `this`、`Type` 实例、字符串字面量作为 `lock` 对象。
 
 ---
-## using 语句
+## 8. using 语句
 
 `using(<IDisposable> disposable){ .. }` 语句或 `using <IDisposable> disposable;` 声明可确保正确使用 `IDisposable` 实例 `disposable`：`disposable` 局部变量在它的作用域末尾调用它的 `Dispose` 方法并释放该对象。`using` 语句可确保在发生异常的情况下也会释放 `IDisposable` 实例。在一个 `using` 语句中声明多个实例时，它们将按声明的相反顺序释放。
 
