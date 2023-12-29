@@ -605,7 +605,7 @@ _ExportAttr_ 值应为 **public** 或 **nested public**，并应与类型的可�
  | \| _Type_ `modreq` `'('` _TypeReference_ `')'`               | 调用方可以识别的自定义修饰符。                                                                                | §[[↗]](#modreq&modopt)              |
  | \| _Type_ `pinned`                                           | 仅用于局部变量。垃圾收集器不应移动引用的值。                                                                  | §[[↗]](#pinned)                     |
  | \| `typedref`                                                | 类型引用 (即，类型为 `System.TypedReference` 的值)，由 `mkrefany` 创建并由 `refanytype` 或 `refanyval` 使用。 | §[[↗]](#build-in)                   |
- | \| `valuetype` _TypeReference_                               | (未装箱的) 用户定义的值类型                                                                                   | §[[↗]](#valuetype)                  |
+ | \| `valuetype` _TypeReference_                               | (未装箱的) 用户定义的值类型                                                                                   | §[[↗]](#valuetype-semantics)        |
  | \| `unsigned int8`                                           | 无符号 8 位整数                                                                                               | §[[↗]](#build-in)                   |
  | \| `unsigned int16`                                          | 无符号 16 位整数                                                                                              | §[[↗]](#build-in)                   |
  | \| `unsigned int32`                                          | 无符号 32 位整数                                                                                              | §[[↗]](#build-in)                   |
@@ -1822,21 +1822,21 @@ class GeneClassC<T> where T: new();   // .ctor 约束
 
 一个类型可以包含任意数量的进一步声明。指令 **.event**，**.field**，**.method** 和 **.property** 用于声明类型的成员。类型声明中的 **.class** 指令用于创建 [嵌套类型](#nested-types)。
 
- | _ClassMember_ ::=                                                                                                              | 描述                                                           | 参考      |
- | :------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | --------- |
- | `.class` _ClassHeader_ `'{'` _ClassMember_* `'}'`                                                                              | 定义一个嵌套类型。                                             | §[[↗]](#nested-types) |
- | \| `.custom` _CustomDecl_                                                                                                      | 自定义特性。                                                   | §[[↗]](#custom) |
- | \| `.data` _DataDecl_                                                                                                          | 定义与类型关联的静态数据。                                     | §[[↗]](#data) |
- | \| `.event` _EventHeader_ `'{'` _EventMember_* `'}'`                                                                           | 声明一个事件。                                                 | §[[↗]](#event) |
- | \| `.field` _FieldDecl_                                                                                                        | 声明属于类型的字段。                                           | §[[↗]](#field) |
- | \| `.method` _MethodHeader_ `'{'` _MethodBodyItem_* `'}'`                                                                      | 声明类型的方法。                                               | §[[↗]](#method) |
- | \| `.override` _TypeSpec_ `'::'` _MethodName_ `with` _CallConv_ _Type_ _TypeSpec_ `'::'` _MethodName_ `'('` _Parameters_ `')'` | 指定第一个方法被第二个方法的定义覆盖。                         | §[[↗]](#override) |
- | \| `.pack` _Int32_                                                                                                             | 用于字段的显式布局。                                           | §[[↗]](#pack) |
- | \| `.param type` `'['` _Int32_ `']'`                                                                                           | 为泛型类型指定一个类型参数；用于将自定义特性与该类型参数关联。 | §[[↗]](#param-type) |
- | \| `.property` _PropHeader_ `'{'` _PropMember_* `'}'`                                                                          | 声明类型的属性。                                               | §[[↗]](#property) |
- | \| `.size` _Int32_                                                                                                             | 用于字段的显式布局。                                           | §[[↗]](#size) |
+ | _ClassMember_ ::=                                                                                                              | 描述                                                           | 参考                      |
+ | :----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------- |
+ | `.class` _ClassHeader_ `'{'` _ClassMember_* `'}'`                                                                              | 定义一个嵌套类型。                                             | §[[↗]](#nested-types)     |
+ | \| `.custom` _CustomDecl_                                                                                                      | 自定义特性。                                                   | §[[↗]](#custom)           |
+ | \| `.data` _DataDecl_                                                                                                          | 定义与类型关联的静态数据。                                     | §[[↗]](#data)             |
+ | \| `.event` _EventHeader_ `'{'` _EventMember_* `'}'`                                                                           | 声明一个事件。                                                 | §[[↗]](#event)            |
+ | \| `.field` _FieldDecl_                                                                                                        | 声明属于类型的字段。                                           | §[[↗]](#field)            |
+ | \| `.method` _MethodHeader_ `'{'` _MethodBodyItem_* `'}'`                                                                      | 声明类型的方法。                                               | §[[↗]](#method)           |
+ | \| `.override` _TypeSpec_ `'::'` _MethodName_ `with` _CallConv_ _Type_ _TypeSpec_ `'::'` _MethodName_ `'('` _Parameters_ `')'` | 指定第一个方法被第二个方法的定义覆盖。                         | §[[↗]](#override)         |
+ | \| `.pack` _Int32_                                                                                                             | 用于字段的显式布局。                                           | §[[↗]](#pack)             |
+ | \| `.param type` `'['` _Int32_ `']'`                                                                                           | 为泛型类型指定一个类型参数；用于将自定义特性与该类型参数关联。 | §[[↗]](#param-type)       |
+ | \| `.property` _PropHeader_ `'{'` _PropMember_* `'}'`                                                                          | 声明类型的属性。                                               | §[[↗]](#property)         |
+ | \| `.size` _Int32_                                                                                                             | 用于字段的显式布局。                                           | §[[↗]](#size)             |
  | \| _ExternSourceDecl_                                                                                                          | 源代码行信息。                                                 | §[[↗]](#ExternSourceDecl) |
- | \| _SecurityDecl_                                                                                                              | 声明性安全权限。                                               | §[[↗]](#SecurityDecl) |
+ | \| _SecurityDecl_                                                                                                              | 声明性安全权限。                                               | §[[↗]](#SecurityDecl)     |
 
 在 **.class** 类型声明 [[↗]](#class) 中，**.method** 定义的自上而下的顺序在 [「_MethodDef: 0x06_」](#MethodDef_0x06) 表中保留。这是支持接口调度中的差异解析 [[↗]](#internal-virtual) 所必需的。
 
@@ -1982,6 +1982,7 @@ _Int32_ 是泛型参数的数量。第一对 _TypeSpec_::_MethodName_ 指定正�
 有三种特殊成员，它们都是可以作为类型的一部分定义的方法：实例构造器、实例终结器和类型初始化器。
 
 #### 8.5.1. 实例构造器
+<a id="type-constructor"></a>
 
 **实例构造器** (_instance constructor_) 初始化一个类型的实例，并在通过 `newobj` 指令创建一个类型的实例时被调用。实例构造器应该是一个实例方法 (不是静态或虚方法)，它应该被命名为 `.ctor`，并被标记为 **instance**、**rtspecialname** 和 **specialname** [[↗]](#special-handle-attr)。
 
@@ -2478,10 +2479,679 @@ S4<V> : S1<A,B>, IVarImp, IVar<B>, IImp<!0> {
 尽管 `IVar<A>` 不是 `S4<A>` 的显式接口，但它在接口顺序中排在 `IVar<B>` 之前。这就是为什么调用解析为 `S1<A,B>::P(!0:A)`，而不是 `S1<A,B>::P(!1:B)`。注意，这与 `S4<V>` 的类型参数无关，它只影响 `IImp<!0>` 接口实现。
 
 
-## 24. end
+---
+## 11. 值类型的语义
+<a id="valuetype-semantics"></a>
+
+与引用类型不同，值类型 [[↗]](./01_CLI%20基本概念和体系结构.md/#valuetype-and-reference) 不是通过使用引用来访问，而是直接存储在该类型的位置中。
+
+值类型用于描述小数据项的类型。它们可以与 C++ 中的结构体 (而不是指向结构体的指针) 类型进行比较。与引用类型相比，值类型的访问速度更快，因为没有额外的间接引用。作为数组的元素，它们不需要为指针以及数据本身分配内存。典型的值类型有复数、几何点和日期。
+
+像其他类型一样，值类型可以有字段 (静态或实例) 、方法 (静态、实例或虚拟) 、属性、事件和嵌套类型。某个值类型的值可以通过一个称为 **装箱** (_boxing_) 的过程转换为相应引用类型的实例 (当定义值类型时，VES 会自动创建一个类作为其 **装箱形式**，_boxed form_)。装箱的值类型可以通过一个称为 **拆箱** (_unboxing_) 的过程转换回其值类型表示形式，即 **拆箱形式** (_unboxed form_)。值类型应该是密封的，并且它们应该有一个基类型，要么是 `System.ValueType`，要么是 `System.Enum`。值类型应该实现零个或多个接口，但这只在它们的装箱形式中有意义。
+
+未装箱的值类型不被视为另一种类型的子类型，对未装箱的值类型使用 `isinst` 指令是无效的。然而，`isinst` 指令可以用于装箱的值类型。未装箱的值类型不应被赋值为 *null*，并且它们不应与 *null* 进行比较。
+
+值类型支持与引用类型相同的布局控制 [[↗]](#ctrl-layout)。这在从本机代码导入值时尤其重要。
+
+由于值类型表示数据的直接布局，因此不允许递归结构定义，例如 (在 C# 中) `struct S {S x; S y;}`。结构体应该有一个非循环的有限 **展平图** (***flattening graph***)：
+
+对于值类型 *S*，定义 *S* 的展平图 *G* 为最小的有向图，满足：
+ * *S* 在 *G* 中。
+ * 每当 *T* 在 *G* 中，并且 *T* 有值类型 *X* 的实例字段，那么 *X* 在 *G* 中，并且从 *T* 到 *X* 有一条边。
+ * 每当 *T* 在 *G* 中，并且 *T* 有值类型 *Y* 的静态字段，那么 *Y* 在 *G* 中。
+
+```csharp
+class C<U> { }
+struct S1<V> {
+    S1<V> x;
+}
+struct S2<V> {
+    static S2<V> x;
+}
+struct S3<V> {
+    static S3<C<V>> x;
+}
+struct S4<V> {
+    S4<C<V>>[] x;
+}
+```
+
+结构类型 `S1` 有一个有限但循环的展平图，是无效的；`S2` 有一个有限的非循环展平图，是有效的；`S3` 有一个无限的非循环展平图，是无效的；`S4` 有一个有限的非循环展平图，是有效的，因为字段 `S4<C<V>>.x` 是引用类型，而不是值类型。
+
+`C<U>` 类型对于示例并不是严格必需的，但如果没有使用它，可能不清楚以下类型的问题是从字段类型中 `S3<...>` 的内部出现还是外部出现。
+
+```csharp
+struct S3<V> {
+    static S3<S3<V>> x;
+}
+```
+
+>---
+### 11.1. 值类型的引用
+
+值类型的非装箱形式应使用 **valuetype** 关键字后跟类型引用来引用。值类型的装箱形式应使用 **boxed** 关键字后跟类型引用来引用。
+
+<pre>
+    <em>ValueTypeReference</em> ::=  boxed <em>TypeReference</em> | valuetype <em>TypeReference</em> 
+</pre>
+
+```csharp
+struct S
+{   void Fun(S s, ref S rs, ValueType os, ref ValueType ros) { } }
+```
+```cil
+.class S extends [System.Runtime]System.ValueType{
+    .method instance void Fun (
+			valuetype S s,
+			valuetype S& rs,
+			class [System.Runtime]System.ValueType os,
+			class [System.Runtime]System.ValueType& ros
+        ) cil managed { ... }        
+}
+```
+
+>---
+### 11.2. 初始化值类型
+
+与类一样，值类型可以具有实例构造器 [[↗]](#type-constructor) 和类型初始化器 [[↗]](#type-initializer)。但不同于类的是，值类型中类类型的字段会自动初始化为 *null*，而以下规则是关于 (未装箱的) 值类型初始化的唯一保证：
+ * 当类型被加载 [[↗]](#races-and-deadlocks) 时，静态变量应被初始化为零，因此当类型被加载时，类型为值类型的静态变量将被初始化为零。
+ * 如果 _method header_ [[↗]](#method-header) 中设置了 **localsinit** 位，则局部变量应被初始化为零。
+ * 数组应被初始化为零。
+ * 在调用实例构造器之前，类的实例 (即，对象) 应被初始化为零。
+
+保证未装箱值类型的自动初始化既困难又昂贵，尤其是在支持线程本地存储并允许在 CLI 外部创建线程并传递给 CLI 进行管理的平台上。
+ 
+装箱的值类型是类，并遵循类的规则。
+
+`initobj` 指令在程序控制下执行零初始化。如果值类型有一个构造器，那么可以创建其未装箱类型的实例，就像对类一样。`newobj` 指令与初始化器及其参数一起使用，以分配和初始化实例。值类型的实例将在堆栈上分配。基类库提供了 `System.Array.Initialize` 方法来将未装箱值类型的数组中的所有实例初始化为零。
+
+下面的代码声明并初始化了三个值类型变量。第一个变量被初始化为零，第二个通过调用实例构造器进行初始化，第三个通过在堆栈上创建对象并将其存储到局部变量中进行初始化。
+
+```cil
+.assembly Test { }
+.assembly extern System.Drawing {
+    .ver 1:0:3102:0
+    .publickeytoken = (b03f5f7f11d50a3a)
+}
+ 
+.method public static void Start()
+{   
+    .maxstack 3
+    .entrypoint
+    .locals init (valuetype [System.Drawing]System.Drawing.Size Zero,
+                  valuetype [System.Drawing]System.Drawing.Size Init,
+                  valuetype [System.Drawing]System.Drawing.Size Store)
+
+    // Zero initialize the local named Zero
+    ldloca Zero           // load address of local variable
+    initobj valuetype [System.Drawing]System.Drawing.Size
+
+    // Call the initializer on the local named Init
+    ldloca Init           // load address of local variable
+    ldc.i4 425            // load argument 1 (width)
+    ldc.i4 300            // load argument 2 (height) 
+    call instance void [System.Drawing]System.Drawing.Size::.ctor(int32, int32) 
+
+    // Create a new instance on the stack and store into Store. Note that
+    // stobj is used here - but one could equally well use stloc, stfld, etc.
+    ldloca Store
+    ldc.i4 425            // load argument 1 (width)
+    ldc.i4 300            // load argument 2 (height)
+    newobj instance void [System.Drawing]System.Drawing.Size::.ctor(int32, int32)
+    stobj valuetype [System.Drawing]System.Drawing.Size
+    ret
+}
+```
+
+### 11.3. 值类型的方法
+
+值类型可以有静态、实例和虚方法。值类型的静态方法的定义和调用方式与类类型的静态方法相同。与类一样，可以使用 `call` 指令调用装箱或未装箱值类型的实例和虚方法。`callvirt` 指令不应用于未装箱的值类型，但可以用于装箱的值类型。
+
+类的实例和虚方法应被编码为期望将类实例的引用作为 `this` 指针。相比之下，值类型的实例和虚方法应被编码为期望将值类型的未装箱实例的托管指针。当将装箱值类型作为 `this` 指针传递给由未装箱值类型提供实现的虚方法时，CLI 应将装箱值类型转换为未装箱值类型的托管指针。
+
+此操作与拆箱实例相同，因为 `unbox` 指令被定义为返回一个与原始装箱实例共享内存的值类型的托管指针。下图表示值类型的装箱和未装箱表示之间的关系。
+
+ ![装箱与拆箱](./.img/装箱与拆箱.png)
+
+在值类型上使用实例方法的一个重要用途是改变实例的内部状态。如果使用未装箱值类型的实例作为 `this` 指针，这是无法做到的，因为它将操作值的副本，而不是原始值：当将未装箱的值类型作为参数传递时，它们会被复制。
+
+虚方法被用来使多种类型能够共享实现代码，这要求所有实现虚方法的类共享由首次引入方法的类定义的公共表示。由于值类型可以 (并且在基类库中确实可以) 实现 `System.Object` 上定义的接口和虚方法，因此重要的是虚方法可以使用装箱的值类型进行调用，因此可以像操作实现接口的任何其他类型一样操作它。这也致使要求执行环境 (_Execution Environment_) 在虚拟调用上自动拆箱值类型。
+
+> 给定 CIL 指令和实例方法声明类型下的 `this` 指针类型
+
+ | &nbsp;     | 值类型 (装箱或未装箱) 方法 | 接口方法 | 对象类型方法 |
+ | ---------- | -------------------------- | -------- | ------------ |
+ | `call`     | 值类型的托管指针           | 无效     | 对象引用     |
+ | `callvirt` | 值类型的托管指针           | 对象引用 | 对象引用     |
+
+以下将值类型 `int32` 的整数转换为字符串。`int32` 对应于基类库中定义的未装箱值类型 `System.Int32`。假设整数声明为：
+
+ ```cil
+ .locals init (int32 x)
+ ```
+
+然后如下所示进行调用：
+
+ ```cil
+ ldloca x  // load managed pointer to local variable
+ call instance string valuetype [mscorlib]System.Int32::ToString()
+ ```
+
+然而，如果使用 `System.Object` (一个类) 作为类型引用，而不是 `System.Int32` (一个值类型)，则在调用之前应将 `x` 的值装箱，代码变为：
+
+ ```cil
+ ldloc x
+ box valuetype [mscorlib]System.Int32
+ callvirt instance string [mscorlib]System.Object::ToString()
+ ```
+
+---
+## 12. 特殊类型的语义
+
+特殊类型是指那些从 CIL 引用但没有提供定义的类型：VES 根据来自引用的可用信息自动提供定义。
+
+>---
+### 12.1. 向量
+<a id="vector"></a>
+
+<pre>
+    <em>Type</em> ::= ... | <em>Type</em> '[' ']' 
+</pre>
+
+向量是具有零下界的单维数组。它们在 CIL 指令中有直接支持 (`newarr`、`ldelem`、`stelem` 和 `ldelema`)。CIL 框架还提供了处理多维数组和具有非零下界的单维数组的方法 [[↗]](#array)。如果两个向量的元素类型相同，无论它们的实际上界如何，它们都具有相同的类型。
+
+向量具有固定的大小和元素类型，这些在创建时确定。所有的 CIL 指令都应该遵守这些值。也就是说，它们应该可靠地检测以下尝试：索引超出向量的末尾，将错误类型的数据存储到向量的元素中，以及获取数据类型不正确的向量元素的地址。
+
+声明一个字符串的向量：
+
+ ```cil
+ .field string[] errorStrings
+ ```
+
+声明一个函数指针的向量：
+
+ ```cil
+ .field method instance void*(int32) [] myVec
+ ```
+
+创建一个包含 4 个字符串的向量，并将其存储到字段 `errorStrings` 中。这 4 个字符串位于 `errorStrings[0]` 到 `errorStrings[3]`：
+
+ ```cil
+ ldc.i4.4
+ newarr string
+ stfld string[] CountDownForm::errorStrings
+ ```
+
+将字符串 `"First"` 存储到 `errorStrings[0]`：
+
+ ```cil
+ ldfld string[] CountDownForm::errorStrings
+ ldc.i4.0
+ ldstr "First"
+ stelem
+ ```
+
+向量是 `System.Array` 的子类型，`System.Array` 是 CLI 预定义的一个抽象类。它提供了可以应用于所有向量的几个方法。
+
+>---
+### 12.2. 数组
+<a id="array"></a>
+
+尽管向量通过 CIL 指令直接支持，但 VES 通过创建抽象类 `System.Array` 的子类型来支持所有其他数组。
+
+<pre>
+    <em>Type</em> ::= ... | <em>Type</em> '[' [ <em>Bound</em> [ ',' <em>Bound</em> ]*] ']' 
+</pre>
+
+数组的 *rank* 是其维度的数量。CLI 不支持秩为 0 的数组。数组 (向量除外) 的类型应由其元素的类型和维度的数量确定。
+
+ | _Bound_ ::=                | 描述                                                   |
+ | :------------------------- | ------------------------------------------------------ |
+ | `'...'`                    | 下界和上界未指定。在多维数组的情况下，可以省略 `'...'` |
+ | \| _Int32_                 | 零下界，_Int32_ 上界                                   |
+ | \| _Int32_ `'...'`         | 只指定了下界                                           |
+ | \| _Int32_ `'...'` _Int32_ | 同时指定了上下界                                       |
+
+VES 为数组创建的类包含几个由 VES 提供实现的方法：
+ * 一个构造函数，它接受一系列 `int32` 参数，每个维度一个，这些参数指定从第一个维度开始的每个维度中的元素数量。假定下界为零。
+ * 一个构造函数，它接受的 `int32` 参数的数量是数组维度的两倍。这些参数成对出现 —— 每个维度一对 —— 每对的第一个参数指定该维度的下界，第二个参数指定该维度的元素总数。注意向量不是用这个构造函数创建的，因为向量假定下界为零。
+ * 一个 `Get` 方法，它接受一系列 `int32` 参数，每个维度一个，并返回一个值，其类型是数组的元素类型。此方法用于访问数组的特定元素，其中参数指定要返回的元素的每个维度的索引，从第一个开始。
+ * 一个 `Set` 方法，它接受一系列 `int32` 参数，每个维度一个，后面跟着一个值，其类型是数组的元素类型。`Set` 的返回类型是 `void`。此方法用于设置数组的特定元素，其中参数指定要设置的元素的每个维度的索引，从第一个开始，最后一个参数指定要存储到目标元素中的值。
+ * 一个 `Address` 方法，它接受一系列 `int32` 参数，每个维度一个，其返回类型是数组元素类型的托管指针。此方法用于返回数组的特定元素的托管指针，其中参数指定要返回其地址的元素的每个维度的索引，从第一个开始。
+
+下面创建了一个字符串的数组 `MyArray`，有两个维度，索引为 5…10 和 3…7。然后它将字符串 `"One"` 存储到 `MyArray[5, 3]` 中，检索它并打印出来。然后它计算 `MyArray[5, 4]` 的地址，将 `"Test"` 存储到其中，检索它，并打印出来。
+
+```csharp
+// 可以视为在 CSharp 中的等效代码
+static void Start()
+{
+    string[,] myArray = (string[,]) Array.CreateInstance(typeof(string), [6, 5], [5, 3]);
+    myArray[5,3] = "One";
+    Console.WriteLine(myArray[5, 3]);
+    ref var ro  = ref myArray[5, 4];
+    ro = "Test";
+    Console.WriteLine(myArray[5, 4]);
+}
+```
+```cil
+.assembly Test { }
+.assembly extern mscorlib { }
+
+.method public static void Start()
+{ 
+    .maxstack 5
+    .entrypoint
+    .locals (class [mscorlib]System.String[,] myArray)
+
+    ldc.i4.5 // 加载维度 1 的下界
+    ldc.i4.6 // 加载维度 1 的 (上界 - 下界 + 1) 
+    ldc.i4.3 // 加载维度 2 的下界
+    ldc.i4.5 // 加载维度 2 的 (上界 - 下界 + 1) 
+    newobj instance void string[,]::.ctor(int32, int32, int32, int32)
+    stloc  myArray
+
+    ldloc myArray
+    ldc.i4.5
+    ldc.i4.3
+    ldstr "One"
+    call instance void string[,]::Set(int32, int32, string)
+
+    ldloc myArray
+    ldc.i4.5
+    ldc.i4.3
+    call instance string string[,]::Get(int32, int32)
+    call void [mscorlib]System.Console::WriteLine(string)
+
+    ldloc myArray
+    ldc.i4.5
+    ldc.i4.4
+    call instance string & string[,]::Address(int32, int32)
+    ldstr "Test"
+    stind.ref
+
+    ldloc myArray
+    ldc.i4.5
+    ldc.i4.4
+    call instance string string[,]::Get(int32, int32)
+    call void [mscorlib]System.Console::WriteLine(string)
+
+    ret
+}
+```
+
+在多维数组中，元素可以被认为是在连续的内存中布局的，但是数组的数组则不同 —— 数组的每个维度 (除最后一个外) 都持有一个数组引用。例如：
+
+ ![数组](./.img/数组分配.png)
+
+左边是一个 [6, 10] 的矩形数组。右边不是一个而是五个数组。垂直数组是一个数组的数组，它引用了四个水平数组。垂直数组的第一和第二元素都引用了同一个水平数组。
+
+多维数组的所有维度都应该有相同的大小。但是在数组的数组中，可以引用不同大小的数组。例如，右边的图显示了垂直数组引用了长度为 7，7，2，null (即，没有数组)，4 和 1 的数组。
+
+在 CIL 指令集或 VES 中，这些所谓的 *锯齿形数组* 没有特殊的支持。它们只是向量，其元素可以引用其他 (递归地) 锯齿形数组。
+
+>---
+### 12.3. 枚举
+
+**枚举** (*enumeration*，简称 *enum*) 定义了一组具有相同类型的符号。一个类型当且仅当它的直接基类型为 `System.Enum` 时才是枚举。由于 `System.Enum` 本身的直接基类型为 `System.ValueType`，枚举是值类型。枚举的符号由 **底层** (_underlying_) 整数类型 (`bool`, `char`, `int8`, `unsigned int8`, `int16`, `unsigned int16`, `int32`, `unsigned int32`, `int64`, `unsigned int64`, `native int`, `unsigned native int`) 之一表示。
+
+与 Pascal 不同，CLI 并不保证枚举类型的值是与其中一个符号对应的整数。实际上，CLS 定义了一种使用枚举来表示位标志的约定，这些位标志可以组合形成枚举类型本身未命名的整数值 [[↗]](./01_CLI%20基本概念和体系结构.md/#enum-flags)。
+
+枚举遵守其他值类型之外的一些额外限制。枚举只能包含字段作为成员 (它们甚至不能定义类型初始化器或实例构造器)；它们不应实现任何接口；它们应具有自动字段布局；它们应有且只有一个实例字段，且该字段应为枚举的底层类型；所有其他字段应为 **static** 和 **literal** [[↗]](#field-attr)；并且它们不应使用 `initobj` 指令进行初始化。这些限制使得枚举具有非常高效的实现。
+
+单个必需的实例字段存储枚举实例的值。枚举的 **static literal** 字段声明了枚举符号到底层值的映射。所有这些字段都应具有枚举的类型，并应具有为它们赋值的字段初始化元数据 [[↗]](#field-init)。
+
+出于绑定目的 (例如，为了从用于调用它的方法引用中定位方法定义)，枚举应与其底层类型区分开来。对于所有其他目的，包括代码的验证和执行，未装箱的枚举可以自由地与其底层类型互换。枚举可以被装箱为相应的装箱实例类型，但是这种类型不与底层类型的装箱类型相同，因此装箱不会丢失枚举的原始类型。
+
+下面示例声明一个枚举类型，然后创建该类型的局部变量。将底层类型的常量存储到枚举中 (显示为从底层类型到枚举类型的自动强制转换)。返回加载枚举并将其作为底层类型打印 (显示自动强制转换返回)。最后，加载枚举的地址并提取实例字段的内容，然后将其打印出来。
+
+```cil
+.assembly Test { }
+.assembly extern mscorlib { }
+
+.class sealed public ErrorCodes extends [mscorlib]System.Enum
+{ 
+    .field public unsigned int8 MyValue
+    .field public static literal valuetype ErrorCodes no_error = int8(0)
+    .field public static literal valuetype ErrorCodes format_error = int8(1)
+    .field public static literal valuetype ErrorCodes overflow_error = int8(2)
+    .field public static literal valuetype ErrorCodes nonpositive_error = int8(3)
+}
+
+.method public static void Start()
+{ 
+    .maxstack 5
+    .entrypoint
+    .locals init (valuetype ErrorCodes errorCode)
+
+    ldc.i4.1           // load 1 (= format_error)
+    stloc errorCode    // store in local, note conversion to enum
+    ldloc errorCode
+    call void [mscorlib]System.Console::WriteLine(int32)
+    ldloca errorCode   // address of enum
+    ldfld unsigned int8 valuetype ErrorCodes::MyValue
+    call void [mscorlib]System.Console::WriteLine(int32)
+    ret
+}
+```
+
+>---
+### 12.4. 指针类型
+<a id="pointer"></a>
+
+<pre>
+    <em>Type</em> ::= ... | <em>Type</em>'&' | <em>Type</em>'*'
+</pre>
+
+**指针类型** (_pointer type_) 应通过指定一个包含其指向位置的类型签名来定义。*指针* 可以是托管的 (_managed_，报告给 CLI 垃圾收集器，由 `&` 表示) 或 **非托管的** (_unmanaged_，不报告给 CLI 垃圾收集器，由 `*` 表示) 
+
+**指针** (_pointers_) 可以包含字段 (对象或值类型) 的地址，或数组元素的地址。指针与对象引用的不同之处在于，它们不指向整个类型实例，而是指向实例的内部。CLI 提供了两种对指针的类型安全操作：
+ * 加载指针引用位置的值。
+ * 将值 _V_ 存储到指针 _P_ 引用的位置，其中 _V_ 的类型是 *可赋值给* _P_ 引用的类型。
+
+对于指向同一数组或对象的指针，支持以下算术操作：
+
+ * 将一个整数值加到一个指针上 (其中该值被解释为字节数)，结果是同一种类的指针
+ * 从指针中减去一个整数值 (其中该值被解释为字节数)，结果是同一种类的指针。不允许从整数值中减去一个指针。
+ * 两个指针，无论种类如何，都可以相互减去，产生一个整数值，该值指定它们引用的地址之间的字节数。
+
+指针在 32 位架构上与 `unsigned int32` 兼容，在 64 位架构上与 `unsigned int64` 兼容。它们最好被视为 `unsigned int`，其大小根据运行时机器架构的不同而变化。
+
+CIL 指令集包含计算字段、局部变量、参数和向量元素地址的指令：
+
+ | 指令      | 描述               |
+ | --------- | ------------------ |
+ | `ldarga`  | 加载参数的地址     |
+ | `ldelema` | 加载向量元素的地址 |
+ | `ldflda`  | 加载字段的地址     |
+ | `ldloca`  | 加载局部变量的地址 |
+ | `ldsflda` | 加载静态字段的地址 |
+
+一旦一个指针被加载到堆栈上，`ldind` 种类的指令可以用来加载它指向的数据项。同样，`stind` 种类的指令可以用来将数据存储到位置。
+
+如果地址不在当前应用程序域内，CLI 将为 `ldflda` 指令抛出 `InvalidOperationException`。这种情况通常只出现在使用基类型为 `System.MarshalByRefObject` 的对象时。
+
+#### 12.4.1. 非托管指针
+<a id="unmanaged-pointer"></a>
+
+非托管指针 (`*`) 是 C 和 C++ 等语言中使用的传统指针。它们的使用没有限制，尽管在大多数情况下，它们可能会导致无法验证的代码。虽然将包含非托管指针的位置标记为无符号整数是完全有效的 (实际上，VES 就是这样处理它们的)，但通常最好将它们标记为指向特定数据类型的非托管指针。这是通过在返回值、局部变量或参数的签名中使用 `*` 来实现，或者在字段或数组元素中使用指针类型来实现。
+
+ * 非托管指针不会被报告给垃圾收集器，并且可以以任何方式使用，就像整数一样。
+ * 可验证的代码不能解引用非托管指针。
+ * 未验证   的代码可以将非托管指针传递给期望托管指针的方法。只有在以下情况之一为真时，这才是安全的：
+     1. 非托管指针引用的内存不在 CLI 用于存储对象实例的内存中 (“垃圾收集内存” 或 “托管内存”)。
+     2. 非托管指针包含对象内字段的地址。
+     3. 非托管指针包含数组元素的地址。
+     4. 非托管指针包含数组中最后一个元素后面的元素所在的地址。
+
+#### 12.4.2. 托管指针
+<a id="managed-pointer"></a>
+
+托管指针 (`&`) 可以指向值类型的实例、对象的字段、值类型的字段、数组的元素，或者存储数组末尾刚过去的元素的地址 (用于指向托管数组的指针索引)。托管指针不能为 *null*，即使它们不指向托管内存，也应该报告给垃圾收集器。
+
+托管指针是通过在返回值、局部变量或参数的签名中使用 `&`，或者在字段或数组元素中使用 **byref** 类型来指定的。
+
+ * 托管指针可以作为参数传递，存储在局部变量中，并作为值返回。
+ * 如果参数是通过引用传递的，那么相应的参数就是一个托管指针。
+ * 托管指针不能存储在静态变量、数组元素或对象或值类型的字段中。
+ * 托管指针与对象引用不可互换。
+ * 托管指针不能指向另一个托管指针，但它可以指向对象引用或值类型。
+ * 托管指针可以指向局部变量，或方法参数
+ * 不指向托管内存的托管指针可以被转换 (使用 `conv.u` 或 `conv.ovf.u`) 为非托管指针，但这是不可验证的。
+ * 错误地将托管指针转换为非托管指针的未验证代码可能会严重损害 CLI 的完整性。
+
+### 12.5. 方法指针
+<a id="method-pointer"></a>
+
+<pre>
+    <em>Type</em> ::= ... | method <em>CallConv</em> <em>Type</em> '*' '(' <em>Parameters</em> ')'
+</pre>
+
+方法指针类型的变量应存储指向方法入口点的地址，该方法的签名与方法指针的类型 **方法签名兼容** (*method-signature-compatible-with*)。可以使用 `ldftn` 指令获取静态或实例方法的指针，而可以使用 `ldvirtftn` 指令获取虚方法的指针。可以使用 `calli` 指令并通过方法指针调用方法。
+
+像其他指针一样，方法指针在 64 位架构上与 `unsigned int64` 兼容，在 32 位架构上与 `unsigned int32` 兼容。然而，首选的用法是 `unsigned native int`，它在 32 位和 64 位架构上都可以工作。
+
+以下示例使用指针调用方法。方法 `MakeDecision::Decide` 返回一个指向 `AddOne` 或 `Negate` 的方法指针，每次调用时交替。主程序调用 `MakeDecision::Decide` 三次，每次调用后使用 `calli` 指令调用指定的方法。打印的输出是 "`-1 2 -1`" 时，表示成功的交替调用。
+
+```cil
+.assembly Test { }
+.assembly extern mscorlib { }
+ 
+.method public static int32 AddOne(int32 Input)
+{ 
+    .maxstack 5
+
+    ldarg Input
+    ldc.i4.1
+    add
+    ret
+}
+
+.method public static int32 Negate(int32 Input)
+{ 
+    .maxstack 5
+
+    ldarg Input
+    neg
+    ret
+}
+
+.class value sealed public MakeDecision extends
+       [mscorlib]System.ValueType
+{ 
+    .field static bool Oscillate
+    .method public static method int32 *(int32) Decide()
+    { 
+        ldsfld bool valuetype MakeDecision::Oscillate
+        dup
+        not
+        stsfld bool valuetype MakeDecision::Oscillate
+        brfalse NegateIt
+        ldftn int32 AddOne(int32)
+        ret
+
+    NegateIt:
+        ldftn int32 Negate(int32)
+        ret
+    }
+}
+
+.method public static void Start()
+{ 
+    .maxstack 2
+    .entrypoint
+
+    ldc.i4.1
+    call method int32 *(int32) valuetype MakeDecision::Decide()
+    calli int32(int32)
+    call  void [mscorlib]System.Console::WriteLine(int32)
+
+    ldc.i4.1
+    call method int32 *(int32) valuetype MakeDecision::Decide()
+    calli int32(int32)
+    call  void [mscorlib]System.Console::WriteLine(int32)
+
+    ldc.i4.1
+    call method int32 *(int32) valuetype MakeDecision::Decide()
+    calli int32(int32)
+    call  void [mscorlib]System.Console::WriteLine(int32)
+
+    ret
+}
+```
+
+### 12.6. 委托
+<a id= "delegate"></a>
+
+委托 [[↗]](./01_CLI%20基本概念和体系结构.md/#delegate-types) 是函数指针的面向对象等价物。与函数指针不同，委托是面向对象的、类型安全的，并且安全。委托是引用类型，并以类的形式声明。委托应具有 `System.Delegate` 基类型。
+
+委托应声明为密封的，委托应具有的唯一成员是这里指定的前两个或所有四个方法。这些方法应声明为 **runtime** 和 **managed** (参见 [_方法的实现特性_](#method-init-attr) )。它们不应有主体，因为该主体将由 VES 自动创建。委托上可用的其他方法是从基类库中的类 `System.Delegate` 继承的。委托方法包括：
+ * 实例构造函数 (名为 `.ctor` 并标记为 **specialname** 和 **rtspecialname**，参见 [_类型构造器_](#type-constructor) ) 应恰好接受两个参数，第一个参数的类型为 `System.Object`，第二个参数的类型为 `System.IntPtr`。当实际调用时 (通过 `newobj` 指令)，第一个参数应是定义目标方法的类 (或其派生类) 的实例，第二个参数应是要调用方法的方法指针。
+ + `Invoke`方法应为 **virtual**，其签名约束了可以绑定的目标方法，参见 [_委托签名的兼容性_](#delegate-signature)。验证器将对委托上 `Invoke` 方法的调用等同于对任何其他方法的调用。
+
+ * 如果存在，`BeginInvoke` 方法 [[↗]](#delegate-begininvoke) 应为 **virtual** 的，并且具有与 `Invoke` 方法相关但不相同的签名。签名有两处不同。首先，它的返回类型应为 `System.IAsyncResult`。其次，在 `Invoke` 的参数之后还有两个额外的参数：第一个类型为 `System.AsyncCallback`，第二个类型为 `System.Object`。
+
+ + `EndInvoke` 方法 [[↗]](#delegate-endinvoke) 应为 **virtual**，并具有与 `Invoke` 方法相同的返回类型。它应接受与 `Invoke` 中托管指针的参数作为参数，与它们在 `Invoke` 的签名中出现的顺序相同。此外，应有一个额外的类型为 `System.IAsyncResult` 的参数。
+
+除非另有说明，标准委托类型应提供两个可选的异步方法：`BeginInvoke` 和 `EndInvoke`。
+
+下面声明了一个用于调用接受单个整数并返回无结果的函数的委托。它提供了所有四个方法，因此可以同步或异步调用。因为没有参数是通过引用传递的 (即，作为托管指针)，所以 `EndInvoke` 没有额外的参数。
+
+<a id="dele-exam"></a>
+
+```csharp
+delegate void StartStopEventHandler(int action);
+```
+```cil
+.assembly Test { }
+.assembly extern mscorlib { }
+
+.class private sealed StartStopEventHandler extends [mscorlib]System.Delegate
+{ 
+    .method public specialname rtspecialname instance void .ctor(object Instance,  
+        native int Method) runtime managed {}
+  
+    .method public virtual void Invoke(int32 action) runtime managed {}
+    
+    .method public virtual class [mscorlib]System.IAsyncResult BeginInvoke(
+        int32 action, class [mscorlib]System.AsyncCallback callback,
+        object Instance) runtime managed {}
+  
+    .method public virtual void EndInvoke(class
+        [mscorlib]System.IAsyncResult result) runtime managed {}
+}
+```
+
+与任何类一样，使用 `newobj` 指令与实例构造函数一起创建委托实例。构造函数的第一个参数应该是要调用该方法的对象，如果方法是静态方法，则该参数应为 null。第二个参数应该是指向对应类上的方法的方法指针，并且具有与被实例化的委托类相匹配的签名。
+
+#### 12.6.1. 委托签名兼容性
+<a id="delegate-signature"></a>
+
+本节定义了 ***委托可赋值给*** (_delegate-assignable-to_) 的关系，它是 *方法签名兼容* ([[↗]](./01_CLI%20基本概念和体系结构.md/#method-signature-compatible-with)) 的变体，并涵盖了委托构造。
+
+委托通过 `newobj` 指令绑定到目标方法，如果目标是实例方法，则传递目标方法的方法指针和对象引用；如果目标是静态方法，则传递目标方法指针和 null。方法的签名可用时，通过 `ldftn`、`ldvirtftn` 或任一的 *load* IL 指令将目标方法加载到求值堆栈上。
+
+**委托的签名** (_signature of a delegate_) 是委托类型上的 `Invoke` 方法的签名。签名不包括在委托创建时绑定的 **this** 指针的类型 (如果有)。
+
+委托只能在以下情况下可验证时才能绑定到目标方法：
+ 1. 目标方法的签名是 *委托可赋值给* 委托的签名；
+ 2. 如果目标是实例方法，对象引用的验证类型是 *验证器可赋值给* (【】1.8.1.2.3)) 目标方法的 `this` 签名；如果目标方法是静态方法，对象引用的验证类型则是 `null`。
+
+委托构造的特殊验证规则由 `newobj` (【】§[III.4.21]()) 指令捕获。
+
+*委托可赋值给* 关系是根据参数类型定义的，忽略任何 **this** 参数 (如果有) 、返回类型和调用约定。自定义修饰符不被视为必要，也不会影响兼容性。
+
+当且仅当满足以下所有条件时，类型为 _T_ 的目标方法或委托是 *委托可赋值给* 类型为 _D_ 的委托：
+ 1. _T_ 和 _D_ 的调用约定应完全匹配，忽略静态方法和实例方法之间的区别 (即，**this** 参数 (如果有) 不被特殊对待)。*委托可赋值给* 不考虑 **this** 的类型 (如果有)，这是由上述额外的验证规则所涵盖的。
+ 2. _T_ 和 _D_ 具有相同数量的参数，如果 _T_ 是方法，则忽略任何 `this` 参数。
+ 3. 对于 _T_ 的每个参数类型 _U_，如果 _T_ 是方法，则忽略任何 `this` 参数，以及 _D_ 的对应类型 _V_，_U_ 是 *可赋值给*[[↗]](./01_CLI%20基本概念和体系结构.md/#assignable-to) _V_。
+
+ 4. _T_ 的返回类型 _U_ 和 _D_ 的返回类型 _V_，_V_ 是 *可赋值给* _U_。
+
+#### 12.6.2. 对委托的同步调用
+
+对委托的同步调用方式对应于常规的方法调用，通过在委托上调用名为 `Invoke` 的虚方法来执行。委托本身是此调用的第一个参数 (它充当 **this** 指针)，后面跟着签名中指定的其他参数。进行此调用时，调用方将阻塞，直到被调用的方法返回。被调用的方法应在与调用方相同的线程上执行。
+
+继续前面的 [示例](#dele-exam)，定义一个类 `Test`，该类声明了一个方法 `onStartStop`，适合用作委托的目标。
+
+```cil
+.class public Test
+{ 
+    .field public int32 MyData
+    .method public void onStartStop(int32 action)
+    { 
+        // put your code here
+        ret
+    }
+    .method public specialname rtspecialname instance void .ctor(int32 Data)
+    {   
+        // call base class constructor, store state, etc.
+        ret        
+    }
+}
+```
+
+然后定义一个主程序。这个程序构造了一个 `Test` 的实例，然后创建了一个指向该实例的 `onStartStop` 方法的委托。最后，调用委托。
+
+```cil
+.method public static void Start()
+{ 
+    .maxstack 3
+    .entrypoint
+    .locals (
+        class StartStopEventHandler DelegateOne,
+        class Test InstanceOne )
+    
+    // Create instance of Test class
+    ldc.i4.1
+    newobj instance void Test::.ctor(int32)
+    stloc InstanceOne 
+
+    // Create delegate to onStartStop method of that class
+    ldloc InstanceOne
+    ldftn instance void Test::onStartStop(int32)
+    newobj void StartStopEventHandler::.ctor(object, native int)
+    stloc DelegateOne
+
+    // Invoke the delegate, passing 100 as an argument
+    ldloc DelegateOne
+    ldc.i4 100
+    callvirt instance void StartStopEventHandler::Invoke(int32)
+    ret
+}
+```
+
+注意，上面的示例创建了一个非虚函数的委托。如果 `onStartStop` 是一个虚函数，使用以下代码序列代替：
+
+```cil
+    ldloc InstanceOne
+    dup
+    ldvirtftn instance void Test::onStartStop(int32)
+    newobj void StartStopEventHandler::.ctor(object, native int)
+    stloc DelegateOne
+
+    // Invoke the delegate, passing 100 as an argument
+    ldloc DelegateOne
+```
+
+上面的代码序列应使用 `dup` —— 而不是两次 `ldloc InstanceOne`。`dup` 代码序列很容易被识别为类型安全的，而替代方案则需要更复杂的分析。代码的可验证性在第三部分 [【】]() 中讨论。
+
+#### 12.6.3. 委托的异步调用
+
+在异步模式下，调用被分派，调用方将继续执行而不等待方法返回。被调用的方法将在一个单独的线程上执行。使用 `BeginInvoke` 和 `EndInvoke` 方法异步调用委托。
+
+如果调用方线程在被调用方完成之前终止，被调用方线程不受影响。被调用方线程继续执行并静默终止。被调用方可以抛出异常，任何未处理的异常通过 `EndInvoke` 方法传播到调用方。
+
+##### 12.6.3.1. BeginInvoke 方法
+<a id="delegate-begininvoke"></a>
+
+对委托的异步调用应该从对 `BeginInvoke` 方法的虚调用开始。`BeginInvoke` 类似于 `Invoke` 方法，但有两个不同之处：
+ * 它有两个额外的参数，附加到列表中，类型为 `System.AsyncCallback` 和 `System.Object`。
+ * 方法的返回类型是 `System.IAsyncResult`。
+
+尽管 `BeginInvoke` 方法因此包括表示返回值的参数，但这些值不会被此方法更新。结果反而是从 `EndInvoke` 方法获取的。与同步调用不同，异步调用应该为调用方提供一种确定调用何时完成的方式。CLI 提供了两种这样的机制。第一种是通过调用返回的结果对象，这个对象是接口 `System.IAsyncResult` 的一个实例，可以用来等待计算结果，也可以查询该结果值以获取方法调用的当前状态，并且它包含传递给 `BeginInvoke` 调用的 `System.Object` 值。
+
+第二种机制是通过传递给 `BeginInvoke` 的 `System.AsyncCallback` 委托。当计算完成或者已经引发了异常致使结果不可用时，VES 将调用这个委托。传递给这个回调委托的值与调用 `BeginInvoke` 返回的值相同。可以为 `System.AsyncCallback` 传递 null 值，以表示 VES 不需要提供回调。
+
+这种模型支持对异步调用的轮询方法 (通过检查返回的 `System.IAsyncResult` 的状态) 和事件驱动方法 (通过提供 `System.AsyncCallback`)。
+
+同步调用通过其返回值和输出参数返回信息。输出参数在 CLI 中表示为具有托管指针类型的参数。只有当 VES 信号异步调用已成功完成时，返回的值和输出参数的值才可用。它们是通过调用开启异步调用委托上的 `EndInvoke` 方法来检索的。
+
+##### 12.6.3.2. EndInvoke 方法
+<a id="delegate-endinvoke"></a>
+
+`EndInvoke` 方法可以在 `BeginInvoke` 之后的任何时间被调用。它将暂停调用它的线程，直到异步调用完成。如果调用成功完成，`EndInvoke` 将返回同步调用委托时本应返回的值，而其托管指针参数将指向同步调用的 `out` 参数本应返回的值。
+
+`EndInvoke` 需要作为参数的是原始调用 `BeginInvoke` 返回的值 (这样可以区分对同一委托的不同调用，因为它们可以并发执行)，以及作为参数传递的任何托管指针 (这样可以提供它们的返回值)。
 
 ---
 
+
+
+
+## 24. end
+
+---
+[[↗]](#)
 「_ _」
 
 <pre>

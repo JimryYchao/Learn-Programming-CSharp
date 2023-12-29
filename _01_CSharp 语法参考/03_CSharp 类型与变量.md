@@ -1181,6 +1181,27 @@ class Test
 
 使用 `delegate` 关键字声明委托类型，编译器将委托相关的操作代码的调用映射到 `System.Delegate` 和 `System.MulticastDelegate` 类成员的方法调用。必须使用具有兼容返回类型和输入参数的方法或 Lambda 表达式实例化委托。在实例化委托时，可以将委托的实例与任何兼容的方法相关联，并可以通过委托实例调用方法。
 
+在构造委托时，编译器会为委托类型生成四个方法：
+- 一个实例构造函数；
+- 一个用于同步调用的 `Invoke` 实例方法，它的参数和委托类型的签名一致；
+- （可选的）两个用于异步调用的 `BeginInvoke` 和 `EndInvoke` 方法：
+  - `BeginInvoke` 除了具有 `Invoke` 相同位置的参数外，还有两个额外的参数（`System.AsyncCallback` 和 `System.Object`）。`BeginInvoke` 方法返回一个 ``System.IAsyncResult`` 类型。
+  - `EndInvoke` 返回类型和委托类型定义中的返回类型相同。若委托签名中包含输出参数 `out`，则在 `EndInvoke` 中包含这些 `out` 参数；它还有一个额外的和 `BeginInvoke` 方法的返回值类型相同的参数。
+
+```csharp
+// 委托的定义
+delegate void StartStopEventHandler(int action);
+// 假设编译器为委托对象生成的类声明和成员声明
+sealed class StartStopEventHandler : System.Delegate // or System.MulticastDelegate
+{
+    public StartStopEventHandler(object @object, IntPtr method) { }
+
+    public void Invoke(int action) { }
+    public IAsyncResult BeginInvoke(int action, AsyncCallback callback, object @abject) { }
+    public void EndInvoke(IAsyncResult asyncResult) { }
+}
+```
+
 将方法作为参数进行引用的能力使委托成为定义回调方法的理想选择。委托类似于 C++ 函数指针，但委托面向对象，会同时封装对象实例和方法，因此委托允许将方法作为参数进行传递。
 
 ```csharp
@@ -1261,6 +1282,51 @@ class Sample
     }
 }
 ```
+
+#### 1.7.3. 委托的同步调用
+
+对委托的同步调用方式对应于常规的方法调用，通过在委托上调用名为 `Invoke` 的实例方法来执行。进行此调用时，调用方将阻塞，直到被调用的方法返回。被调用的方法应在与调用方相同的线程上执行。
+
+```csharp
+// vs csharp interactive
+delegate void StartStopEventHandler(int action);
+
+StartStopEventHandler dele = x => Console.WriteLine(x);
+dele.Invoke(10010);  
+// 10010
+```
+
+#### 1.7.4. 委托的异步调用：仅在 NET Framework 平台支持
+
+在异步模式下，调用被分派，调用方将继续执行而不等待方法返回。被调用的方法将在一个单独的线程上执行。使用 `BeginInvoke` 和 `EndInvoke` 方法异步调用委托。如果调用方线程在被调用方完成之前终止，被调用方线程不受影响。被调用方线程继续执行并静默终止。被调用方可以抛出异常，任何未处理的异常通过 `EndInvoke` 方法传播到调用方。
+
+```csharp
+// 预定义
+class AayncInvoke
+{
+    delegate void StartStopEventHandler(int action);
+    static StartStopEventHandler dele = delegate (int x)
+    {
+        Thread.Sleep(1000);
+        Console.WriteLine(x);
+    };
+}
+```
+
+对委托的异步调用应该从对 `BeginInvoke` 方法调用开始。与同步调用不同，异步调用应该为调用方提供一种确定调用何时完成的方式。通过两种方式来等待异步计算结果：
+- 第一种是通过调用返回的结果对象，这个对象是接口 `System.IAsyncResult` 的一个实例，通过调用 `EndInvoke` 检查该结果值以获取方法调用的当前状态，并在完成计算时返回结果。
+
+    ```csharp
+    var rt = dele.BeginInvoke(10010, null, dele);
+    dele.EndInvoke(rt);  // maybe have a return
+    ```
+
+- 第二种机制是通过传递给 `BeginInvoke` 的 `System.AsyncCallback` 委托。当计算完成或者已经引发了异常致使结果不可用时，VES 将调用这个委托。传递给这个回调委托的值与调用 `BeginInvoke` 返回的值相同。
+
+    ```csharp
+    dele.BeginInvoke(10010, (rt) => dele.EndInvoke(rt), dele);
+    ```
+
 
 >---
 
