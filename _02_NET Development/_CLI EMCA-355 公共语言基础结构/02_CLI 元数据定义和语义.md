@@ -234,7 +234,7 @@ ldstr_label: ldstr "A label"
 
  - **在 ILAsm 中使用通用语法**。例如非终结符 _CustomDecl_ 描述了这种语法。对于一些称为伪自定义特性的特性，这个语法实际上会在元数据中设置特殊的编码。
 
- * **安全特性被特殊处理**。在 ILAsm 中有特殊的语法，允许直接描述表示安全特性的 XML。虽然所有其它在标准库或用户提供的扩展中定义的特性都使用一个公共机制在元数据中编码，但安全特性 (直接或间接继承自 `System.Security.Permissions.SecurityAttribute`) 应按照 [「DeclSecurity: 0x0E」](#DeclSecurity_0x0E) 中的描述进行编码。
+ * **安全特性被特殊处理**。在 ILAsm 中有特殊的语法，允许直接描述表示安全特性的 XML。虽然所有其它在标准库或用户提供的扩展中定义的特性都使用一个公共机制在元数据中编码，但安全特性 (直接或间接继承自 `System.Security.Permissions.SecurityAttribute`) 应按照 [「_DeclSecurity: 0x0E_」](#DeclSecurity_0x0E) 中的描述进行编码。
 
 >---
 ### 3.10. ILAsm 源文件
@@ -571,7 +571,7 @@ _ExportAttr_ 值应为 **public** 或 **nested public**，并应与类型的可�
 
 元数据提供了定义和引用类型的机制。无论该类型是接口、类还是值类型，用于引用类型的机制分为两部分：
 
- * 用户定义的类型的逻辑描述，这些类型被引用，但通常不在当前模块中定义。这些信息存储在元数据的一个表中 ([「TypeRef: 0x01」](#TypeRef_0x01))。
+ * 用户定义的类型的逻辑描述，这些类型被引用，但通常不在当前模块中定义。这些信息存储在元数据的一个表中 ([「_TypeRef: 0x01_」](#TypeRef_0x01))。
  * 对一个或多个类型引用以及各种修饰符进行编码的签名。非终结符 **Type** 中对签名进行了描述。
 
 ### 5.1. *Type*：类型
@@ -775,7 +775,7 @@ internal struct AssemblyAccessibility;
 >---
 ### 6.2. 可访问性
 
-可访问性直接在元数据中编码，参见 [「MethodDef: 0x06」](#MethodDef_0x06)。
+可访问性直接在元数据中编码，参见 [「_MethodDef: 0x06_」](#MethodDef_0x06)。
 
 >---
 ### 6.3. 隐藏
@@ -950,7 +950,7 @@ class D<W,X> : P<C<W,X>>
 
 泛型方法定义是包含泛型参数列表的定义。泛型方法可以在非泛型类型中定义；或者在泛型类型中定义，在这种情况下，方法的泛型参数应该是其包含类型泛型参数的补充。与泛型类型定义一样，泛型方法定义上的每个泛型参数都有一个名称和一个可选的约束集。
 
-泛型方法可以是静态的、实例的或虚拟的。类的静态或实例构造函数 (分别为 `.cctor` 或 `.ctor`) 不能是泛型的。
+泛型方法可以是静态的、实例的或虚拟的。类的静态或实例构造器 (分别为 `.cctor` 或 `.ctor`) 不能是泛型的。
 
 方法的泛型参数在方法的签名和主体以及泛型参数约束中都是有效的。签名包括方法的返回类型。所以在 ``.method … !!0 M`1<T>() { … }`` 中，`!!0` 是有效的 —— 它是 ``M`1<T>`` 的泛型参数，即使它在声明中先于该参数。
 
@@ -1110,7 +1110,7 @@ IComparer<string>[] strCompArr = objCompArr;
 **泛型类型定义** (_generic type definition_)：如果 _G_ 是一个接口或委托类型，给定 _S_ = \<_var_<sub>1</sub> _T_<sub>1</sub>, &hellip;, _var_<sub>_n_</sub> _T_<sub>_n_</sub>\> (其中 _var_<sub>_n_</sub> 是 `+`、`-` 或 *无*)，如果以下每条都成立，则泛型类型定义 _G_\<_var_<sub>1</sub> _T_<sub>1</sub>, &hellip;, _var_<sub>_n_</sub> _T_<sub>_n_</sub>\> 是有效的：
  * 每个实例方法和虚方法声明都相对于 _S_ 是有效的
  * 每个继承的接口声明都相对于 _S_ 是有效的
- * 对静态成员、实例构造函数或类型自己的泛型参数约束没有限制。
+ * 对静态成员、实例构造器或类型自己的泛型参数约束没有限制。
 
 给定带注解的泛型参数 _S_ = \<_var_<sub>1</sub> _T_<sub>1</sub>, &hellip;, _var_<sub>_n_</sub> _T_<sub>_n_</sub>\>，我们定义类型定义的各个组件相对于 _S_ 都是有效的。我们定义一个对注解的否定操作，写作 &not;_S_，表示 “将负数翻转为正数，正数翻转为负数”。定义：
  * “相对于 _S_ 有效” 表示具有 “协变行为”
@@ -1139,7 +1139,7 @@ IComparer<string>[] strCompArr = objCompArr;
 
 则类型签名 _t_ 相对于 _S_ 是有效的。
 
----
+>---
 ### 7.8. 签名和绑定
 
 泛型类型的成员 (字段和方法) 在 CIL 指令中使用元数据标志引用，该标志指定了 _MemberRef_ 中的一个项。抽象地说，引用由两部分组成：
@@ -1308,7 +1308,7 @@ void V(string)
 >---
 ### 7.11. 泛型参数的约束
 
-在泛型类或泛型方法上声明的泛型参数可以被一个或多个类型 (参考 [「GenericParamConstraint: 0x2C」](#GenericParamConstraint_0x2C))，和一个或多个 [*特殊约束*](#special-genpars) **约束** (_constrained_)。泛型参数只能使用满足所有指定特殊约束并且是 *可赋值给* (当装箱时) 每个声明的约束的泛型参数实例化。
+在泛型类或泛型方法上声明的泛型参数可以被一个或多个类型 (参考 [「_GenericParamConstraint: 0x2C_」](#GenericParamConstraint_0x2C))，和一个或多个 [*特殊约束*](#special-genpars) **约束** (_constrained_)。泛型参数只能使用满足所有指定特殊约束并且是 *可赋值给* (当装箱时) 每个声明的约束的泛型参数实例化。
 
 泛型参数约束应至少具有与泛型类型定义或泛型方法定义本身相同的可见性。
 
@@ -1363,7 +1363,7 @@ void V(string)
     <em>Decl</em> ::= .class <em>ClassHeader</em> '{' <em>ClassMember</em>* '}' | ...
 </pre>
 
-此声明创建的逻辑元数据表在 [「TypeDef: 0x02」](#TypeDef_0x02) 中指定。
+此声明创建的逻辑元数据表在 [「_TypeDef: 0x02_」](#TypeDef_0x02) 中指定。
 
 出于历史原因，用于定义类型的许多语法类别在其名称中错误地使用了 “class” 而不是 “type”。所有的类都是类型，但是 “types” 是一个更广泛的术语，包括值类型和接口。
 
@@ -1388,7 +1388,7 @@ void V(string)
 
 <a id="implements"></a>**implements** 关键字指定了类型的 **接口** (_interfaces_)。在此处列出的接口，类型为其声明的所有具体实现都将支持该接口的协议，包括提供该接口声明的任何虚方法的实现。
 
-在 **implements** 关键字后的 _TypeSpec_ 的从左到右的顺序在 [「InterfaceImpl: 0x09」](#InterfaceImpl_0x09) 表中被保留为从上到下的顺序。这是为了支持接口调度中的 [差异解析](#internal-virtual) 时所必需的。
+在 **implements** 关键字后的 _TypeSpec_ 的从左到右的顺序在 [「_InterfaceImpl: 0x09_」](#InterfaceImpl_0x09) 表中被保留为从上到下的顺序。这是为了支持接口调度中的 [差异解析](#internal-virtual) 时所必需的。
 
 下面这段代码声明了类 `CounterTextBox`，它扩展了程序集 `System.Windows.Forms` 中的类 `System.Windows.Forms.TextBox`，并实现了当前程序集的模块 `Counter` 中的接口 `CountDisplay`。特性 **private**、**auto** 和 **autochar** 在后面的子小节中有描述。
 
@@ -1476,7 +1476,7 @@ public class PublicAccessibility
 类型布局指定了类型实例的字段如何排列。给定的类型应该只指定一个布局特性。按照惯例，如果没有指定布局特性，*ilasm* 将提供 **auto**。布局特性包括：
 - **auto**<a id="auto"></a>：布局应由 CLI 完成，没有用户提供的约束。
 - **explicit**<a id="explicit"></a>：字段的布局是 [明确提供](#ctrl-layout) 的。然而，泛型类型不应该有明确的布局。
-- **sequential**<a id="sequential"></a>：CLI 应该根据逻辑元数据表 ([「Field: 0x04」"](#Field_0x04)) 中字段的顺序来排列字段。
+- **sequential**<a id="sequential"></a>：CLI 应该根据逻辑元数据表 ([「_Field: 0x04_」"](#Field_0x04)) 中字段的顺序来排列字段。
 
 默认的 **auto** 布局应该为正在执行代码的平台提供最佳布局。**sequential** 布局旨在指示 CLI 在单个平台上匹配 C 和 C++ 等语言遵循的布局规则，这在仍然保证可验证布局的情况下是可能的。**explicit** 布局允许 CIL 生成器指定精确的布局语义。
 
@@ -1838,7 +1838,7 @@ class GeneClassC<T> where T: new();   // .ctor 约束
  | \| _ExternSourceDecl_                                                                                                          | 源代码行信息。                                                 | §[[↗]](#ExternSourceDecl) |
  | \| _SecurityDecl_                                                                                                              | 声明性安全权限。                                               | §[[↗]](#SecurityDecl) |
 
-在 **.class** 类型声明 [[↗]](#class) 中，**.method** 定义的自上而下的顺序在 [「MethodDef: 0x06」](#MethodDef_0x06) 表中保留。这是支持接口调度中的差异解析 [[↗]](#internal-virtual) 所必需的。
+在 **.class** 类型声明 [[↗]](#class) 中，**.method** 定义的自上而下的顺序在 [「_MethodDef: 0x06_」](#MethodDef_0x06) 表中保留。这是支持接口调度中的差异解析 [[↗]](#internal-virtual) 所必需的。
 
 >---
 ### 8.3. 引入和重写虚方法
@@ -1849,7 +1849,7 @@ class GeneClassC<T> where T: new();   // .ctor 约束
 
 通过定义虚方法 [[↗]](#MethodHeader) 在继承层次中引入虚方法。定义可以标记为 **newslot**，以始终为定义类及其派生类创建新的虚方法：
  * 如果定义被标记为 **newslot**，则定义始终创建新的虚方法，即使基类提供了匹配的虚方法。通过包含方法定义的类或通过从该类派生的类对虚方法的引用，都指向新的定义 (除非在派生类中被 **newslot** 定义隐藏)。任何不通过包含方法定义的类，也不通过其派生类对虚方法的引用，都指向原始定义。
- * 如果定义没有被标记为 **newslot**，则定义只有在没有从基类继承相同名称和签名的虚方法时才创建新的虚方法。因此，当虚方法被标记为 **newslot** 时，其引入不会影响其基类中匹配虚方法的任何现有引用。
+ * 如果定义没有被标记为 **newslot**，则定义只有在未从基类继承相同名称和签名的虚方法时才创建新的虚方法。因此，当虚方法被标记为 **newslot** 时，其引入不会影响其基类中匹配虚方法的任何现有引用。
 
 #### 8.3.2. .override 指令
 <a id="override"></a>
@@ -1926,26 +1926,26 @@ _Int32_ 是泛型参数的数量。第一对 _TypeSpec_::_MethodName_ 指定正�
  ```cil
  .class interface I
  {
-   .method newslot abstract void foo() {...}
+    .method newslot abstract void foo() {...}
  }
  .class A implements I
  {
-   .method newslot void foo() {...}
+    .method newslot void foo() {...}
  }
  .class B extends A
  { 
-   .method newslot void foo1() {.override I::foo ... }
+    .method newslot void foo1() {.override I::foo ... }
  }
  .class C extends B
  {
-   .method void foo1() {...}
-   .method void foo2() {.override A::foo ... }
+    .method void foo1() {...}
+    .method void foo2() {.override A::foo ... }
  }
  .class D extends C
  {
-   .method newslot void foo() {...}
-   .method void foo1(){...}
-   .method void foo2(){...}
+    .method newslot void foo() {...}
+    .method void foo1(){...}
+    .method void foo2(){...}
  }
  ```
 
@@ -1967,11 +1967,11 @@ _Int32_ 是泛型参数的数量。第一对 _TypeSpec_::_MethodName_ 指定正�
 
 一个类型 (具体或抽象) 可以提供
  * 它引入的实例、静态和虚方法的实现
- * 它已指定将实现的接口中声明的方法的实现，或者其基类型已指定将实现的方法的实现
- * 从其基类继承的虚方法的替代实现
- * 从未提供实现的抽象基类型继承的虚方法的实现
+ * 它指定对接口方法的实现，或指定对基类方法的实现
+ * 从基类继承的虚方法的替代实现
+ * 从抽象基类型继承的抽象方法的实现
 
-一个具体 (即，非抽象) 类型应通过直接或通过继承实现
+一个具体 (即，非抽象) 类型应直接或通过继承实现
  * 由类型本身声明的所有方法
  * 该类型实现的接口的所有虚方法
  * 该类型从其基类型继承的所有虚方法
@@ -1981,36 +1981,38 @@ _Int32_ 是泛型参数的数量。第一对 _TypeSpec_::_MethodName_ 指定正�
 
 有三种特殊成员，它们都是可以作为类型的一部分定义的方法：实例构造器、实例终结器和类型初始化器。
 
-#### 8.5.1. 实例构造函数
+#### 8.5.1. 实例构造器
 
-**实例构造函数** (_instance constructor_) 初始化一个类型的实例，并在通过 `newobj` 指令创建一个类型的实例时被调用【】。实例构造函数应该是一个实例方法 (不是静态或虚方法)，它应该被命名为 `.ctor`，并被标记为 **instance**、**rtspecialname** 和 **specialname**【】。实例构造函数可以有参数，但不应返回值。实例构造函数不能接受泛型类型参数。实例构造函数可以被重载 (即，一个类型可以有多个实例构造函数)。一个类型的每个实例构造函数都应该有一个唯一的签名。与其他方法不同，实例构造函数可以写入被标记为 **initonly** 特性的类型的字段【】。
+**实例构造器** (_instance constructor_) 初始化一个类型的实例，并在通过 `newobj` 指令创建一个类型的实例时被调用。实例构造器应该是一个实例方法 (不是静态或虚方法)，它应该被命名为 `.ctor`，并被标记为 **instance**、**rtspecialname** 和 **specialname** [[↗]](#special-handle-attr)。
 
-下面显示了一个不带任何参数的实例构造函数的定义：
+实例构造器可以有参数，但不应有返回值。实例构造器不能接受泛型类型参数。实例构造器可以被重载 (即，一个类型可以有多个实例构造器)。一个类型的每个实例构造器都应有唯一的签名。与其他方法不同，注释为 **initonly** 特性 [[↗]](#initonly-field) 类型的字段可以在实例构造器内被写入。
 
- ```cil
- .class X {
-   .method public rtspecialname specialname instance void .ctor() cil managed
-   { 
+下面显示了一个不带任何参数的实例构造器的定义：
+
+```cil
+.class X {
+    .method public rtspecialname specialname instance void .ctor() cil managed
+    { 
         .maxstack 1
         // call super constructor
         ldarg.0  // load this pointer
         call instance void [mscorlib]System.Object::.ctor()
         // do other initialization work
         ret
-   }
- }
- ```
+    }
+}
+```
 
 #### 8.5.2. 实例终结器
 
-终结器的行为在【】中有规定。对于特定类型的 *finalize* 方法，是通过在 `System.Object` 中重写虚方法 `Finalize` 来指定的。
+终结器的行为在第一部分 [终结器](./01_CLI%20基本概念和体系结构.md/#finalizer) 中有规定。对于特定类型的 *finalize* 方法，是通过在 `System.Object` 中重写虚方法 `Finalize` 来指定的。
 
 #### 8.5.3. 类型初始化器
 <a id="type-initializer"></a>
 
-一个类型 (类，接口，或值类型) 可以包含一个特殊的方法叫做 **类型初始化器** (_type initializer_)，用于初始化类型本身。这个方法应该是静态的，不接受参数，无返回值，被标记为 **rtspecialname** 和 **specialname** 【】，并且被命名为 `.cctor`。
+一个类型 (类，接口，或值类型) 可以包含一个特殊的方法叫做 **类型初始化器** (_type initializer_)，用于初始化类型本身。这个方法应该是静态的，不接受参数，无返回值，被标记为 **rtspecialname** 和 **specialname** [[↗]](#special-handle-attr)，并且被命名为 `.cctor`。
 
-就像实例构造函数一样，类型初始化器可以写入其类型的被 **initonly** 特性标记的静态字段【】。
+就像实例构造器一样，类型初始化器中可以写入类型被 **initonly** 特性注释的静态字段 [[↗]](#initonly-field)。
 
 下面展示了一个类型初始化器的定义：
 
@@ -2022,38 +2024,46 @@ _Int32_ 是泛型参数的数量。第一对 _TypeSpec_::_MethodName_ 指定正�
     {
         .maxstack 1 
 
-        // 分配一个包含4个Double的数组
+        // 分配一个包含 4 个 Double 的数组
         ldc.i4.4
         newarr     [mscorlib]System.Double
         // 将 initonly 字段指向新数组
         stsfld     float64[] EngineeringData::coefficient
         // 初始化数组元素的代码在这里
+        ...
         ret
     }
 }
 ```
 
-类型初始化器通常是简单的方法，从存储的常量或通过简单的计算初始化类型的静态字段。然而，对于类型初始化器中允许的代码没有限制。
+类型初始化器通常是简单的方法，从存储的常量或通过简单计算来初始化类型的静态字段。但是，对于类型初始化器中允许使用的代码没有限制。
 
 ##### 8.5.3.1. 类型初始化保证
+<a id="type-init-guarantees"></a>
 
-CLI 将提供以下关于类型初始化的保证【】 和 【】：
- 1. 类型初始化器何时被执行在 【】 中有规定。
- 3. 对于任何给定的类型，类型初始化器应该只执行一次，除非被用户代码明确调用。
- 4. 在类型初始化器完成执行之前，除了那些直接或间接从类型初始化器调用的方法外，没有其他方法能够访问类型的成员。
+CLI 将提供以下关于类型初始化的保证，参见 [_宽松保证_](#relaxed-guarantees) 和 [_竞争与死锁_](#races-and-deadlocks)：
 
-##### 8.5.3.2. 宽松的保证
-<a id=beforefieldinit_info></a>
+ > I. 类型初始化器何时被执行在第一部分的 [_类型初始化方法_](./01_CLI%20基本概念和体系结构.md/#cctor-init) 中有规定。
 
-可以使用特性 **beforefieldinit**【】标记一个类型，以表示在 【】 中指定的保证不是必需的。特别是，不需要提供上述最后的要求：在调用或引用静态方法之前，不需要执行类型初始化器。
+ > III. 对于任何给定的类型，类型初始化器应该只执行一次，除非被用户代码明确调用。
 
-当代码可以在多个应用程序域中执行时，确保这个最后的保证变得特别昂贵。同时，对大量托管代码的检查表明，这个最后的保证很少需要，因为类型初始化器几乎总是用于初始化静态字段的简单方法。因此，让 CIL 生成器 (因此，可能是程序员) 决定是否需要这个保证，可以在需要时提供效率，但要付出一致性保证的代价。
+ > VI. 在类型初始化器完成执行之前，除了那些直接或间接从类型初始化器调用的方法外，没有其他方法能够访问类型的成员。
+
+##### 8.5.3.2. 宽松保证
+<a id="relaxed-guarantees"></a>
+
+可以使用特性 **beforefieldinit** [[↗]](#beforefieldinit) 标记一个类型，以表示在 [_类型初始化保证_](#type-init-guarantees) 中指定的保证不是必需的。特别是，不需要提供上述中最后的 VI 保证：在调用或引用静态方法之前，不需要执行类型初始化器。
+
+当代码可以在多个应用程序域中执行时，确保这个最后的 VI 保证变得特别昂贵。同时，对大量托管代码的检查表明，这个 VI 保证很少需要，因为类型初始化器几乎总是用于初始化静态字段的简单方法。因此，让 CIL 生成器 (可能是程序员) 决定是否需要这个保证，可以在需要时提供效率，但要付出一致性保证的代价。
 
 ##### 8.5.3.3. 竞争和死锁
+<a id="races-and-deadlocks"></a>
 
-除了在【】中指定的类型初始化保证外，CLI 还应确保从类型初始化器调用的代码有两个进一步的保证：
- 1. 类型的静态变量在任何访问之前都处于已知状态。
- 2. 仅类型初始化本身不会创建死锁，除非从类型初始化器 (直接或间接) 调用的某些代码明确调用阻塞操作。
+除了指定的 [_类型初始化保证_](#type-init-guarantees) 外，CLI 还应确保从类型初始化器调用的代码有两个进一步的保证：
+
+ > III. 类型的静态变量在任何访问之前都处于已知状态。
+ 
+ > V. 仅类型初始化本身不会创建死锁，除非在类型初始化器调用的代码中 (直接或间接) 显式调用阻塞操作。
 
 考虑以下两个类定义：
 
@@ -2063,9 +2073,10 @@ CLI 将提供以下关于类型初始化的保证【】 和 【】：
     .field static public class A a
     .field static public class B b
     .method public static rtspecialname specialname void .cctor ()
-    { ldnull   // b=null
+    { 
+        ldnull   // b = null
         stsfld class B A::b
-        ldsfld class A B::a // a=B.a
+        ldsfld class A B::a // a = B.a
         stsfld class A A::a
         ret
     }
@@ -2077,36 +2088,35 @@ CLI 将提供以下关于类型初始化的保证【】 和 【】：
     .field static public class B b
     .method public static rtspecialname specialname void .cctor ()
     { 
-        ldnull   // a=null
+        ldnull   // a = null
         stsfld class A B::a
-        ldsfld class B A::b // b=A.b
+        ldsfld class B A::b // b = A.b
         stsfld class B B::b
         ret
     }
 }
 ```
 
-加载这两个类后，尝试引用任何静态字段都会导致问题，因为 `A` 和 `B` 的类型初始化器都要求先调用另一个的类型初始化器。要求在其初始化完成之前不允许访问类型将创建死锁情况。相反，CLI 提供了一个较弱的保证：初始化器将开始运行，但不必完成。但是，仅此一点就会使类型的完全未初始化状态可见，这将使得保证可重复结果变得困难。
+加载这两个类后，尝试引用任何静态字段都会导致问题，因为 `A` 和 `B` 的类型初始化器都要求先调用另一个的类型初始化器。要求在其初始化完成之前不允许访问类型将创建死锁情况。相反，CLI 提供了一个较弱的保证：初始化器将开始运行，但不必完成。但是，仅此一点就会使类型的完全未初始化状态可见，这将使得保证可重复的结果变得困难。
 
 当类型初始化在多线程系统中进行时，存在类似但更复杂的问题。在这些情况下，例如，两个单独的线程可能开始尝试访问不同类型 (`A` 和 `B`) 的静态变量，然后每个线程都必须等待另一个完成初始化。
 
-以下是一个粗略的算法概述，以确保上述第 1 点和第 2 点：
+以下是一个粗略的算法概述，以确保上述第 I 点和第 II 点：
 - 在类加载时 (因此在初始化时间之前) 将零或 `null` 存储到类型的所有静态字段中。
 - 如果类型已初始化，表示完成。
-  - i. 如果类型尚未初始化，尝试获取初始化锁。
-  - ii. 如果成功，记录此线程负责初始化类型并继续执行步骤 iii。
+  - a. 如果类型尚未初始化，尝试获取初始化锁。
+  - b. 如果成功，记录此线程负责初始化类型并继续执行步骤 c。
       - 如果不成功，看看这个线程或任何等待这个线程完成的线程是否已经持有锁。
       - 如果是，则返回，因为阻塞将创建死锁。这个线程现在将看到类型的不完全初始化状态，但不会出现死锁。
       - 如果不是，阻塞直到类型初始化然后返回。
-  - iii. 初始化基类类型，然后初始化此类型实现的所有接口。
-  - iv. 执行此类型的类型初始化代码。
-  - v. 将类型标记为已初始化，释放初始化锁，唤醒任何等待此类型初始化的线程，然后返回。
+  - c. 初始化基类类型，然后初始化此类型实现的所有接口。
+  - d. 执行此类型的类型初始化代码。
+  - f. 将类型标记为已初始化，并释放初始化锁，唤醒任何等待此类型初始化的线程，然后返回。
 
 >---
 ### 8.6. 嵌套类型
-<a id="nested-types"></a>
 
-嵌套类型在 【】 中有规定。关于与嵌套类型相关的逻辑表的信息，请参见【】。
+嵌套类型在第一部分 [[↗]](#nested-types) 中有规定。关于与嵌套类型相关的逻辑表的信息，请参见 [「_NestedClass: 0x29_」](#NestedClass_0x29)。
 
 嵌套类型不与其封闭类型的实例相关联。嵌套类型有自己的基类型，并且可以独立于其封闭类型进行实例化。这意味着，封闭类型的实例成员不能使用嵌套类型的 **this** 指针访问。
 
@@ -2132,59 +2142,94 @@ CLI 将提供以下关于类型初始化的保证【】 和 【】：
 ### 8.7. 控制实例布局
 <a id="ctrl-layout"></a>
 
-CLI 支持顺序和显式布局控制，参见 【】。对于显式布局，还需要指定实例的精确布局；另请参见 【】 和 【】。
+CLI 支持顺序和显式布局控制，参见 [_类型布局特性_](#layout-attr)。对于显式布局，还需要指定实例的精确布局；另请参见  [「_FieldRVA: 0x1D_」](#FieldRVA_0x1D) 和 [「_FieldLayout: 0x10_」](#FieldLayout_0x10)。
 
 <pre>
     <em>FieldDecl</em> ::= [ '[' <em>Int32</em> ']' ] <em>FieldAttr</em>* <em>Type</em> <em>Id</em>
 </pre>
 
-声明开始处的方括号中指定的可选 `int32` 指定了从类型实例的开始的字节偏移量。 (对于给定类型 _t_，这个开始指的是在类型 _t_ 中明确定义的成员集的开始，排除了所有在类型 _t_ 直接或间接继承的任何类型中定义的成员。) 这种形式的显式布局控制不应与使用 **at** 符号指定的全局字段一起使用【】。
+声明开始处的方括号中指定的可选 `int32` 指定了从类型实例的开始的字节偏移量。对于给定类型 _t_，这个开始指的是在类型 _t_ 中显式定义的成员集的开始，排除了所有在类型 _t_ 直接或间接继承的任何类型中定义的成员。这种形式的显式布局控制不应与使用 **at** 符号指定的全局字段一起使用 [[↗]](#at-field)。
 
-偏移值应为非负数。可以以这种方式重叠字段，尽管对象引用占用的偏移量不应与内置值类型占用的偏移量或另一个对象引用的一部分重叠。虽然一个对象引用可以完全重叠另一个对象引用，但这是不可验证的。
+偏移值应为非负数。可以以这种方式重叠字段，尽管对象引用占用的偏移量不应与内置值类型占用的偏移量或另一个对象引用的一部分重叠。一个对象引用可以完全重叠另一个对象引用，但这是不可验证的。
 
-可以使用指针算术和 `ldind` 间接加载字段或 `stind` 间接存储字段来访问字段【】。参见 【】 和 【】 了解此信息的编码。对于显式布局，每个字段都应分配一个偏移量。
+可以使用指针算术和 `ldind` 间接加载字段，或使用指针和 `stind` 间接存储字段来访问字段。参见 [「_FieldLayout: 0x10_」](#FieldLayout_0x10) 和 [「_FieldRVA: 0x1D_」](#FieldRVA_0x1D) 了解此信息的编码。对于显式布局，每个字段都应分配一个偏移量。
 
-<a id="pack"></a>**.pack** 指令指定字段应放置在运行时对象的字节地址上，这些地址是指定数字的倍数，或者是该字段类型的自然对齐，以较小者为准。例如，`.pack 2` 将允许 32 位宽的字段在偶数地址上开始，而没有任何 **.pack** 指令，它们将被自然对齐；也就是说，放置在 4 的倍数的地址上。**.pack** 后面的整数应为以下之一：0、1、2、4、8、16、32、64 或 128。零值表示使用的 _pack_ 大小应匹配当前平台的默认值。任何具有显式布局控制的类型都不应提供 **.pack** 指令。
+<a id="pack"></a>**.pack** 指令指定字段应放置在运行时对象的字节地址上，这些地址是指定数字的倍数，或者是该字段类型的自然对齐 (以较小者为准)。例如，`.pack 2` 将允许 32 位宽的字段在偶数地址上开始，而没有任何 **.pack** 指令，它们将被自然对齐；也就是说，放置在 4 的倍数的地址上。**.pack** 后面的整数应为以下之一：0、1、2、4、8、16、32、64 或 128。零值表示使用的 _pack_ 大小应匹配当前平台的默认值。任何具有显式布局控制的类型都不应提供 **.pack** 指令。
 
-<a id="size"></a>**.size** 指令指示最小大小，并表示允许填充。因此，分配的内存量是布局计算的大小和 **.size** 指令的最大值。请注意，如果此指令用于值类型，那么大小应小于 1 MByte。
+<a id="size"></a>**.size** 指令指示最小大小，并表示允许填充。因此，分配的内存量是布局计算的大小和 **.size** 指令的最大值。如果此指令用于值类型，那么大小应小于 1 MByte。
 
 控制实例布局的元数据不是 “提示”，它是 VES 的一个组成部分，所有符合 CLI 的实现都应支持。
 
-下面的类使用其字段的顺序布局：
+> 下面的类使用其字段的顺序布局：
 
- ```cil
- .class sequential public SequentialClass
- { .field public int32 a  // store at offset 0 bytes
-   .field public int32 b  // store at offset 4 bytes
- }
- ```
+```csharp
+[StructLayout(LayoutKind.Sequential)]
+public class SequentialClass
+{
+    public int a;
+    public int b;
+}
+```
+```cil
+.class sequential public SequentialClass
+{ 
+    .field public int32 a  // store at offset 0 bytes
+    .field public int32 b  // store at offset 4 bytes
+}
+```
 
-下面的类使用其字段的显式布局：
+> 下面的类使用其字段的显式布局：
 
- ```cil
- .class explicit public ExplicitClass
- { .field [0] public int32 a // store at offset 0 bytes
-   .field [6] public int32 b // store at offset 6 bytes
- }
- ```
+```csharp
+[StructLayout(LayoutKind.Explicit)]
+public class ExplicitClass
+{
+    [FieldOffset(0)]
+    public int a;
+    [FieldOffset(6)]
+    public int b;
+}
+```
+```cil
+.class explicit public ExplicitClass
+{ 
+    .field [0] public int32 a // store at offset 0 bytes
+    .field [6] public int32 b // store at offset 6 bytes
+}
+```
 
-下面的值类型使用 **.pack** 将其字段打包在一起：
+> 下面的值类型使用 **.pack** 将其字段打包在一起：
 
- ```cil
- .class value sealed public MyClass extends [mscorlib]System.ValueType
- { .pack 2
-   .field  public int8  a  // store at offset 0 bytes
-   .field  public int32 b // store at offset 2 bytes (not 4)
- }
- ```
+```csharp
+[StructLayout(LayoutKind.Auto, Pack = 2)]
+public struct PackStruct
+{
+    public int a;
+    public int b;
+}
+```
+```cil
+.class value sealed public PackStruct extends [mscorlib]System.ValueType
+{ 
+    .pack 2
+  
+    .field  public int8  a  // store at offset 0 bytes
+    .field  public int32 b // store at offset 2 bytes (not 4)
+}
+```
 
-下面的类指定了一个连续的 16 字节块：
+> 下面的类指定了一个连续的 16 字节块：
 
- ```cil
- .class public BlobClass
- { .size 16
- }
- ```
+```csharp
+[StructLayout(LayoutKind.Auto, Size = 16)]
+public class BlobClass { }
+```
+```cil
+.class public BlobClass
+{ 
+    .size 16
+}
+```
 
 >---
 ### 8.8. 全局字段和方法
@@ -2197,20 +2242,247 @@ CLI 支持顺序和显式布局控制，参见 【】。对于显式布局，还
 
 详细来说：
  * 如果不存在相同种类 (字段或方法) 、名称和签名的成员，那么将此成员添加到输出类中。
- * 如果有重复项，并且除 **compilercontrolled** 之外的可访问性不超过一个，那么将它们全部添加到输出类中。
- * 如果有重复项，并且两个或更多项的可访问性不是 **compilercontrolled**，则发生错误。
+ * 如果有重复项，并且除 **compiler-controlled** 之外的可访问性不超过一个，那么将它们全部添加到输出类中。
+ * 如果有重复项，并且两个或更多项的可访问性不是 **compiler-controlled**，则发生错误。
 
 严格来说，CLI 不支持全局静态变量，即使全局字段和方法可能被认为是这样。模块中的所有全局字段和方法都由制造的类 "`<Module>`" 拥有。然而，每个模块都有自己的 "`<Module>`" 类。甚至没有办法引用另一个模块中这样的一个全局字段或方法 (早期绑定)。但是，可以通过反射 (后期绑定) 访问到它们。
 
+```csharp
+Console.WriteLine(typeof(int).Module.Name);  // System.Private.CoreLib.dll
+```
 
+---
+## 9. 类的语义
+<a id="class-semantics"></a>
 
+如第一部分的 [_类型继承_](./01_CLI%20基本概念和体系结构.md/#class-inherit) 所述，类在一个在继承层次结构中定义类型。一个类 (除了内置类 `System.Object` 和特殊类 `<Module>`) 应该声明一个确切的基类。一个类应该声明它实现的零个或多个接口 [[↗]](#interface-semantics)。一个具体类可以被实例化来创建一个对象，但是一个 **抽象** 类 (**abstract** [[↗]](#Inheritance-attr)) 不应该被实例化。一个类可以定义字段 (静态的或实例的)、方法 (静态的、实例的或虚拟的)、事件、属性和嵌套类型 (类、值类型或接口)。
 
+类的实例 (即，对象) 只能通过显式使用 `newobj` 指令创建。当创建一个使用类类型的变量或字段 (例如，调用一个具有类类型的局部变量的方法) 时，该值最初应该为 `null`，这是一个特殊的值，它与所有类类型相等，即使它不是任何特定类的实例。
 
+---
+## 10. 接口的语义
+<a id= "interface-semantics"></a>
+
+如第一部分的 [_接口定义_](./01_CLI%20基本概念和体系结构.md/#interface-definition) 所述，每个接口都定义了其他类型可以实现的协议。接口可以有静态字段和方法，但不能有实例字段或方法。接口可以定义虚方法，但只有当这些方法是 **abstract** 时才可以，参考第一部分的 [_方法定义_](./01_CLI%20基本概念和体系结构.md/#method-difinition) 和 [*MethodAttr : abstract*](#MethAttr-abstract)。
+
+接口不能定义实例字段的原因与 CLI 不支持基类型的多重继承的原因相同：在动态加载数据类型的情况下，没有已知的实现技术既能在使用时高效，又能在不使用时没有成本。相比之下，提供静态字段和方法不需要影响实例的布局，因此不会发生这些问题。
+
+接口可以嵌套在任何类型 (接口、类或值类型) 内部。
+
+>---
+### 10.1. 实现接口
+
+类和值类型应 **实现** (_implement_) 零个或多个接口。实现接口意味着类或值类型的所有具体实例都应为接口中声明的每个 **抽象** (_abstract_) 虚方法提供实现。为了实现接口，类或值类型应显式声明实现 (在其类型定义中使用 **implements** 特性 [[↗]](#implements)) 或从已提供接口实现的基类派生。
+
+**抽象** 类 (因为它不能被实例化) 可以不需要为它继承接口中的虚方法提供实现，而从它派生的任何具体类都应该提供实现。
+
+仅为接口的所有 **抽象** 方法提供实现并不足以使类型实现该接口。从概念上讲，接口代表了一个协议，相比在 **抽象** 方法集中捕获的需求，接口可以具有更多的要求。从实现的角度来看，这允许类型的布局只受那些显式声明的接口的约束。
+
+接口应声明它们需要实现零个或多个其他接口。如果一个接口 _A_ 声明它需要实现的另一个接口 _B_，那么 _A_ 隐式声明它需要实现 _B_ 所需的所有接口。如果类或值类型声明它实现了 _A_，那么所有具体实例都应提供 _A_ 和 _A_ 中隐式所需的所有接口中声明的虚方法的实现。类不需要显式声明它实现了 _A_ 所要求的所有接口。
+
+下面的类实现了在模块 `Counter` 中定义的接口 `IStartStopEventSource`。
+
+```cil
+.class private auto autochar StartStopButton
+    extends [System.Windows.Forms]System.Windows.Forms.Button
+    implements [.module Counter]IstartStopEventSource
+{ // class body }
+```
+
+>---
+### 10.2. 在接口上实现虚方法
+<a id="internal-virtual"></a>
+
+实现接口的类需要为该接口定义的 **抽象** 虚方法提供实现。有三种提供此实现的机制：
+ * 直接指定实现，使用与接口中出现的相同的名称和签名。
+ * 从基类型继承现有的实现。
+ * 使用显式方法实现 (_MethodImpl_ [[↗]](#MethodImpl))。
+
+如果由于类型参数的差异，给定接口方法有多个实现，那么类上接口声明的顺序以及方法声明的顺序，决定了哪个方法被调用。在接口方法调用的规范中使用了以下术语 (参考示例 [[↗]](#interface-impl-exam))：
+
+ * 对于类型 _T_ 实现 _I_<sub>1</sub>,&hellip;,_I_<sub>_n_</sub>，_n_ ≥ 0，_I_<sub>_x_</sub> 被称为类型的 **显式接口** (_explicit interfaces_)，并形成一个有序列表；_I_<sub>_x_</sub> 是为 _T_ 列在 _InterfaceImpl_ [[↗]](#InterfaceImpl_0x09) 表项中的接口，按行从上到下排序。
+
+ - 类型 _T_ 的 **继承 / 实现树** (_inheritance/implements tree_) 是按以下方式形成的 _n_ - 叉树：
+     * 树的根是 _T_
+     * 如果 _T_ 派生自 _S_；即其 _TypeDef_ [[↗]](#TypeDef_0x02) 表中 _Extends_ 字段引用 _S_；那么根节点的第一个子节点是类型 _S_ 的继承 / 实现树。
+     * 如果 _T_ 有一个或多个显式接口，_I_<sub>_x_</sub>，那么每个 _I_<sub>_x_</sub> 的继承 / 实现树是根节点的子节点，按顺序排列。
+
+ * 类型 _T_ 的接口和超类的 **类型声明顺序** (_type declaration order_) 是类型 _T_ 的继承 / 实现树的后序深度优先遍历，任何类型的第二个和后续的重复项被省略。具有不同类型参数的同一接口的出现不被视为重复。一个类可以通过指定不同的泛型参数，提供同一接口的多个实现。这会产生一个同一接口方法的方法列表。
+
+ - 类型 _T_ 的方法的 **方法声明顺序** (_method declaration order_) 是其基类型 (如果有) 的方法声明顺序，后面跟着 _T_ 的非重写方法 (按照它们在 _T_ 的 _MethodDef_ [[↗]](#MethodDef_0x06) 表中从上到下列出的顺序)。
+
+VES 将使用以下算法来确定接口抽象虚方法在类的开放形式上的适当实现：
+
+ * 创建一个接口表，该表为接口定义的每个虚方法提供一个空列表。
+
+ - 如果接口是此类的显式声明接口 (**explicit interface**)：
+
+     * 如果类定义了任何名称和签名与接口上的虚方法匹配的 **public virtual** 方法，那么将这些方法按 _类型声明顺序_ 添加到该接口方法的列表中。对于顺序相关的示例，参见示例 6 [[↗]](#interface-impl-exam-6)。
+     * 如果此类 (直接或继承) 上有任何公共 **virtual** 方法，其名称和签名与接口方法相同，并且其泛型类型参数与此类或其继承链中的任何类的该接口方法的现有列表中的任何方法不完全匹配，那么将它们按 _类型声明顺序_ 添加到接口上相应方法的列表中。
+     * 如果有多个具有相同名称、签名和泛型类型参数的方法，只有在 _方法声明顺序_ 中的最后一个方法被添加到列表中。对于重复方法的示例，参见示例 4 [[↗]](#interface-impl-exam-4) 。
+     * 应用为此类指定的所有 *MethodImpl*s，将显式指定的虚方法放入到该方法的接口列表中，代替那些继承的或通过名称匹配选择的具有相同泛型类型参数的方法。如果对于同一接口方法有多个方法 (即，具有不同的泛型类型参数)，则将它们按照关联接口的 _类型声明顺序_  放入列表中。
+     * 如果当前类不是 **abstract** 并且对于此类和其所有继承链中的所有类，仍有任何接口方法具有空插槽 (即，具有空列表的插槽)，那么程序无效。
+
+当调用接口方法时，VES 将使用以下算法来确定要调用的适当方法：
+
+ * 从调用接口方法的实例的运行时类开始，使用其如上构造的接口表，并替换调用类指定的任何泛型参数 (如果有) ： 
+
+    1. 对于与接口方法关联的列表中的每个方法，如果存在一个方法，其泛型类型参数对于此实例化完全匹配 (或者没有泛型类型参数)，那么调用第一个方法。一旦替换了泛型参数，列表中可能有重复项，在这种情况下，将调用第一个匹配的方法。
+    2. 否则，如果列表中存在一个方法，其泛型类型参数具有正确的协变关系，那么调用列表中的第一个此类方法。
+    3. 如果在此类中找不到方法，返回到第 1 步，使用继承链中的下一个类 (即，当前类的 _Extends_ 字段) 
+    4. 如果找不到方法，那么引发 `System.InvalidCastException`
+
+在存在泛型类型参数的情况下，在泛型类型参数完全实例化时且匹配的情况下，类上隐式实现接口的方法可能优先于基类型中显式实现接口的方法。参见示例 3 [[↗]](#interface-impl-exam-3).
+
+在存在变体接口的情况下，按变体匹配的类上方法可能优先于基类型中精确匹配的方法。参见示例 5 [[↗]](#interface-impl-exam-5)。
+
+一个类型可能提供同一接口的具有相同泛型参数的多个实现。在这种情况下，是声明的顺序决定了接口方法调用时应使用哪个实现。这意味着改变声明顺序可以改变行为。参见示例 6 [[↗]](#interface-impl-exam-6)。
+
+#### 10.2.1. 接口实现示例
+<a id="interface-impl-exam"></a>
+
+这些示例说明了解析接口调用规则的应用。示例使用了 ilasm 语法的缩写形式 (例如，`I<T>` 代替 ``I`1<T>``，'`:`' 作为扩展或实现的缩写)，并且 **继承 / 实现树** 图省略了 `System.Object`。
+
+以下是使用的接口：
+
+```cil
+IExp<T> { void M() {} }       // 声明方法 M 的接口
+IImp<T> : IExp<T> {}          // 需要 IExp<T> 的接口
+IVar<-T> { void P(T) {} }     // 带有方法 P 的逆变接口
+IVarImp : IVar<A> {}          // 隐式变体接口 
+```
+
+以下简单类型用作泛型类型参数 (为了简洁，像 `I<class A>` 这样的实例化被缩写为 `I<A>`，所以读者应注意 `A`，`B` 和 `C` 是实际类型，而不是类型参数) ：
+
+```cil
+A {}
+B : A {}
+C : B {}
+```
+
+以下类型用于说明接口的实现：
+
+```cil
+abstract S1<T,U> : IExp<!0> {
+    void MImpl() {.override IExp<!0>::M()...}
+    void P(!0){...}
+    void P(!1){...}
+}
+S2 : S1<C,C>, IImp<C>, IVar<C> {
+    void M(){...}
+}
+S3 : S2, IExp<C>, IVar<A> {
+    void M(){...}
+    newslot void P(A){...}
+}
+S4<V> : S1<A,B>, IVarImp, IVar<B>, IImp<!0> {
+     newslot void M(){...}
+}
+```
+
+**显式接口**：类型的显式接口是直接列在其实现列表中的接口 (例如，对于 `S2`，它只是 `IImp<C>` 和 `IVar<C>`，而不是 `IExp<C>`，尽管它是 `IImp<C>` 所需的，并通过父类型 `S1<C,C>` 隐式实现)。
+
+**继承/实现树**：以下是 `S3` 和 `S4` 的继承 / 实现树 (事实上，在这个示例中，`S2` 的树是 `S3` 的树的一个真子集) ：
+
+  ![继承树](./.img/继承树.png)
+
+**类型声明顺序**：类型 `S2`，`S3` 和 `S4` 的类型声明顺序如下：
+
+```
+    S2    : IExp<C>, S1<C,C>, IImp<C>, IVar<C>, S2
+    S3    : IExp<C>, S1<C,C>, IImp<C>, IVar<C>, S2, IVar<A>, S3
+    S4<V> : IExp<A>, S1<A,B>, IVar<A>, IVarImp, IVar<B>, IExp<!0>, IImp<!0>, S4<!0>
+```
+
+`IExp<C>` 在 `S3` 的类型声明顺序中只出现一次，尽管它出现在 `IImp<C>` 下的树中。这是因为第二次出现是重复的。然而，`IExp<!0>` 出现在 `S4<V>` 的继承 / 实现树中，因为它不是 `IExp<A>` 的重复。
+
+**方法声明顺序**：这些类型的方法声明顺序如下：
+
+```
+    S1<T,U>: S1<!0,!1>::MImpl(), S1<!0,!1>::P(!0), S1<!0,!1>::P(!1)
+    S2     : S1<C,C>::MImpl(), S1<C,C>::P(!0:C), S1<C,C>::P(!1:C), S2::M()
+    S3     : S1<C,C>::MImpl(), S1<C,C>::P(!0:C), S1<C,C>::P(!1:C), S3::M(), S3::P(A)
+    S4<V>  : S1<A,B>::MImpl(), S1<A,B>::P(A), S1<A,B>::P(B), S4<!0>::M()
+```
+
+注意，**newslot** 方法在列表中单独出现，而重写则在列表中替换被重写的方法。上面的列表显示了扩展或实现类型声明的泛型参数替换，但使用 `!n` 表示法来标识定义类型中的原始类型参数，其中它是模糊的 (例如，`S1<C,C>::P(!0:C)` 指的是 `S1` 中的第一个 `P` 方法，其中第一个类型参数绑定到类型 `C`)。
+
+以下是接口表：
+
+ | 类        | 接口方法        | 实现列表                                                   |
+ | --------- | --------------- | ---------------------------------------------------------- |
+ | `S1<T,U>` | `IExp<T>::M()`  | `(IExp<!0>)S1<!0,!1>::MImpl()`                             |
+ | `S2`      | `IVar<T>::P(T)` | `(IVar<C>)S1<C,C>::P(!1:C)`                                |
+ | `S3`      | `IExp<T>::M()`  | `(IExp<C>)S3::M()`                                         |
+ | &nbsp;    | `IVar<T>::P(T)` | `(IVar<A>)S3::P(A)`                                        |
+ | `S4<V>`   | `IExp<T>::M()`  | `(IExp<!0>)S4<!0>::M()`                                    |
+ | &nbsp;    | `IVar<T>::P(T)` | `(IVar<A>)S1<A,B>::P(!0:A)`<br>`(IVar<B>)S1<A,B>::P(!1:B)` |
+
+以下是几个代码序列。这些序列假设 `a`、`c`、`s2`、`s3` 和 `s4` 分别是类型 `A`、`C`、`S2`、`S3` 和 `S4<A>` 的局部变量的索引。
+
+> case 1：隐式实现<a id= "interface-impl-exam-1"></a>
+
+ ```cil
+ ldloc      s2
+ callvirt   IExp<C>::M()  // 1: Calls S1<!0,!1>::MImpl()
+ ```
+
+尽管 `S2` 为 `IExp<C>::M()` 提供了一个匹配的方法，但它没有被添加到实现列表中，因为 `IExp<C>` 不是 `S2` 的显式接口，而且父类型 `S1<C,C>` 已经提供了一个匹配。
+
+> case 2：显式实现<a id= "interface-impl-exam-2"></a>
+
+ ```cil
+ ldloc      s3
+ callvirt   IExp<C>::M()  // 2: Calls S3::M()
+ ```
+
+对于 `S3` 的情况就不同了，因为 `IExp<C>` 是 `S3` 的显式接口，所以它的匹配 `M()` 方法被添加到了实现列表中。
+
+> case 3：隐式实现与不同类型参数<a id= "interface-impl-exam-3"></a>
+
+ ```cil
+ ldloc      s4
+ callvirt   IExp<A>::M()  // 3: Calls S4<A>::M()
+ ```
+
+`S4<V>` 是一个稍微不同的情况。虽然它只是隐式地实现了 `IExp<!0>`，但它在类型参数上与其父类实现的 `IExp<A>` 不同 (即，父类实例化固定为 `IExp<A>`，而隐式实现未绑定为 `IExp<!0>`)。所以它的匹配 `M()` 被添加到了列表中，并且即使当 `S4` 用显式父类实现的匹配类型参数实例化时，也会调用它，因为接口表是从开放类型构造的。
+
+> case 4：实例化后的重复方法 (方法顺序) <a id= "interface-impl-exam-4"></a>
+
+ ```cil
+ ldloc      s2
+ ldloc      c
+ callvirt   IVar<C>::P(C) // 4: Calls S1<C,C>::P(!1:C)
+ ```
+
+`S1<C,C>` 上的两个 `P` 方法都匹配 `IVar<C>::P(C)`，保留最后一个匹配的方法。
+
+> case 5：变体匹配 vs. 父类上的精确匹配<a id= "interface-impl-exam-5"></a>
+
+ ```cil
+ ldloc      s3
+ ldloc      c
+ callvirt   IVar<C>::P(C) // 5: Calls S3::P(A)
+ ```
+
+尽管 `S3::P(A)` 是 `IVar<C>::P(C)` 的变体匹配，但 `S2<A,B::IVar<A>::P(A)` 在其父类上是精确匹配。然而，变体匹配是在搜索父类型之前找到的。
+
+> case 6：接口声明顺序<a id= "interface-impl-exam-6"></a>
+
+ ```cil
+ ldloc      s4
+ ldloc      c
+ callvirt   IVar<C>::P(C) // 6: Calls S1<A,B>::P(!0:A)
+ ```
+
+尽管 `IVar<A>` 不是 `S4<A>` 的显式接口，但它在接口顺序中排在 `IVar<B>` 之前。这就是为什么调用解析为 `S1<A,B>::P(!0:A)`，而不是 `S1<A,B>::P(!1:B)`。注意，这与 `S4<V>` 的类型参数无关，它只影响 `IImp<!0>` 接口实现。
 
 
 ## 24. end
 
 ---
+
+「_ _」
 
 <pre>
     <em>GenArgs</em> ::= <em>Type</em> [ ',' <em>Type</em> ]*

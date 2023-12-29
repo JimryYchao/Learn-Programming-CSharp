@@ -16,9 +16,10 @@ The official version of an Ecma International document is the English language v
 
 This document and the information contained herein is provided on an "AS IS" basis and ECMA INTERNATIONAL DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY OWNERSHIP RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
+>---
+
 本文档可以复制、发布和分发给他人，并且可以全部或部分地准备、复制、发布和分发本文档的某些衍生作品，前提是上述版权声明、本版权许可和免责声明包含在所有此类副本和衍生作品中。本版权许可和免责声明允许的唯一衍生作品是：
 
->---
 
 - 包含本文档全部或部分内容以提供评论或解释（例如文档的注释版本）的作品；
 
