@@ -143,6 +143,7 @@ _DottedName_ 是为了方便提供的，因为 "`.`" 可以使用 _SQSTRING_ 语
 
 >---
 ### 3.4. 标签和标签列表
+<a id="id"></a>
 
 标签作为一种编程便利提供，它们代表元数据中编码的一个数字。标签所代表的值通常是从当前方法的开始到某个偏移量的字节数，尽管精确的编码方式取决于标签出现在逻辑元数据结构或 CIL 流中的位置。
 
@@ -238,6 +239,7 @@ ldstr_label: ldstr "A label"
 
 >---
 ### 3.10. ILAsm 源文件
+<a id="il-top-impl"></a>
 
 _ilasm_ 的输入是一系列的顶级声明，如下所定义：
 
@@ -477,13 +479,13 @@ CLI 元数据允许程序集的发起者计算该程序集的加密哈希 (使�
 
 这些声明与 **.assembly** 声明相同，除了添加了 <a id="publickeytoken"></a>**.publickeytoken**。此声明用于在程序集引用中存储发起者公钥的 SHA-1 哈希的低 8 字节，而不是完整的公钥。
 
-程序集引用可以存储完整的公钥或 8 字节的公钥标志 *Public Key Token*。两个都可以用来验证在编译时或运行时为程序集签名的同一私钥。两者并不需要同时存在，虽然两者都可以存储。
+程序集引用可以存储完整的公钥或 8 字节的公钥 _token_  *Public Key Token*。两个都可以用来验证在编译时或运行时为程序集签名的同一私钥。两者并不需要同时存在，虽然两者都可以存储。
 
-符合 CLI 规范的实现不需要执行这个验证，但它可以这样做，且它可以拒绝加载任何验证失败的程序集。符合 CLI 规范的实现也可以拒绝允许访问一个程序集，除非程序集引用包含公钥或公钥标志。无论是使用公钥还是公钥标志，符合 CLI 规范的实现都应该做出相同的访问决策。
+符合 CLI 规范的实现不需要执行这个验证，但它可以这样做，且它可以拒绝加载任何验证失败的程序集。符合 CLI 规范的实现也可以拒绝允许访问一个程序集，除非程序集引用包含公钥或公钥 _token_ 。无论是使用公钥还是公钥 _token_ ，符合 CLI 规范的实现都应该做出相同的访问决策。
 
-存储在程序集引用中的公钥或公钥标志用于确保被引用的程序集和实际在运行时使用的程序集都是由拥有同一私钥的实体产生的，因此可以假定它们是为了相同的目的。虽然完整的公钥在密码学上更安全，但它在引用中需要更多的存储空间。使用公钥标志可以减少存储引用所需的空间，同时只稍微削弱了验证过程。
+存储在程序集引用中的公钥或公钥 _token_ 用于确保被引用的程序集和实际在运行时使用的程序集都是由拥有同一私钥的实体产生的，因此可以假定它们是为了相同的目的。虽然完整的公钥在密码学上更安全，但它在引用中需要更多的存储空间。使用公钥 _token_ 可以减少存储引用所需的空间，同时只稍微削弱了验证过程。
 
-为了验证程序集的内容自创建以来没有被篡改，应使用的是程序集自身标识中的完整公钥，而不是存储在对程序集的引用中的公钥或公钥标志。
+为了验证程序集的内容自创建以来没有被篡改，应使用的是程序集自身标识中的完整公钥，而不是存储在对程序集的引用中的公钥或公钥 _token_ 。
 
 ```CIL
 .assembly extern MyComponents 
@@ -574,13 +576,13 @@ _ExportAttr_ 值应为 **public** 或 **nested public**，并应与类型的可�
  * 用户定义的类型的逻辑描述，这些类型被引用，但通常不在当前模块中定义。这些信息存储在元数据的一个表中 ([「_TypeRef: 0x01_」](#TypeRef_0x01))。
  * 对一个或多个类型引用以及各种修饰符进行编码的签名。非终结符 **Type** 中对签名进行了描述。
 
-### 5.1. *Type*：类型
+### 5.1. Type：类型
 <a id= "Type"></a>
 
 以下语法完全指定了 CLI 系统的所有内置类型 (包括指针类型)。它还显示了可以在 CLI 系统中定义的用户定义类型的语法：
 
  | *Type* ::=                                                   | 描述                                                                                                          | 参考                                |
- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+ | :------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
  | `'!'` _Int32_                                                | 类型定义中的泛型参数，从 0 开始按索引访问                                                                     | §[[↗]](#!)                          |
  | \| `'!!'` _Int32_                                            | 方法定义中的泛型参数，从 0 开始按索引访问                                                                     | §[[↗]](#!!)                         |
  | \| `bool`                                                    | 布尔值                                                                                                        | §[[↗]](#build-in)                   |
@@ -615,7 +617,7 @@ _ExportAttr_ 值应为 **public** 或 **nested public**，并应与类型的可�
 在几种情况下，语法允许使用稍微简单一些的表示法来指定类型；例如，"`System.GC`" 可以代替 "`class System.GC`"。这样的表示法被称为 **类型规范** (_type specifications_)：
 
  | _TypeSpec_ ::=                         | 参考                   |
- | -------------------------------------- | ---------------------- |
+ | :-------------------------------------- | ---------------------- |
  | `'['` [ `.module` ] *DottedName* `']'` | §[[↗]](#TypeReference) |
  | \| _TypeReference_                     | §[[↗]](#build-in)      |
  | \| _Type_                              | §[[↗]](#Type)          |
@@ -686,6 +688,7 @@ CLI 的内置类型在基础类库中有对应的值类型定义。在签名中�
 
 >---
 ### 5.4. 本地数据类型
+<a id="method-marshal"></a>
 
 一些 CLI 的实现被托管在现有的操作系统或运行时平台之上，这些平台指定了执行某些功能所需的数据类型。元数据通过指定如何将 CLI 的内置和用户定义类型 **封送** (_marshalled_) 到本地数据类型或如何将从本地数据类型封送回 CIL 数据类型，来与这些 *本地数据类型* (_Native data types_) 进行交互。这种封送信息可以被指定为 (使用关键字 **marshal**) ：
  * **方法的返回类型**，表示实际返回了一个本地数据类型，并且应该被封送回指定的 CLI 数据类型。
@@ -749,6 +752,7 @@ int M3([MarshalAs(UnmanagedType.I4)] int v1,
 
 ---
 ## 6. 可见性，可访问性和隐藏
+<a id="visibility-accessibility-hide"></a>
 
 [第一部分](./01_CLI%20基本概念和体系结构.md/#visible) 中指定了可见性和可访问性。除了这些特性，元数据还存储了关于方法名隐藏的信息。**隐藏** (_hiding_) 控制了从基类型继承的哪些方法名可用于编译时的名称绑定。
 
@@ -1142,7 +1146,7 @@ IComparer<string>[] strCompArr = objCompArr;
 >---
 ### 7.8. 签名和绑定
 
-泛型类型的成员 (字段和方法) 在 CIL 指令中使用元数据标志引用，该标志指定了 _MemberRef_ 中的一个项。抽象地说，引用由两部分组成：
+泛型类型的成员 (字段和方法) 在 CIL 指令中使用元数据 _token_ 引用，该 _token_ 指定了 _MemberRef_ 中的一个项。抽象地说，引用由两部分组成：
  1. 声明成员的类型，在这种情况下，是泛型类型定义的实例化。例如：``IComparer`1<String>``。
  2. 成员的名称和泛型 (未实例化) 签名。例如：``int32 Compare(!0,!0)``。
 
@@ -1253,7 +1257,7 @@ void V(string)
  * 重写方法只能对相同的泛型参数有约束；
  * 由重写方法指定的任何泛型参数的约束都不能比被重写方法为相同泛型参数指定的约束更严格； 
 
-在重写方法的主体中，只有直接在其签名中指定的约束才适用。当一个方法被调用时，将执行与 `call` 或 `callvirt` 指令中的元数据标志关联的约束。
+在重写方法的主体中，只有直接在其签名中指定的约束才适用。当一个方法被调用时，将执行与 `call` 或 `callvirt` 指令中的元数据 _token_ 关联的约束。
 
 >---
 ### 7.10. 显式方法重写
@@ -1354,7 +1358,7 @@ void V(string)
 引用泛型类型成员的 CIL 指令被一般化，以允许引用封闭构造类型的成员。引用中指定的泛型参数的数量应与泛型类型定义中指定的类型参数数量匹配。引用方法的 CIL 指令被一般化，以允许引用封闭构造类型的泛型方法。
 
 ---
-## 8. class：类型定义 
+## 8. 类型定义 
 <a id="class"></a>
 
 类型 (即，类、值类型和接口) 可以在模块的顶级定义：
@@ -1402,11 +1406,11 @@ void V(string)
 类型可以附加任意数量的自定义特性。自定义特性的附加方式如 [**custom**](#custom) 节所述。类型的其他 (预定义) 特性可以分为指定可见性、类型布局信息、类型语义信息、继承规则、互操作信息和特殊处理信息的特性。以下各小节对每组预定义特性提供了更多信息。
 
  | _ClassAttr_ ::=         | 描述                                                 | 参考                                   |
- | ----------------------- | ---------------------------------------------------- | -------------------------------------- |
+ | :----------------------- | ---------------------------------------------------- | -------------------------------------- |
  | `abstract`              | 类型是抽象的。                                       | §[[↗]](#abstract)                      |
- | \| `ansi`               | 将字符串作为 ANSI 编组到平台。                       | §[[↗]](#ansi)                          |
+ | \| `ansi`               | 将字符串作为 ANSI 封送到平台。                       | §[[↗]](#ansi)                          |
  | \| `auto`               | 字段的布局由 CLI 自动提供。                          | §[[↗]](#auto)                          |
- | \| `autochar`           | 将字符串作为 ANSI 或 Unicode (平台特定) 编组到平台。 | §[[↗]](#autochar)                      |
+ | \| `autochar`           | 将字符串作为 ANSI 或 Unicode (平台特定) 封送到平台。 | §[[↗]](#autochar)                      |
  | \| `beforefieldinit`    | 在调用静态方法之前不需要初始化类型。                 | §[[↗]](#beforefieldinit)               |
  | \| `explicit`           | 字段的布局是明确提供的。                             | §[[↗]](#explicit)                      |
  | \| `interface`          | 声明一个接口。                                       | §[[↗]](#type-semantics-attr)           |
@@ -1423,7 +1427,7 @@ void V(string)
  | \| `sequential`         | 字段的布局是顺序的。                                 | §[[↗]](#sequential)                    |
  | \| `serializable`       | 保留，表示此类型可以被序列化。                       | §[[↗]](#serializable)                  |
  | \| `specialname`        | 工具可能会进行特殊处理。                             | §[[↗]](#specialname)                   |
- | \| `unicode`            | 将字符串作为 Unicode 编组到平台。                    | §[[↗]](#unicode)                       |
+ | \| `unicode`            | 将字符串作为 Unicode 封送到平台。                    | §[[↗]](#unicode)                       |
 
 #### 8.1.1. ClassAttr：可见性和可访问性特性
 <a id="visibility-accessibility-attr"></a>
@@ -1633,7 +1637,7 @@ class UnicodeInteroper;
 	extends [System.Runtime]System.Object { ... }
 ```
 
-除了这三个特性，*类型标志* [_TypeAttributes_](#TypeAttributes) 还指定了一组额外的位模式 (`CustomFormatClass` 和 `CustomStringFormatMask`)，它们没有标准化的含义。如果这些位被设置，但是语言实现没有提供对它们的支持，将抛出 `System.NotSupportedException` 异常。
+除了这三个特性，*类型 _token_ * [_TypeAttributes_](#TypeAttributes) 还指定了一组额外的位模式 (`CustomFormatClass` 和 `CustomStringFormatMask`)，它们没有标准化的含义。如果这些位被设置，但是语言实现没有提供对它们的支持，将抛出 `System.NotSupportedException` 异常。
 
 #### 8.1.6. ClassAttr：特殊处理特性
 <a id="special-handling-attr"></a>
@@ -1819,6 +1823,7 @@ class GeneClassC<T> where T: new();   // .ctor 约束
 
 >---
 ### 8.2. 类型定义的主体
+<a id="class-type-member"></a>
 
 一个类型可以包含任意数量的进一步声明。指令 **.event**，**.field**，**.method** 和 **.property** 用于声明类型的成员。类型声明中的 **.class** 指令用于创建 [嵌套类型](#nested-types)。
 
@@ -1846,6 +1851,7 @@ class GeneClassC<T> where T: new();   // .ctor 约束
 通过提供方法的直接实现 (使用 [方法定义](#MethodHeader)) 并且不指定它为 **newslot** [[↗]](#newslot)，可以重写基类型的虚方法。也可以使用 **.override** [[↗]](#override) 使用现有的方法体来实现给定的虚声明。
 
 #### 8.3.1. 引入虚方法
+<a id="impl-newslot-virtual"></a>
 
 通过定义虚方法 [[↗]](#MethodHeader) 在继承层次中引入虚方法。定义可以标记为 **newslot**，以始终为定义类及其派生类创建新的虚方法：
  * 如果定义被标记为 **newslot**，则定义始终创建新的虚方法，即使基类提供了匹配的虚方法。通过包含方法定义的类或通过从该类派生的类对虚方法的引用，都指向新的定义 (除非在派生类中被 **newslot** 定义隐藏)。任何不通过包含方法定义的类，也不通过其派生类对虚方法的引用，都指向原始定义。
@@ -1854,7 +1860,7 @@ class GeneClassC<T> where T: new();   // .ctor 约束
 #### 8.3.2. .override 指令
 <a id="override"></a>
 
-**.override** 指令指定在此类型中，一个虚方法应由具有相同签名但名称不同的虚方法实现 (覆盖)。此指令可用于为从基类继承的虚方法或此类型实现的接口中指定的虚方法提供实现。**.override** 指令在元数据中指定了 **方法实现** (_Method Implementation_，[_MethodImpl_](#MethodImpl))。
+**.override** 指令指定在此类型中，一个虚方法应由具有相同签名但名称不同的虚方法实现 (重写)。此指令可用于为从基类继承的虚方法或此类型实现的接口中指定的虚方法提供实现。**.override** 指令在元数据中指定了 **方法实现** (_Method Implementation_，[_MethodImpl_](#MethodImpl))。
 
 <pre>
     <em>ClassMember</em> ::= .override <em>TypeSpec</em> '::' <em>MethodName</em> with <em>CallConv</em> <em>Type</em> <em>TypeSpec</em> '::' <em>MethodName</em> '(' <em>Parameters</em> ')'
@@ -1888,7 +1894,7 @@ _Int32_ 是泛型参数的数量。第一对 _TypeSpec_::_MethodName_ 指定正�
 
 #### 8.3.3. 可访问性和重写
 
-如果指定了 **strict** 标志 [[↗]](#MethodAttributes)，则只有可访问的虚方法可以被重写。
+如果指定了 **strict**  _token_  [[↗]](#MethodAttributes)，则只有可访问的虚方法可以被重写。
 
 如果一个类型通过 _MethodImpl_ 重写了一个继承的方法，它可以 *扩大* 或 *缩小* 那个方法的可访问性。
 
@@ -2491,7 +2497,7 @@ S4<V> : S1<A,B>, IVarImp, IVar<B>, IImp<!0> {
 
 未装箱的值类型不被视为另一种类型的子类型，对未装箱的值类型使用 `isinst` 指令是无效的。然而，`isinst` 指令可以用于装箱的值类型。未装箱的值类型不应被赋值为 *null*，并且它们不应与 *null* 进行比较。
 
-值类型支持与引用类型相同的布局控制 [[↗]](#ctrl-layout)。这在从本机代码导入值时尤其重要。
+值类型支持与引用类型相同的布局控制 [[↗]](#ctrl-layout)。这在从本地代码导入值时尤其重要。
 
 由于值类型表示数据的直接布局，因此不允许递归结构定义，例如 (在 C# 中) `struct S {S x; S y;}`。结构体应该有一个非循环的有限 **展平图** (***flattening graph***)：
 
@@ -3144,6 +3150,1062 @@ delegate void StartStopEventHandler(int action);
 `EndInvoke` 需要作为参数的是原始调用 `BeginInvoke` 返回的值 (这样可以区分对同一委托的不同调用，因为它们可以并发执行)，以及作为参数传递的任何托管指针 (这样可以提供它们的返回值)。
 
 ---
+## 13. 方法定义、方法引用和方法调用
+<a id="method"></a>
+
+方法可以在全局级别 (在任何类型之外) 定义：
+
+<pre>
+    <em>Decl</em> ::= ... | .method <em>MethodHeader</em> '{' <em>MethodBodyItem</em>* '}'
+</pre>
+
+也可以在类型内部定义：
+
+<pre>
+    <em>ClassMember</em> ::= ... | .method <em>MethodHeader</em> '{' <em>MethodBodyItem</em>* '}'
+</pre>
+
+>---
+### 13.1. 方法描述符
+
+方法描述符在 ILAsm 中有四种结构与方法相关。这些结构对应于不同的元数据结构。参见 [_元数据逻辑格式_](#metadata-format-others)。
+
+#### 13.1.1. MethodDecl：方法声明
+<a id= "MethodDecl"></a>
+
+_MethodDecl_ 或方法声明提供了方法名称和签名 (参数和返回类型)，但没有提供其主体。也就是说，方法声明提供了一个 _MethodHeader_，但没有 _MethodBodyItems_。它们在调用点被用来指定一个调用目标 (`call` 或 `callvirt` 指令) 或声明一个抽象方法。_MethodDecl_ 在元数据中没有直接的逻辑对应项：它可以是 _Method_ 或 _MethodRef_。
+
+#### 13.1.2. Method：方法定义
+<a id="Method"></a>
+
+一个 _Method_，或者说方法定义，提供了方法名、特性、签名和主体。也就是说，一个方法定义提供了一个 _MethodHeader_ 以及一个或多个 _MethodBodyItems_。主体包括方法的 CIL 指令、异常处理程序、局部变量信息，以及关于方法的其他运行时或自定义元数据。参见 [「_MethodDef: 0x06_」](#MethodDef_0x06)。
+
+#### 13.1.3. MethodRef：方法引用
+<a id ="MethodRef"></a>
+
+_MethodRef_ 或方法引用，是对方法的引用。当调用一个方法且该方法的定义位于另一个模块或程序集中时，就会使用它。在运行时调用方法之前，VES 应将 _MethodRef_ 解析为 _Method_。如果找不到匹配的 _Method_，VES 将抛出 `System.MissingMethodException`。参见 [「_MemberRef: 0x0A_」](#MemberRef_0x0A)。
+
+#### 13.1.4. MethodImpl：方法实现
+<a id="MethodImpl"></a>
+
+_MethodImpl_ 或方法实现为现有的虚方法提供可执行的主体。它将一个 _Method_ (代表主体) 与一个 _MethodDecl_ 或 _Method_ (代表虚方法) 关联起来。当默认机制 (通过名称和签名匹配) 不能提供正确的结果时，_MethodImpl_ 用于为继承的虚方法或接口的虚方法提供实现。参见 [「_MethodImpl: 0x19_」](#MethodImpl_0x19)。
+
+>---
+### 13.2. 静态、实例和虚方法
+<a id="method-static-instance-virtual"></a>
+
+静态方法是与类型关联的方法，而不是与其实例关联的。
+
+实例方法与类型的实例关联：在实例方法的主体内，可以引用正在操作的特定实例 (通过 *this* 指针)。因此，实例方法只能在类或值类型中定义，而不能在接口或类型之外 (即全局) 定义。然而要注意：
+ - 类 (包括装箱的值类型) 上的实例方法，默认情况下有一个 *this* 指针，它是对定义该方法的类的对象引用。
+ -  (未装箱的) 值类型上的实例方法，默认情况下有一个 *this* 指针，它是对定义该方法类型的实例的托管指针。
+ - 有一种特殊的编码，由调用约定中的语法项 **explicit** 表示，调用约定用于指定 *this* 指针的类型，以覆盖这里指定的默认值。
+ - *this* 指针可以为 `null`。
+
+虚方法与类型的实例关联，与实例方法的方式非常相似。与实例方法不同的是，可以以一种方式调用虚方法，即方法的实现将由 VES 在运行时根据用于 *this* 指针的对象类型来选择。当通过 `callvirt` 指令调用时，实现虚方法的特定 _Method_ 在运行时动态确定 (虚调用)；而当通过 `call` 指令调用时，绑定是在编译时决定的。
+
+只有在虚调用 (仅限) 时，继承的概念才变得重要。派生类可以重写从其基类继承的虚方法，提供方法的新实现。方法特性 **newslot** 指定 CLI 不应重写基类型的虚方法定义，而应将新定义视为独立的虚方法定义。
+
+抽象虚方法 (只能在抽象类或接口中定义) 只能通过 `callvirt` 指令调用。同样，抽象虚方法的地址应通过 `ldvirtftn` 指令计算，不应使用 `ldftn` 指令。
+
+对于具体的虚方法，总是可以从包含其定义的类中找到一个可用的实现，因此在运行时不需要特定提供一个类的可用实例。但是，抽象虚方法只能从实现适当接口的子类型或类中获取实现，因此必须提供一个具体实现该方法的类的实例。 
+
+>---
+### 13.3. CallConv：调用约定
+<a id="calling-convention"></a>
+
+<pre>
+    <em>CallConv</em> ::= [ instance [ explicit ]] [ <em>CallKind</em> ]
+</pre>
+
+调用约定指定了方法要求它的参数应如何从调用方传递给被调用的方法。调用约定由两部分组成：第一部分处理 *this* 指针的存在和类型，第二部分涉及传输参数的机制。
+
+如果存在 **instance** 特性，它表示应将 *this* 指针传递给方法。这个特性应该用于实例方法和虚方法。
+
+通常，参数列表 (总是跟在调用约定后面) 不提供关于 *this* 指针类型的信息，它可以从其他信息中推断出来。但是，当指定了 **instance explicit** 组合时，随后的参数列表中的第一个类型指定了 *this* 指针的类型，随后的项指定了其他参数本身的类型。
+
+<pre>
+    <em>CallKind</em> ::= default | unmanaged cdecl | unmanaged fastcall | unmanaged stdcall | unmanaged thiscall | vararg
+</pre>
+
+托管代码只能有 **default** 或 **vararg** 调用种类。**default** 应在所有情况下使用，除非一个方法接受任意数量的参数，在这种情况下应使用 **vararg**。在处理 CLI 之外实现的方法时，能够指定所需的调用约定是很重要的。因此，调用种类有 16 种可能的编码。其中两种用于托管调用种类。有四种在许多平台上具有定义的含义，如：
+
+ * **unmanaged cdecl** 是 Standard C 使用的调用约定
+ * **unmanaged stdcall** 指定了一个标准的 C++ 调用
+ * **unmanaged fastcall** 是一种特殊优化的 C++ 调用约定
+ * **unmanaged thiscall** 是一个将 *this* 指针传递给方法的 C++ 调用
+
+另外四种保留给现有的调用约定，但它们的使用并不是为了最大限度地实现可移植。还有四种保留给未来的标准化，两种用于非标准的实验性使用。(在这个上下文中，"可移植" 是指在所有符合 CLI 的实现上都可用的特性。) 
+
+>---
+### 13.4. MethodHeader：定义方法
+<a id="MethodHeader"></a>
+
+<pre>
+    <em>MethodHeader</em> ::= <em>MethAttr</em>* [ <em>CallConv</em> ] <em>Type</em> 
+                            [ marshal '(' [ <em>NativeType</em> ] ')' ] 
+                            <em>MethodName</em> [ '<' <em>GenPars</em> '>' ] '(' <em>Parameters</em> ')' <em>ImplAttr</em>*
+</pre>
+
+_MethodHeader_ 包括：
+
+ * 调用约定 (_CallConv_，参见 [[↗]](#calling-convention))
+ * 任意数量的预定义方法特性 (_MethAttr_，参见 [[↗]](#MethAttr))
+ * 带有可选特性的返回类型；没有返回值的方法应使用 **void** 作为返回类型
+ * 可选的封送信息 (参见 [[↗]](#method-marshal))
+ * 方法名称
+ * 可选的泛型参数 (在定义泛型方法时，参见 [[↗]](#special-genpars)) 
+ * 签名
+ * 以及任意数量的实现特性 (_ImplAttr_，参见 [[↗]](#method-init-attr))
+
+
+<pre>
+    <em>MethodName</em> ::= .cctor | .ctor | <em>DottedName</em> 
+</pre>
+
+方法名称可以是简单名称，也可以是用于实例构造函数和类型初始化器的特殊名称。
+
+<pre>
+    <em>Parameters</em> ::= [ <em>Param</em> [ ',' <em>Param</em> ]* ]
+    <em>Param</em> ::= ... | [ <em>ParamAttr</em>* ] <em>Type</em> [ marshal '(' <em>NativeType</em> ')' ] [ <em>Id</em> ]
+</pre>
+
+一个方法可以定义零个或若干方法参数，每个参数可以包含可选的参数特性和可选的封送信息。_Id_ (如果存在) 是参数的名称。参数可以通过使用其名称或参数的从零开始的索引来引用。在 CIL 指令中，它总是使用从零开始的索引进行编码 (使用名称是为了方便在 ILAsm 中使用)。
+
+与调用 **vararg** 方法不同，**vararg** 方法的定义不包括任何省略号 ("`…`") 
+
+<pre>
+    <em>ParamAttr</em> ::= '[' in ']' | '[' opt ']' | '[' out ']' 
+</pre>
+```csharp
+interface ISample
+{
+    void Fun<T>(in int v, out int v3, [Optional] T t, int v4 = 10010);
+}
+```
+```cil
+.class interface abstract ISample
+{
+	.method public hidebysig newslot abstract virtual 
+		instance void Fun<T> (
+			[in] int32& modreq([System.Runtime]System.Runtime.InteropServices.InAttribute) v,
+			[out] int32& v3,
+			[opt] !!T t,
+			[opt] int32 v4
+		) cil managed 
+	{
+		.param [4] = int32(10010)
+	} 
+}
+```
+
+参数特性应附加到参数上 (参见 [「_Param: 0x08_」](#Param_0x08))，因此它们不是方法签名的一部分。
+
+与参数特性不同的是，自定义修饰符 (**modopt** 和 **modreq**) 是方法签名的一部分。因此，这些修饰符构成了方法协议的一部分，而参数特性则不是。
+
+**in** 和 **out** 只能附加到指针类型 (托管或非托管) 的参数上。它们指定参数是打算向方法提供输入，还是从方法返回一个值，或两者都有。如果没有指定，则假定为 **in**。CLI 本身不强制这些位的语义，尽管它们可以用于优化性能，特别是在调用点和方法位于不同应用程序域、进程或计算机的场景中。
+
+**opt** 指定此参数在从最终用户的角度来看是可选的。要提供的值使用 **.param** 语法存储 (参见 [[↗]](#param))。
+
+#### 13.4.1. MethodBodyItem：方法体
+<a id="MethodBody"></a>
+
+方法体应包含程序的指令。它也可以包含标签、附加的语法形式和许多可以为 *ilasm* 提供额外信息且有助于编译某些语言方法的指令。
+
+ | _MethodBodyItem_ ::=                                                                                       | 描述                                                   | 参考                      |
+ | :--------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------- |
+ | `.custom` _CustomDecl_                                                                                     | 自定义特性的定义。                                     | §[[↗]](#custom)           |
+ | \| `.data` _DataDecl_                                                                                      | 将数据发出到数据段。                                   | §[[↗]](#data)             |
+ | \| `.emitbyte` _Int32_                                                                                     | 将一个无符号字节发出到方法的代码段。                   | §[[↗]](#emitbyte)         |
+ | \| `.entrypoint`                                                                                           | 指定此方法是应用程序的入口点 (只允许一个这样的方法)。  | §[[↗]](#entrypoint)       |
+ | \| `.locals` [ `init` ] `'('` _LocalsSignature_ `')'`                                                      | 为此方法定义一组局部变量。                             | §[[↗]](#locals)           |
+ | \| `.maxstack` _Int32_                                                                                     | `int32` 指定在执行方法期间求值堆栈上的元素的最大数量。 |                           |
+ | \| `.override` _TypeSpec_ `'::'` _MethodName_                                                              | 使用当前方法作为指定方法的实现。                       | §[[↗]](#override)         |
+ | \| `.override method` _CallConv_ _Type_ _TypeSpec_ `'::'` _MethodName_ _GenArity_ `'('` _Parameters_ `')'` | 使用当前方法作为指定方法的实现。                       | §[[↗]](#override)         |
+ | \| `.param` `'['` _Int32_ `']'` [ `'='` _FieldInit_ ]                                                      | 为参数 _Int32_ 存储一个常量 _FieldInit_ 值             | §[[↗]](#param)            |
+ | \| `.param type` `'['` _Int32_ `']'`                                                                       | 指定泛型方法的类型参数。                               | §[[↗]](#param-type)       |
+ | \| _ExternSourceDecl_                                                                                      | `.line` 或 `#line`。                                   | §[[↗]](#ExternSourceDecl) |
+ | \| _Instr_                                                                                                 | 一条指令。                                             | 参见第四部分【】          |
+ | \| _Id_ `':'`                                                                                              | 一个标签。                                             | §[[↗]](#id)               |
+ | \| _ScopeBlock_                                                                                            | 局部变量的词法范围。                                   | §[[↗]](#ScopeBlock)       |
+ | \| _SecurityDecl_                                                                                          | `.permission` 或 `.permissionset`。                    | §[[↗]](#SecurityDecl)     |
+ | \| _SEHBlock_                                                                                              | 一个异常块。                                           | §[[↗]](#SEHBlock)         |
+
+##### 13.4.1.1. .emitbyte 指令
+<a id="emitbyte"></a>
+
+<pre>
+    <em>MethodBodyItem</em> ::= ... | .emitbyte <em>Int32</em>
+</pre>
+ 
+此指令会导致一个无符号的 8 位值直接被发射到方法的 CIL 流中，就在指令出现的地方。**.emitbyte** 指令用于生成测试。在生成常规程序时不需要它。
+
+##### 13.4.1.2. .entrypoint 指令
+<a id="entrypoint"></a>
+
+<pre>
+    <em>MethodBodyItem</em> ::= ... | .entrypoint
+</pre>
+
+**.entrypoint** 指令将当前方法 (应为静态方法) 标记为应用程序的入口点。VES 将调用此方法来启动应用程序。一个可执行文件应该有且只有一个入口点方法；库中的入口点方法不会被 VES 特别处理。这个入口点方法可以是全局方法，也可以出现在类型内部。 (指令的效果是将此方法的元数据 _token_ 放入 PE 文件的 CLI 头部) 
+
+入口点方法应该不接受参数，或者接受一个字符串的向量。如果它接受一个字符串的向量，那么这些字符串索引 0 包含的第一个参数应该代表可执行文件的参数。指定这些参数的机制是特定于平台的，并未在此处指定。
+
+入口点方法的返回类型应该是 **void**，**int32**，或 **unsigned int32**。如果返回了 **int32** 或 **unsigned int32**，可执行文件可以向主机环境返回一个退出代码。值 0 应该表示应用程序正常终止。
+
+入口点方法的可访问性不应阻止其在开始执行时的使用。一旦开始，VES 应该像对待任何其他方法一样对待入口点。入口点方法不能在泛型类中定义。
+
+下面的代码打印出第一个参数并成功返回到操作系统：
+
+```cil
+.method public static int32 MyEntry(string[] s) cil managed
+{ 
+    .entrypoint
+    .maxstack 2
+  
+    ldarg.0                  // load and print the first argument
+    ldc.i4.0
+    ldelem.ref
+    call void [mscorlib]System.Console::WriteLine(string)
+    ldc.i4.0                 // return success
+    ret
+}
+```
+
+##### 13.4.1.3. .locals 指令
+<a id="locals"></a>
+
+**.locals** 语句为当前方法声明一个或多个局部变量。
+
+<pre>
+    <em>MethodBodyItem</em> ::= ... | .locals [ init ] '(' LocalsSignature ')'
+    <em>LocalsSignature</em> ::= <em>Local</em> [ ',' <em>Local</em> ]*
+    <em>Local</em> ::= <em>Type</em> [ <em>Id</em> ]
+</pre>
+
+如果存在，_Id_ 是相应局部变量的名称。如果指定了 **init**，则根据它们的类型将变量初始化为默认值：引用类型初始化为 `null`，值类型被清零。  
+
+可验证的方法应包含 **init** 关键字。参见第三部分 【】。
+
+下面的代码声明了 4 个局部变量，每个变量都将被初始化为其默认值：
+
+```csharp
+void Fun()
+{
+    int i,j; float f; long[] vect;
+}
+```
+```cil
+.method private hidebysig instance void Fun () cil managed 
+{
+	.maxstack 0
+	.locals init (int32 i, int32 j, float32 f, int64[] vect)
+    // ...
+}
+```
+
+如果未指定 **init** 指令，则指示局部变量的声明时不需要初始化为默认值。
+
+```csharp
+[SkipLocalsInit]
+void Fun()
+{
+    int i,j; float f; long[] vect;
+}
+```
+```cil
+.method private hidebysig instance void Fun () cil managed 
+{
+	.maxstack 0
+	.locals (int32 i, int32 j, float32 f, int64[] vect)
+    // ...
+}
+```
+
+##### 13.4.1.4. .param 指令
+<a id="param"></a>
+
+<pre>
+    <em>MethodBodyItem</em> ::= ... | .param '[' <em>Int32</em> ']' [ '=' <em>FieldInit</em> ]
+</pre>
+
+此指令在元数据中存储与方法参数编号 _Int32_ 关联的常量值，参见 [「_Constant: 0x0B_」](#Constant_0x0B)。虽然 CLI 要求为参数提供一个值，但一些工具可以使用此特性的存在来表明是工具而不是用户打算提供参数的值。与 CIL 指令不同，**.param** 使用索引 0 来指定方法的返回值，使用索引 1 来指定方法的第一个参数，使用索引 2 来指定方法的第二个参数，依此类推。
+
+CLI 对这些值没有任何语义附加，完全由编译器来实现他们希望的任何语义 (例如，所谓的默认参数值)。
+
+```csharp
+public static void Fun([Optional, DefaultParameterValue(10086)] int v1, int v2 = 10010) { } 
+```
+```cil
+.method public hidebysig static
+	int32 Fun (
+		[opt] int32 v1,
+		[opt] int32 v2
+	) cil managed 
+{
+	.param [1] = int32(10086)
+	.param [2] = int32(10010)
+    //...
+} 
+```
+
+##### 13.4.1.5. .param type 指令
+<a id="param-type"></a>
+
+<pre>
+    <em>MethodBodyItem</em> ::= ... | .param type '[' <em>Int32</em> ']'
+</pre>
+
+此指令允许为泛型类型或方法指定类型参数。_Int32_ 是应用该指令的类型或方法参数的基于 1 的序数。此指令与 **.custom** 指令一起使用，以将自定义特性与类型参数关联。
+
+当在类范围内使用 **.param type** 指令时，它指的是该类的类型参数。当在类定义内的方法范围内使用该指令时，它指的是该方法的类型参数。否则，程序格式不正确。
+
+```csharp
+public class G<T, U> where T : notnull
+{
+#nullable disable
+    public void Foo<M>(M m) { }
+#nullable enable
+}
+```
+```cil
+.class public G`2<T, U> extends [System.Runtime]System.Object
+{
+	.param type U // or [2] : refer to U
+		.custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (01 00 02 00 00)
+	// Methods
+	.method public instance void Foo<M> (!!M m) cil managed 
+	{
+		.param type M  // or [1] : refer to M 
+			.custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (01 00 02 00 00)
+        ...
+	} 
+    ...
+}
+```
+
+#### 13.4.2. 方法上的预定义特性
+<a id="MethAttr"></a>
+
+ | _MethAttr_ ::=                                                        | 描述                                     | 参考                       |
+ | :-------------------------------------------------------------------- | ---------------------------------------- | -------------------------- |
+ | `abstract`                                                            | 方法是抽象的 (也必须是虚的)。            | §[[↗]](#MethAttr-abstract) |
+ | \| `assembly`                                                         | 程序集可访问性                           | §[[↗]](#accessibility)     |
+ | \| `compilercontrolled`                                               | 编译器控制的可访问性。                   | §[[↗]](#accessibility)     |
+ | \| `famandassem`                                                      | **family** 和 **assembly** 可访问性      | §[[↗]](#accessibility)     |
+ | \| `family`                                                           | **family** 可访问性                      | §[[↗]](#accessibility)     |
+ | \| `famorassem`                                                       | **family** 或 **assembly** 可访问性      | §[[↗]](#accessibility)     |
+ | \| `final`                                                            | 此虚方法不能被派生类重写。               | §[[↗]](#final)             |
+ | \| `hidebysig`                                                        | 通过签名隐藏。运行时忽略。               | §[[↗]](#hidebysig)         |
+ | \| `newslot`                                                          | 指定此方法应在虚方法表中获取新的插槽。   | §[[↗]](#newslot)           |
+ | \| `pinvokeimpl` `'('` _QSTRING_ [ `as` _QSTRING_ ] _PinvAttr_* `')'` | 方法实际上是在底层平台的本地代码中实现的 | §[[↗]](#pinvokeimpl)       |
+ | \| `private`                                                          | 私有可访问性                             | §[[↗]](#accessibility)     |
+ | \| `public`                                                           | 公共可访问性。                           | §[[↗]](#accessibility)     |
+ | \| `rtspecialname`                                                    | 方法名需要由运行时以特殊方式处理。       | §[[↗]](#rtspecialname)     |
+ | \| `specialname`                                                      | 方法名需要由某些工具以特殊方式处理。     | §[[↗]](#specialname)       |
+ | \| `static`                                                           | 方法是 **static** 的。                   | §[[↗]](#method-contract)   |
+ | \| `virtual`                                                          | 方法是 **virtual** 的。                  | §[[↗]](#method-contract)   |
+ | \| `strict`                                                           | 在重写时检查可访问性                     | §[[↗]](#method-contract)   |
+
+以下预定义特性的组合是无效的：
+
+ * **static** 与 **final**、**newslot** 或 **virtual** 的任何一个组合
+ * **abstract** 与 **final** 或 **pinvokeimpl** 的任何一个组合
+ * **compilercontrolled** 与 **final**、**rtspecialname**、**specialname** 或 **virtual** 的任何一个组合
+
+##### 13.4.2.1. 可访问性信息
+<a id="accessibility"></a>
+
+<pre>
+    <em>MethAttr</em> ::= ... | assembly | compilercontrolled | famandassem | family | famorassem | private | public
+</pre>
+
+这些特性中只有一个可以应用到给定的方法上。参见第一部分的 [_可见性和可访问性_](./01_CLI%20基本概念和体系结构.md/#visible)。这些特性定义了方法的可访问性，即它们规定了哪些代码可以访问该方法。例如，`public` 特性表示任何代码都可以访问该方法，而 `private` 特性表示只有定义该方法的类的代码才能访问该方法。其他特性提供了更复杂的访问控制，允许在类的继承层次结构中的不同级别进行访问。
+
+##### 13.4.2.2. 方法协议特性
+<a id="method-contract"></a>
+
+<pre>
+    <em>MethAttr</em> ::= ... | final | hidebysig | static | virtual | strict
+</pre>
+
+这些特性可以组合，除非一个方法既是 **static** 又是 **virtual**；只有 **virtual** 方法才能是 **final** 或 **strict**；并且 **abstract** 方法不能是 **final**。
+
+**final** <a id="final"></a>方法不能被此类型的派生类重写。
+
+**hidebysig** <a id="hidebysig"></a>是为工具的使用提供的，被 VES 忽略。它指定声明的方法隐藏所有具有匹配方法签名的基类类型的方法；当省略时，方法应隐藏所有同名的方法，无论签名如何。一些语言 (如 C++) 使用 *hide-by-name* 语义，而其他语言 (如 C#、Java&trade;) 使用 *hide-by-name-and-signature* 语义。
+
+**static** 和 **virtual** 在 [_静态、实例和虚方法_](#method-static-instance-virtual) 中有描述。
+
+只有当它们也是可访问的时，**strict virtual** 方法才能被重写。参见 §[II.23.1.10](ii.23.1.10-flags-for-methods-methodattributes.md)。
+
+```csharp
+interface ISample<T, U> where U : ISample<T, U>
+{
+    static virtual void StaticVirtual(T t) { }
+    static abstract U Instance { get; }
+}
+abstract class BaseSample
+{
+    internal virtual void Fun() => Console.WriteLine("Base.Fun");
+}
+class Sample : BaseSample, ISample<int, Sample>
+{
+    private static readonly Sample s_instance = new Sample();
+    public static Sample Instance => s_instance;
+    // 重写接口静态虚方法
+    static void ISample<int, Sample>.StaticVirtual(int t)
+    {
+        Console.WriteLine(t);
+    }
+    // 重写基类方法，并密封
+    internal sealed override void Fun() => Console.WriteLine("Sample.Fun");
+}
+```
+```cil
+// 接口定义
+.class interface private abstract ISample`1<T>
+{
+    // 静态虚拟方法
+	.method public hidebysig virtual static 
+		void StaticVirtual (!T t) cil managed { ... }
+    // 静态抽象属性
+    .method public hidebysig specialname abstract virtual static 
+		!U get_Instance () cil managed { ... }
+}
+// 基类定义
+.class private abstract BaseSample extends [System.Runtime]System.Object
+{
+    // 虚方法定义
+	.method assembly hidebysig newslot strict virtual 
+		instance void Fun () cil managed { ... }
+}
+// 实现类定义
+.class private Sample extends BaseSample implements class ISample`2<int32, class Sample>
+{
+    .field private static initonly class Sample s_instance
+    .property class Sample Instance() { ... }  // 属性声明
+    .method public hidebysig specialname static class Sample get_Instance () cil managed 
+	{
+		.override method !1 class ISample`2<int32, class Sample>::get_Instance() // 实现静态抽象属性
+        ...
+    }
+    .method private hidebysig static void 'ISample<System.Int32,Sample>.StaticVirtual' (int32 t) cil managed 
+	{
+		.override method void class ISample`2<int32, class Sample>::StaticVirtual(!0)  // 重写静态虚方法
+        ...
+    }
+    .method assembly final hidebysig virtual instance void Fun () cil managed { ... }  // 密封并重写父类虚方法
+}
+```
+
+##### 13.4.2.3. 覆盖行为
+<a id="newslot"></a>
+
+<pre>
+    <em>MethAttr</em> ::= ... | newslot virtual
+</pre>
+
+**newslot** 只能与 **virtual** 方法一起使用。参见 [_引入虚方法_](#impl-newslot-virtual)。
+
+```csharp
+class Base
+{
+    public virtual void Fun() => Console.WriteLine("Base.FunA");
+}
+class Derived : Base
+{
+    public new virtual void Fun() => Console.WriteLine("Derived.FunB");
+    static void Main(string[] args)
+    {
+        Base b = new Derived();
+        b.Fun();   // Base.FunA
+    }
+}
+```
+```cil
+.class private Base
+{
+	.method public hidebysig newslot virtual instance void Fun ()
+        cil managed { ... }   // 基类虚方法声明
+}
+.class Derived extends Base
+{
+	.method public hidebysig newslot virtual instance void Fun () 
+        cil managed { ... }   // 子类覆盖声明
+}
+```
+
+
+##### 13.4.2.4. 方法特性
+<a id="MethAttr-abstract"></a>
+
+<pre>
+    <em>MethAttr</em> ::= ... | abstract
+</pre>
+
+**abstract** 只能与不是 **final** 的 **virtual** 方法一起使用。它指定方法在定义类型中没有提供实现，但必须由派生类提供。**abstract** 方法只能出现在 **abstract** 类型中 [[↗]](#Inheritance-attr)。
+
+##### 13.4.2.5. 互操作特性
+<a id ="pinvokeimpl"></a>
+
+<pre>
+    <em>MethAttr</em> ::= ... | pinvokeimpl '(' <em>QSTRING</em> [ as <em>QSTRING</em> ] <em>PinvAttr</em>* ')'
+</pre>
+
+参见 [_函数指针调用方法_](#method-pointer-pinvokeimpl) 和 [「_ImplMap: 0x1C_」](#ImplMap_0x1C)。
+
+##### 13.4.2.6. 特殊处理特性
+<a id="special-handle-attr"></a>
+
+<pre>
+    <em>MethAttr</em> ::= ... | rtspecialname | specialname
+</pre>
+
+**rtspecialname** <a id="rtspecialname"></a>特性指定运行时应以特殊方式处理方法名。特殊名称的例子包括 `.ctor` (对象构造函数) 和 `.cctor` (类型初始化器)。
+
+**specialname** <a id="specialname"></a>表示此方法的名称对某些工具有特殊含义。
+
+```csharp
+struct Counter
+{
+    public int counter;
+    static Counter() { } // .cctor
+    public Counter(int num) => counter = num; // .ctor
+    public static Counter operator ++(Counter c)  // op_Increment
+    {
+        c.counter++;
+        return c;
+    }
+}
+```
+```cil
+.class private sealed Counter extends [System.Runtime]System.ValueType
+{
+	// Fields
+	.field public int32 counter
+
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed { ... }
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (int32 num) cil managed { ...}
+	.method public hidebysig specialname static 
+		valuetype Counter op_Increment (valuetype Counter c) cil managed { ... }
+} 
+```
+
+#### 13.4.3. 方法的实现特性
+<a id="method-init-attr"></a>
+
+ | _ImplAttr_ ::=      | 描述                                   | 条款                                 |
+ | :------------------ | -------------------------------------- | ------------------------------------ |
+ | `cil`               | 方法包含标准的 CIL 代码。              | §[[↗]](#code-impl-attr)              |
+ | \| `forwardref`     | 此方法的主体没有在此声明中指定。       | §[[↗]](#method-impl-info)            |
+ | \| `internalcall`   | 表示方法主体由 CLI 本身提供            | §[[↗]](#method-impl-info)            |
+ | \| `managed`        | 方法是一个托管方法。                   | §[[↗]](#method-managed-or-unmanaged) |
+ | \| `native`         | 方法包含本地代码。                     | §[[↗]](#code-impl-attr)              |
+ | \| `noinlining`     | 运行时不应将方法内联展开。             | §[[↗]](#method-impl-info)            |
+ | \| `nooptimization` | 在生成本地代码时，运行时不应优化方法。 | §[[↗]](#method-impl-info)            |
+ | \| `runtime`        | 方法的主体未定义，但由运行时生成。     | §[[↗]](#code-impl-attr)              |
+ | \| `synchronized`   | 方法应以单线程方式执行。               | §[[↗]](#method-impl-info)            |
+ | \| `unmanaged`      | 指定方法是非托管的。                   | §[[↗]](#method-managed-or-unmanaged) |
+
+##### 13.4.3.1. 代码实现方式
+<a id="code-impl-attr"></a>
+
+<pre>
+    <em>ImplAttr</em> ::= ... | cil | native | runtime
+</pre>
+
+这些特性是互斥的；它们指定了方法包含的代码类型。
+
+**cil** 指定方法体由 cil 代码组成。除非方法被声明为 **abstract**，否则如果使用 **cil**，就必须提供方法体。
+
+**native** 指定方法是使用与其生成的特定处理器相关的本地代码实现的。**native** 方法不应有主体，而应引用声明主体的本地方法。通常，CLI 的 **P/Invoke** 功能用于引用本地方法，参见 [_平台调用_](#method-pinvoke)。
+
+**runtime** 指定方法的实现由运行时自动提供，主要用于委托的方法，参见 [_委托_](#delegate)。
+
+##### 13.4.3.2. 托管或非托管
+<a id="method-managed-or-unmanaged"></a>
+
+<pre>
+    <em>ImplAttr</em> ::= ... | cil | managed | unmanaged
+</pre>
+
+这些不能组合。使用 CIL 实现的方法是 **managed** 的。**unmanaged** 主要用于 P/Invoke，参见 [_平台调用_](#method-pinvoke)。
+
+##### 13.4.3.3. 方法实现信息
+<a id="method-impl-info"></a>
+
+<pre>
+    <em>ImplAttr</em> ::= ... | forwardref | internalcall | noinlining | nooptimization | synchronized
+</pre>
+
+这些特性可以组合：
+
+- **forwardref** <a id="forwardref"></a>指定方法的主体在其他地方提供。当由 VES 加载程序集时，此特性不应存在。它用于将分别编译的模块组合并解析前向引用的工具 (如静态链接器)。
+
+- **internalcall** <a id="internalcall"></a>指定方法主体由 CLI 本身提供 (通常用于系统库中的低级方法)。它不能应用于打算跨 CLI 实现使用的方法。
+
+- **noinlining** <a id="noinlining"></a>指定运行时不应内联此方法。内联是指将调用指令替换为被调用方法的主体的过程，这可以由运行时出于优化目的而完成。**noinlining** 指定此方法的主体不应被 CIL-to-native-code 的编译器包含到任何调用方法的代码中；它应保持为一个单独的例程。
+
+- **nooptimization** <a id="nooptimization"></a>指定 CIL-to-native-code 的编译器不应执行代码优化。指定一个非内联方法可以确保它在调试 (例如，显示堆栈跟踪) 和分析中保持 “可见”。它还为程序员提供了一种机制，可以覆盖 CIL-to-native-code 编译器用于内联的默认启发式方法。
+
+- **synchronized** <a id="synchronized"></a>指定方法的整个主体应该是单线程的。如果此方法是实例方法或虚方法，则在进入方法之前应获取对象上的锁。如果此方法是静态方法，则在进入方法之前应获取其封闭类型上的锁。如果无法获取锁，请求线程不应继续进行，直到它被授予锁。这可能导致死锁。当方法退出时，无论是通过正常返回还是异常，锁都会被释放。使用 `tail.` 调用退出同步方法应该被实现为没有指定 `tail.`。
+
+#### 13.4.4. 方法作用域块
+<a od="ScopeBlock"></a>
+
+<pre>
+    <em>ScopeBlock</em> ::= '{' <em>MethodBodyItem</em>* '}'
+</pre>
+
+_ScopeBlock_ 用于将方法体的元素组合在一起。例如用于指定构成异常处理程序主体的代码序列。
+
+#### 13.4.5. vararg 方法
+
+**vararg** 方法接受可变数量的参数。它们应使用 **vararg** 调用约定。
+
+在每个调用点，都应使用方法引用来描述传递的固定参数和可变参数的类型。参数列表的固定部分应与额外的参数用省略号分隔 [[↗]](./01_CLI%20基本概念和体系结构.md/#method-sign)。
+
+方法引用由 _MethodRef_ [[↗]](#MemberRef_0x0A) 或 _MethodDef_ [[↗]](#MethodDef_0x06) 表示。即使方法在同一程序集中定义，也可能需要 _MethodRef_，因为 _MethodDef_ 只描述参数列表的固定部分。如果调用点没有传递任何额外的参数，那么它可以使用 _MethodDef_ 来调用在同一程序集中定义的 **vararg** 方法。
+
+**vararg** 参数应通过使用 CIL 指令 `arglist` 获取参数列表的句柄来访问【第三部分】。句柄可以用于创建 `System.ArgIterator` 值类型的实例，该实例提供了一种类型安全的机制来访问参数【第四部分】。
+
+下面的示例显示了如何声明一个 **vararg** 方法，以及如何访问第一个 **vararg** 参数，假设至少传递了一个额外的参数给该方法：
+
+```cil
+.method public static vararg void MyMethod(int32 required) 
+{
+    .maxstack 3
+    .locals init (valuetype [mscorlib]System.ArgIterator it, int32 x)
+
+    ldloca it    // 初始化迭代器
+    initobj  valuetype [mscorlib]System.ArgIterator
+    ldloca it
+    arglist     // 获取参数句柄
+    call instance void [mscorlib]System.ArgIterator::.ctor(valuetype
+        [mscorlib]System.RuntimeArgumentHandle)   // 调用迭代器的构造函数
+    /* 当检索到参数时，参数值将存储在 x 中，所以加载 x 的地址 */
+    ldloca x
+    ldloca it
+    // 检索参数，对于 required 的参数不重要
+    call instance typedref [mscorlib]System.ArgIterator::GetNextArg() 
+    call object [mscorlib]System.TypedReference::ToObject(typedref)  /* 检索对象 */
+    castclass [mscorlib]System.Int32  // 类型转换并拆箱
+    unbox int32
+    cpobj int32                       // 将值复制到 x 中
+    // 第一个 vararg 参数存储在 x 中
+    ret
+}
+```
+
+>---
+### 13.5. 非托管方法
+
+除了支持托管代码和托管数据外，CLI 还提供了从底层平台访问预先存在的本地代码 (称为非托管代码) 的功能。这些功能必然是特定于平台的，因此在这里仅部分指定。
+
+此标准指定：
+ * 文件格式中的一种机制，用于向托管代码提供函数指针，该函数指针可以从非托管代码中调用 [[↗]](#method-transition-thunks)。
+ * 一种将某些方法定义标记为在非托管代码中实现的机制 (称为 **平台调用** (_platform invoke_) [[↗]](#method-pinvoke) )。
+ * 一种标记调用点的机制，并使用方法指针以指示调用是对非托管方法的调用 [[↗]](#method-pointer-pinvokeimpl)。
+ * 一小部分预定义的数据类型，可以在所有 CLI 的实现上使用这些机制进行传递 (封送) [[↗]](#data-type-marshaling)。类型集合可以通过使用自定义特性和修饰符进行扩展，但这些扩展是特定于平台的。
+
+#### 13.5.1. 方法转换嵌入块
+<a id="method-transition-thunks"></a>
+
+由于此机制不是 CLI **内核分析** (_Kernel Profile_) 的一部分，因此可能不会出现在所有符合 CLI 的实现中。参见第四部分 【】。
+
+为了从非托管代码调用托管代码，一些平台需要执行特定的转换序列。此外，一些平台要求转换数据类型的表示 (数据封送)。这两个问题都通过 **.vtfixup** 指令解决。此指令可以出现多次，但只能在 CIL 程序集文件的顶级出现，如下面的语法所示：
+
+<pre>
+    <em>Decl</em> ::= .vtfixup <em>VTFixupDecl</em> | ... <a href="#il-top-impl">[↗]</a>
+</pre>
+
+**.vtfixup** <a id="vtfixup"></a>指令声明在某个内存位置有一个表，其中包含引用方法的元数据 _token_ ，这些方法被转换为方法指针。当包含 **.vtfixup** 指令的文件加载到内存中执行时，CLI 将自动进行此转换。声明指定了表中的条目数量、所需的方法指针的类型、表中条目的宽度和表的位置：
+
+<pre>
+    <em>VTFixupDecl</em> ::= [ <em>Int32</em> ] <em>VTFixupAttr</em>* at <em>DataLabel</em>
+    <em>VTFixupAttr</em> ::= fromunmanaged | int32 | int64
+</pre>
+
+特性 **int32** 和 **int64** 是互斥的，**int32** 是默认值。这些特性指定了表中每个插槽的宽度。每个插槽包含一个 32 位的元数据 _token_  (如果表有 64 位插槽，则用零填充)，CLI 将其转换为与插槽同宽的方法指针。
+
+如果指定了 **fromunmanaged**，CLI 将生成一个嵌入块，该嵌入块将非托管方法调用转换为托管调用，调用该方法并将结果返回到非托管环境。嵌入块还将以平台调用所描述的特定于平台的方式执行数据封送。
+
+ILAsm 语法没有指定创建 _token_ 表的机制，但编译器可以简单地将 _token_ 作为字节文字发出到使用 **.data** 指令指定的块中。
+
+#### 13.5.2. 平台调用
+<a id="method-pinvoke"></a>
+
+使用 CLI 的 *平台调用* (也称为 PInvoke 或 p/invoke) 功能可以调用在本地代码中定义的方法。平台调用将从托管状态切换到非托管状态，然后再切换回来，并处理必要的数据封送。需要使用 PInvoke 调用的方法被标记为 **pinvokeimpl**。此外，这些方法应具有实现特性 **native** 和 **unmanaged**。
+
+<pre>
+    <em>MethAttr</em> ::= pinvokeimpl '(' <em>QSTRING</em> [ as <em>QSTRING</em> ] <em>PinvAttr</em>* ')' | ... <a href="#param">[↗]</a>
+</pre>
+
+第一个引号内的字符串是一个平台特定的描述，指示方法的实现位于何处 (例如，在 Microsoft Windows&trade; 上，这将是实现该方法的 DLL 的名称)。第二个 (可选) 字符串是该方法在该平台上存在的名称，因为平台可以使用名称混淆规则，使得在托管程序中出现的名称与在本地实现中看到的名称不同 (例如，当本地代码由 C++ 编译器生成时，这是常见的)。
+
+只有静态方法，定义在全局范围 (即，类型之外)，可以被标记为 **pinvokeimpl**。声明为 **pinvokeimpl** 的方法不应在定义的一部分中指定主体。
+
+ | _PinvAttr_ ::=   | 描述 (平台特定，仅供参考)        |
+ | :--------------- | -------------------------------- |
+ | `ansi`           | ANSI 字符集。                    |
+ | \| `autochar`    | 自动确定字符集。                 |
+ | \| `cdecl`       | 标准 C 风格调用                  |
+ | \| `fastcall`    | C 风格快速调用。                 |
+ | \| `stdcall`     | 标准 C++ 风格调用。              |
+ | \| `thiscall`    | 方法接受一个隐式的 *this* 指针。 |
+ | \| `unicode`     | Unicode 字符集。                 |
+ | \| `platformapi` | 使用适合目标平台的调用约定。     |
+
+特性 **ansi**、**autochar** 和 **unicode** 是互斥的。它们决定了调用此方法时如何调用封送字符串：**ansi** 是本地代码将接收 (可能也会返回) 一个与 ANSI 字符集编码的字符串对应的平台特定表示 (通常，这将与 C 或 C++ 字符串常量的表示相匹配)；**autochar** 是特定于底层平台的最自然表示的平台特定表示；而 **unicode** 是用于该平台上的 Unicode 方法的字符串编码对应的平台特定表示。
+
+特性 **cdecl**、**fastcall**、**stdcall**、**thiscall** 和 **platformapi** 是互斥的。它们是平台特定的，并指定本地代码的调用约定。
+
+下面显示了位于 Microsoft Windows&trade; DLL `user32.dll` 中的方法 `MessageBeep` 的声明：
+
+```cil
+.method public static pinvokeimpl("user32.dll" stdcall) int8
+       MessageBeep(unsigned int32) native unmanaged {}
+```
+
+#### 13.5.3. 通过函数指针调用方法
+<a id="method-pointer-pinvokeimpl"></a>
+
+可以通过函数指针调用非托管方法。使用指针调用托管方法或非托管方法之间没有区别。然而，非托管方法需要声明为 **pinvokeimpl**。使用函数指针调用托管方法在 [_方法指针_](#method-pointer) 中有描述。
+
+#### 13.5.4. 数据类型封送
+<a id="data-type-marshaling"></a>
+
+虽然数据类型封送必然是特定于平台的，但此标准规定了一组最小的数据类型，所有符合 CLI 的实现都应支持这些数据类型。可以使用自定义特性和 / 或自定义修饰符以特定于平台的方式支持额外的数据类型，以指定特定实现所需的任何特殊处理。
+
+以下数据类型应由所有符合 CLI 的实现进行封送；它们符合的本地数据类型是特定于实现的：
+
+ * 所有整数数据类型 (**int8**，**int16**，**unsigned int8**，**bool**，**char** 等)，包括本地整数类型。
+ * 枚举，作为其底层数据类型。
+ * 所有浮点数据类型 (**float32** 和 **float64**)，如果 CLI 实现支持托管代码。
+ * 类型 **string**。
+ * 对上述任何类型的非托管指针。
+
+此外，以下类型应支持从托管代码到非托管代码的封送，但不必在反向支持 (即，作为调用非托管方法时的返回类型或作为从非托管方法调用到托管方法时的参数) ：
+ * 上述任何类型的一维零基数组。
+ * 委托 (从非托管代码调用到委托的机制是特定于平台的；不应假定封送委托将生成可以直接从非托管代码使用的函数指针)。
+
+最后，类型 `System.Runtime.InteropServices.GCHandle` 可用于将对象封送到非托管代码。非托管代码接收一个特定于平台的数据类型，该数据类型可以用作特定对象的 “不透明句柄”。参见第四部分 【】。
+
+---
+
+## 14. field：定义和引用字段
+<a id="field"></a>
+
+字段是存储程序数据的类型化内存位置 (_typed memory locations_)。CLI 允许声明实例字段和静态字段。静态字段与类型关联，并在该类型的所有实例之间共享，而实例字段与该类型的特定实例关联。一旦实例化，每个实例就有其每个实例字段的自己的副本。CLI 还支持全局字段，这些字段是在任何类型定义之外声明的。全局字段应该是静态的。
+
+字段由 **.field** 指令定义：[[↗]](#Field_0x04)
+
+<pre>
+    <em>Field</em> ::= .field <em>FieldDecl</em>
+    <em>FieldDecl</em> ::= [ '[' <em>Int32</em> ']' ] <em>FieldAttr</em>* <em>Type</em> <em>Id</em> [ '=' <em>FieldInit</em> | at <em>DataLabel</em> ]
+</pre>
+
+_FieldDecl_ 有以下部分：
+ * 一个可选的整数，指定字段在实例中的字节偏移量 [[↗]](#ctrl-layout)。如果存在，包含此字段的类型应具有 **explicit** 布局特性。对于全局或静态字段，不应提供偏移量。
+ * 任意数量的字段特性 [[↗]](#field-init)。
+ * 类型。
+ * 名称。
+ * 可选地，一个 _FieldInit_ [[↗]](#field-init) 子句或一个 [_DataLabel_](#DataLabel) 子句。
+
+全局字段应该有一个与之关联的数据标签。这指定了 PE 文件中该字段的数据位置。类型的静态字段可以 (但非必需) 分配数据标签。
+
+ ```cil
+ .field private class [.module Counter.dll]Counter counter
+ .field public static initonly int32 pointCount
+ .field private int32 xOrigin
+ .field public static int32 count at D_0001B040
+ ```
+
+>---
+### 14.1. 字段的特性
+<a id="field-attr"></a>
+
+字段的特性指定了关于可访问性、协议信息、互操作特性以及特殊处理的信息。
+
+以下各小节包含了关于字段的每组预定义特性的额外信息。
+
+ | _FieldAttr_ ::=                       | 描述                                       | 子句                               |
+ | :------------------------------------ | ------------------------------------------ | ---------------------------------- |
+ | `assembly`                            | **assembly** 可访问性。                    | §[[↗]](#field-accessibility)       |
+ | \| `famandassem`                      | **family** 和 **assembly** 可访问性。      | §[[↗]](#field-accessibility)       |
+ | \| `family`                           | **family** 可访问性。                      | §[[↗]](#field-accessibility)       |
+ | \| `famorassem`                       | **family** 或 **assembly** 可访问性。      | §[[↗]](#field-accessibility)       |
+ | \| `initonly`                         | 标记为常量字段。                           | §[[↗]](#field-contract)            |
+ | \| `literal`                          | 指定元数据字段。此字段在运行时不分配内存。 | §[[↗]](#field-contract)            |
+ | \| `marshal` `'('` _NativeType_ `')'` | 封送处理信息。                             | §[[↗]](#field-marshal)             |
+ | \| `notserialized`                    | 保留 (表示此字段不应被序列化)。            | §[[↗]](#field-contract)            |
+ | \| `private`                          | **private** 可访问性。                     | §[[↗]](#field-accessibility)       |
+ | \| `compilercontrolled`               | 编译器控制的可访问性。                     | §[[↗]](#field-accessibility)       |
+ | \| `public`                           | **public** 可访问性。                      | §[[↗]](#field-accessibility)       |
+ | \| `rtspecialname`                    | 运行时的特殊处理。                         | §[[↗]](#field-special-handle-attr) |
+ | \| `specialname`                      | 其他工具的特殊名称。                       | §[[↗]](#field-special-handle-attr) |
+ | \| `static`                           | 静态字段。                                 | §[[↗]](#field-contract)            |
+
+#### 14.1.1. 可访问性信息
+<a id="field-accessibility"></a>
+
+可访问性特性包括 **assembly**、**famandassem**、**family**、**famorassem**、**private**、**compilercontrolled** 和 **public**。这些特性是互斥的。可访问性特性在 [[↗]](#visibility-accessibility-hide) 中有描述。
+
+
+#### 14.1.2. 字段协议特性
+<a id="field-contract"></a>
+
+字段协议特性有 **initonly**，**literal**，**static** 和 **notserialized**。这些特性可以组合；然而，只有 **static** 字段可以是 **literal**。默认情况下，实例字段可以被序列化。
+
+**static**<a id="static-field"></a> 指定字段与类型本身相关联，而不是与类型的实例相关联。静态字段可以在没有类型实例的情况下访问，例如通过静态方法。因此，在应用程序域内，静态字段在类型的所有实例之间共享，任何对此字段的修改都会影响所有实例。如果没有指定 **static**，则创建一个实例字段。
+
+**initonly**<a id="initonly-field"></a> 标记了在初始化后是常量的字段。这些字段只能在构造函数内部发生变化。如果字段是静态字段，那么它只能在声明类型的类型初始化器内部发生变化。如果它是一个实例字段，那么它只能在声明类型的一个实例构造函数中发生变化。它不应在任何其他方法或任何其他构造函数中发生变化，包括派生类的构造函数。在 **initonly** 字段上使用 `ldflda` 或 `ldsflda` 会使代码无法验证。在无法验证的代码中，VES 不需要检查 **initonly** 字段是否在构造函数之外发生变化。如果一个方法改变了一个常量的值，VES 不需要报告任何错误。然而，这样的代码是无效的。
+
+**literal**<a id="literal-field"></a> 指定此字段表示一个常量值；这样的字段应该被赋值。与 **initonly** 字段相比，**literal** 字段在运行时不存在。它们没有分配内存。**literal** 字段成为元数据的一部分，但不能被代码访问。**literal** 字段通过使用 _FieldInit_ 语法 [[↗]](#field-init) 赋值。
+
+生成 CIL 的工具有责任将源代码中对 **literal** 值的引用替换为其实际值。因此，更改 **literal** 值的字段需要重新编译任何引用该常量的代码。因此，**literal** 值不具有版本弹性。
+
+```csharp
+[Serializable]
+class Sample
+{
+    static int StaticField;
+    readonly int InitonlyField = 10010;
+    const int LiteralField = 10086;
+}
+```
+```cil
+.class private serializable Sample
+{
+	// Fields
+	.field private static int32 StaticField
+	.field private initonly int32 InitonlyField
+	.field private static literal int32 LiteralField = int32(10086)
+}
+```
+
+#### 14.1.3. 互操作属性
+<a id="field-marshal"></a>
+
+存在一个用于与预先存在的本地应用程序互操作的特性；它是特定于平台的，不能用在 CLI 的多个实现上运行的代码中。该特性是 **marshal**，它指定当字段的内容传递给非托管代码时，应将其转换为指定的本地数据类型。每个符合 CLI 的实现都有其默认的封送规则和使用 **marshal** 特性进行指定自动转换的限制。另请参阅 [_数据类型封送_](#data-type-marshaling)。
+
+并非所有 CLI 的实现都需要对用户定义的类型进行封送。它在此标准中指定，以便选择提供它的实现将以一致的方式控制其行为。虽然这不足以保证使用此功能的代码的可移植性，但它确实增加了此类代码可能具有可移植性的可能性。
+
+#### 14.1.4. 特殊处理特性
+<a id="field-special-handle-attr"></a>
+
+**rtspecialname** 特性表示运行时应以特殊方式处理字段名称。
+
+目前没有需要用 **rtspecialname** 标记的字段名称。它是为了扩展未来的标准化，以及增加字段和方法声明之间的一致性 (实例和类型初始化方法可以用这个特征标记)。按照惯例，枚举的单个实例字段被命名为 "`value__`" 并用 **rtspecialname** 标记。
+
+**specialname** 特性表示字段名称对于运行时以外的工具有特殊含义，通常是因为它标记了对 CLS 有意义的名称。
+
+```csharp
+enum SpecialEnum
+{
+    None, Item1, Item2
+}
+```
+```cil
+.class private SpecialEnum extends [System.Runtime]System.Enum
+{
+	// Fields
+	.field public specialname rtspecialname int32 value__
+	.field public static literal valuetype SpecialEnum None = int32(0)
+	.field public static literal valuetype SpecialEnum Item1 = int32(1)
+	.field public static literal valuetype SpecialEnum Item2 = int32(2)
+}
+```
+
+>---
+### 14.2. 字段初始化元数据
+<a id="field-init"></a>
+
+_FieldInit_ 元数据可以选择性地添加到字段声明中。此功能的使用不应与数据标签结合使用。
+
+_FieldInit_ 信息存储在元数据中，可以从元数据中查询此信息。但是，CLI 不使用此信息来自动初始化相应的字段。字段初始化器通常与 **literal** 字段或具有默认值的参数一起使用。参见  [「_Constant: 0x0B_」](#Constant_0x0B)。
+
+下表列出了字段初始化器的选项。尽管类型和字段初始化器都存储在元数据中，但并无要求它们匹配。任何的导入编译器都负责将存储的值强制转换为目标字段类型。下表中的描述列提供了额外的信息。
+
+ | _FieldInit_ ::=                               | 描述                                                                     |
+ | :-------------------------------------------- | ------------------------------------------------------------------------ |
+ | `bool` `'('` `true` \| `false` `')'`          | 布尔值，编码为真或假                                                     |
+ | \| `bytearray` `'('` _Bytes_ `')'`            | 字节字符串，存储时不进行转换。可以用一个零字节进行填充，使总字节数为偶数 |
+ | \| `char` `'('` _Int32_ `')'`                 | 16 位无符号整数 (Unicode 字符)                                             |
+ | \| `float32` `'('` _Float64_ `')'`            | 32 位浮点数，括号中指定浮点数。                                           |
+ | \| `float32` `'('` _Int32_ `')'`              | _Int32_ 是 float 的二进制表示                                            |
+ | \| `float64` `'('` _Float64_ `')'`            | 64 位浮点数，括号中指定浮点数。                                           |
+ | \| `float64` `'('` _Int64_ `')'`              | _Int64_ 是 double 的二进制表示                                           |
+ | \| [ `unsigned` ] `int8` `'('` _Int32_ `')'`  | 8 位整数，括号中指定值。                                                  |
+ | \| [ `unsigned` ] `int16` `'('` _Int32_ `')'` | 16 位整数，括号中指定值。                                                 |
+ | \| [ `unsigned` ] `int32` `'('` _Int32_ `')'` | 32 位整数，括号中指定值。                                                 |
+ | \| [ `unsigned` ] `int64` `'('` _Int64_ `')'` | 64 位整数，括号中指定值。                                                 |
+ | \| _QSTRING_                                  | 字符串。_QSTRING_ 存储为 Unicode                                         |
+ | \| `nullref`                                  | 空对象引用                                                               |
+
+下面显示了这个的典型用法：
+
+```csharp
+const bool Boolen = true;
+const char Char = '\0';
+const float Float = 3.1415f;
+const float Float32Binary = 0b_11111111;
+const double Float64 = 1.23456;
+const double Float64Binary = 0b_10101010;
+const byte UInt8 = 8;
+const short Int16 = 16;
+const int Int32 = 32;
+const ulong UInt64 = 64ul;
+const string Str = "World";
+const string SNull = null;
+```
+```cil
+// Fields
+.field private static literal bool Boolen = bool(true)
+.field private static literal char Char = char(0)
+.field private static literal float32 Float = float32(3.1415)
+.field private static literal float32 Float32Binary = float32(255)
+.field private static literal float64 Float64 = float64(1.23456)
+.field private static literal float64 Float64Binary = float64(170)
+.field private static literal uint8 UInt8 = uint8(8)
+.field private static literal int16 Int16 = int16(16)
+.field private static literal int32 Int32 = int32(32)
+.field private static literal uint64 UInt64 = uint64(64)
+.field private static literal string Str = "World"
+.field private static literal string SNull = nullref
+```
+
+这些 **literal** 字段，运行时不为它们分配内存。工具和编译器可以查找这些值，并检测到它的值和类型信息。
+
+>---
+### 14.3. 在 PE 文件中嵌入数据
+<a id="data"></a>
+
+有几种方式可以声明存储在 PE 文件中的数据字段。在所有情况下，都使用 **.data** 指令。可以通过在顶层使用 **.data** 指令将数据嵌入到 PE 文件中。
+
+<pre>
+    <em>Decl</em> ::= .data <em>DataDecl</em> | ... <a href="#class-extern">[↗]</a>
+</pre>
+
+数据也可以作为类型的一部分进行声明：
+
+<pre>
+    <em>ClassMember</em> ::= .data <em>DataDecl</em> | ... <a href="#class-type-member">[↗]</a>
+</pre>
+
+另一种选择是在方法内部声明数据：
+
+<pre>
+    <em>MethodBodyItem</em> ::= .data <em>DataDecl</em> | ... <a href="#MethodBody">[↗]</a>
+</pre>
+
+#### 14.3.1. 数据声明
+
+**.data** 指令包含一个可选的数据标签和定义实际数据的主体。如果代码要访问数据，则应使用数据标签。
+
+<pre>
+    <em>DataDecl</em> ::= [ <em>DataLabel</em> '=' ] <em>DdBody</em>
+</pre>
+
+主体由一个数据项或括号中的数据项列表组成，数据项列表类似于数组。
+
+<pre>
+    <em>DdBody</em> ::= <em>DdItem</em> | '{' <em>DdItemList</em> '}'
+</pre>
+
+项目列表由任意数量的项目组成：
+
+<pre>
+    <em>DdItemList</em> ::= <em>DdItem</em> [ ',' <em>DdItemList</em> ]
+</pre>
+
+列表可以用来声明与一个标签关联的多个数据项，数据项将按照声明的顺序布局。第一个数据项可以直接通过标签访问。要访问其他项目时需要使用指针算术，将每个数据项的大小加到列表中的下一个项。使用指针算术将使应用程序无法验证。如果要在之后引用每个数据项，它应该有一个 _DataLabel_ [[↗]](#DataLabel)；如果要在数据项之间插入对齐填充，可以省略 _DataLabel_。 
+
+数据项声明数据的类型，并在括号中提供数据。如果数据项列表包含相同类型和初始值的项，以下语法可以用作某些类型的快捷方式：在声明后的 `[ int32 ]` 括号中放入数据项应复制的次数。
+
+ | _DdItem_ ::=                                                   | 描述                 |
+ | :------------------------------------------------------------- | -------------------- |
+ | `'&'` `'(` _Id_ `')'`                                          | 标签的地址           |
+ | \| `bytearray` `'('` _Bytes_ `')'`                             | 字节数组             |
+ | \| `char` `'*'` `'('` _QSTRING_ `')'`                          | (Unicode) 字符数组   |
+ | \| `float32` [ `'('` _Float64_ `')'` ] [ `'['` _Int32_ `']'` ] | 可复制的 32 位浮点数 |
+ | \| `float64` [ `'('` _Float64_ `')'` ] [ `'['` _Int32_ `']'` ] | 可复制的 64 位浮点数 |
+ | \| `int8` [ `'('` _Int32_ `')'` ] [ `'['` _Int32_ `']'` ]      | 可复制的 8 位整数    |
+ | \| `int16` [ `'('` _Int32_ `')'` ] [ `'['` _Int32_ `']'` ]     | 可复制的 16 位整数   |
+ | \| `int32` [ `'('` _Int32_ `')'` ] [ `'['` _Int32_ `']'` ]     | 可复制的 32 位整数   |
+ | \| `int64` [ `'('` _Int64_ `')'` ] [ `'['` _Int32_ `']'` ]     | 可复制的 64 位整数   |
+
+以下声明了一个值为 123 的 32 位有符号整数：
+
+ ```cil
+ .data theInt = int32(123)
+ ```
+
+以下声明了 10 个值为 3 的 8 位无符号整数的复制：
+
+ ```cil
+ .data theBytes = int8 (3) [10]
+ ```
+
+#### 14.3.2. 从 PE 文件中访问数据
+<a id= "at-field"></a>
+
+使用 **.data** 指令在 PE 文件中存储的数据可以通过在数据的特定位置声明的静态变量 (全局的或类型的成员) 来访问：
+
+<pre>
+    <em>FieldDecl</em> ::= <em>FieldAttr</em>* <em>Type</em> <em>Id</em> at <em>DataLabel</em> 
+</pre>
+
+然后，程序可以像访问任何其他静态变量一样访问数据，以及使用诸如 `ldsfld`，`ldsflda` 等指令。从 PE 文件内部访问数据的能力可能受到平台特定规则的限制，通常与 PE 文件格式本身的部分访问权限有关。
+
+下面访问了在上节的示例中声明的数据。首先需要为数据声明一个静态变量，例如，全局静态变量：
+
+ ```cil
+ .field public static int32 myInt at theInt
+ ```
+
+然后可以使用静态变量来加载数据：
+
+ ```cil
+ // 数据在堆栈上
+ ldsfld int32 myInt
+ ```
+>---
+### 14.4. 非 **literal** 静态数据的初始化
+
+许多支持静态数据的语言都提供了一种在程序开始执行之前初始化该数据的方法。有三种常见的机制可以做到这一点，CLI 都支持这三种机制。
+
+#### 14.4.1. 链接时已知的数据
+
+当在程序链接 (或对于没有链接步骤的语言，在编译) 期间已知要存储到静态数据中的正确值时，实际值可以直接存储到 PE 文件中，通常存储到数据区域 [[↗]](#data)。对变量的引用直接指向将此数据放置在内存中的位置，如果文件在链接器假定的地址之外的地址加载，则使用操作系统提供的修复机制来调整对此区域的任何引用。
+
+在 CLI 中，如果静态变量是基础数值类型之一，或者是具有 *explicit* 显式类型布局且没有在值类型中嵌入任何托管对象的嵌入式引用，那么可以直接使用这种技术。在这种情况下，数据像往常一样布局在数据区域中，静态变量通过使用字段声明中的数据标签 (使用 **at** 语法) 分配一个特定的 RVA (即，从 PE 文件开始的偏移量)。
+
+然而，这种机制不能很好地与 CLI 的应用程序域概念交互。应用程序域旨在通过将同一操作系统进程中运行的两个应用程序隔离开来以确保它们没有共享数据。由于 PE 文件在整个进程中是共享的，因此通过此机制访问的任何数据对进程中的所有应用程序域都是可见的，从而违反了应用程序域隔离边界。
+
+>---
+### 14.5. 加载时已知的数据
+
+如果在加载 PE 文件之前不知道正确的值时 (例如，如果它包含基于多个 PE 文件的加载地址计算的值)，可以提供任意代码在 PE 文件加载时运行，但是这种机制是特定于平台的，并且可能无法在所有符合 CLI 的实现中使用。
+
+#### 14.5.1. 运行时已知的数据
+
+当正确的值不能在类型布局计算出来之前确定时，用户应在类型初始化器中提供部分代码用来初始化静态数据。关于类型初始化的保证在 [[↗]](#type-init-guarantees) 中有所描述。如下文所述，全局静态变量在 CLI 中被建模为属于某种类型，因此同样的保证适用于全局静态变量和类型静态变量。
+
+由于在首次引用类型之前不需要进行托管类型的布局，因此无法通过简单地在 PE 文件中布局数据来静态初始化托管类型。相反，有一个类型初始化过程，按照以下步骤进行：
+ 1. 所有静态变量都被置零。
+ 2. 如果有的话，调用用户提供的类型初始化过程，如 [_类型初始化器_](#type-initializer) 中所述。
+
+在类型初始化过程中有几种技术：
+
+ * ***生成显式代码*** (_Generate explicit code_)，将常量存储到静态变量的适当字段中。对于小型数据结构，这可能是有效的，但它要求将初始化器转换为本地代码，这可能会导致一些代码空间和执行时间的问题。
+ * ***装箱值类型*** (_Box value types_)。当静态变量只是基础数值类型或具有显式布局的值类型的装箱版本时，引入一个已知 RVA 的额外静态变量，该变量保存未装箱的实例，然后简单地使用 **box** 指令创建装箱副本。
+ * ***从静态本地数组的数据中创建托管数组*** (_Create a managed array from a static native array of data_)。这可以通过将本地数组封送到托管数组来完成。要使用的特定的封送处理取决于本地数组。例如，它可以是 *safearray*。
+ * ***默认初始化值类型的托管数组*** (_Default initialize a managed array of a value type_)。基类库提供了一个方法，该方法将每个未装箱值类型的数组元素的存储空间归零 (`System.Runtime.CompilerServices.InitializeArray`)。
 
 
 
@@ -3152,7 +4214,7 @@ delegate void StartStopEventHandler(int action);
 
 ---
 [[↗]](#)
-「_ _」
+[「__」](#)
 
 <pre>
     <em>GenArgs</em> ::= <em>Type</em> [ ',' <em>Type</em> ]*

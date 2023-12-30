@@ -1,878 +1,4 @@
 
-## 13. method：定义、引用和调用方法
-<a id="method"></a>
-
-方法可以在全局级别 (在任何类型之外) 定义：
-
-<pre>
-    <em>Decl</em> ::= ... | .method <em>MethodHeader</em> '{' <em>MethodBodyItem</em>* '}'
-</pre>
-
-也可以在类型内部定义：
-
-<pre>
-    <em>ClassMember</em> ::= ... | .method <em>MethodHeader</em> '{' <em>MethodBodyItem</em>* '}'
-</pre>
-
-### 13.1. 方法描述符
-
-方法描述符在 ILAsm 中有四种结构与方法相关。这些结构对应于不同的元数据结构。
-
-#### 13.1.1. 方法声明
-
-_MethodDecl_ 或方法声明提供了方法名称和签名 (参数和返回类型)，但没有提供其主体。也就是说，方法声明提供了一个 _MethodHeader_，但没有 _MethodBodyItems_。这些用于调用点以指定调用目标 (`call` 或 `callvirt` 指令，_MethodDecl_ 在元数据中没有直接的逻辑对应项；它可以是 _Method_ 或 _MethodRef_。
-
-#### 13.1.2. 方法定义
-
-一个 _Method_，或者说方法定义，提供了方法名、特性、签名和主体。也就是说，一个方法定义提供了一个 _MethodHeader_ 以及一个或多个 _MethodBodyItems_。主体包括方法的 CIL 指令、异常处理程序、局部变量信息，以及关于方法的其他运行时或自定义元数据。参见 [**MethodDef: 0x06**](#MethodDef_0x06)。
-
-#### 13.1.3. 方法引用
-
-_MethodRef_ 或方法引用，是对方法的引用。当调用一个方法且该方法的定义位于另一个模块或程序集中时，就会使用它。在运行时调用方法之前，VES 应将 _MethodRef_ 解析为 _Method_。如果找不到匹配的 _Method_，VES 将抛出 `System.MissingMethodException`。参见 [**MemberRef: 0x0A**](#MemberRef_0x0A)。
-
-#### 13.1.4. 方法实现
-<a id="MethodImpl"></a>
-
-_MethodImpl_ 或方法实现为现有的虚方法提供可执行的主体。它将一个 _Method_ (代表主体) 与一个 _MethodDecl_ 或 _Method_ (代表虚方法) 关联起来。当默认机制 (通过名称和签名匹配) 不能提供正确的结果时，_MethodImpl_ 用于为继承的虚方法或接口的虚方法提供实现。参见 [**MethodImpl: 0x19**](#MethodImpl_0x19)。
-
-### 13.2. 静态、实例和虚方法
-
-静态方法是与类型关联的方法，而不是与其实例关联的。
-
-实例方法与类型的实例关联：在实例方法的主体内，可以引用正在操作的特定实例 (通过 *this* 指针)。因此，实例方法只能在类或值类型中定义，而不能在接口或类型之外 (即全局) 定义。然而，请注意
-
- 1. 类 (包括装箱的值类型) 上的实例方法，默认情况下有一个 *this* 指针，它是对定义该方法的类的对象引用。
- 2.  (未装箱的) 值类型上的实例方法，默认情况下有一个 *this* 指针，它是对定义该方法的类型的实例的托管指针。
- 3. 有一种特殊的编码，由调用约定中的语法项 **explicit** 表示，调用约定用于指定 *this* 指针的类型，覆盖这里指定的默认值。
- 4. *this* 指针可以为 null。
-
-虚方法与类型的实例关联，与实例方法的方式非常相似。然而，与实例方法不同，可以以一种方式调用虚方法，即方法的实现将由 VES 在运行时根据用于 *this* 指针的对象的类型来选择。实现虚方法的特定 _Method_ 是在运行时动态确定的 (虚调用)，当通过 `callvirt` 指令调用时；而当通过 `call` 指令调用时，绑定是在编译时决定的。
-
-只有在虚调用 (仅限) 时，继承的概念才变得重要。派生类可以覆盖从其基类继承的虚方法，提供方法的新实现。方法属性 **newslot** 指定 CLI 不应覆盖基类型的虚方法定义，而应将新定义视为独立的虚方法定义。
-
-抽象虚方法 (只能在抽象类或接口中定义) 只能通过 `callvirt` 指令调用。同样，抽象虚方法的地址应通过 `ldvirtftn` 指令计算，不应使用 `ldftn` 指令。
-
-对于具体的虚方法，总是有一个来自包含定义的类的实现可用，因此在运行时没有必要有一个类的实例可用。然而，抽象虚方法只从子类型或实现适当接口的类接收其实现，因此需要一个实际实现该方法的类的实例。 
-
-### 13.3. 调用约定
-
- | _CallConv_ ::=
- | ----
- | [ `instance` [ `explicit` ]] [ _CallKind_ ]
- 
-调用约定指定了一个方法期望其参数如何从调用者传递给被调用的方法。它由两部分组成：第一部分处理 *this* 指针的存在和类型，第二部分涉及传输参数的机制。
-
-如果存在 **instance** 属性，它表示应将 *this* 指针传递给方法。这个属性应该用于实例方法和虚方法。
-
-通常，参数列表 (总是跟在调用约定后面) 不提供关于 *this* 指针类型的信息，因为这可以从其他信息中推断出来。然而，当指定了 **instance explicit** 组合时，随后的参数列表中的第一个类型指定了 *this* 指针的类型，随后的条目指定了参数本身的类型。
-
- | _CallKind_ ::=
- | ----
- | `default`
- | \| `unmanaged cdecl`
- | \| `unmanaged fastcall`
- | \| `unmanaged stdcall`
- | \| `unmanaged thiscall`
- | \| `vararg`
-
-托管代码只能有 **default** 或 **vararg** 调用种类。**default** 应在所有情况下使用，除非一个方法接受任意数量的参数，在这种情况下应使用 **vararg**。在处理 CLI 之外实现的方法时，能够指定所需的调用约定是很重要的。因此，调用种类有 16 种可能的编码。其中两种用于托管调用种类。四种在许多平台上具有定义的含义，如下：
-
- * **unmanaged cdecl** 是 Standard C 使用的调用约定
-
- * **unmanaged stdcall** 指定了一个标准的 C++ 调用
-
- * **unmanaged fastcall** 是一种特殊优化的 C++ 调用约定
-
- * **unmanaged thiscall** 是一个将 *this* 指针传递给方法的 C++ 调用
-
-另外四种保留给现有的调用约定，但它们的使用并不最大化地可移植。再有四种保留给未来的标准化，两种可用于非标准的实验性使用。 (在这个上下文中，"可移植" 指的是在所有符合 CLI 的实现上都可用的特性。) 
-
-### 13.4. 定义方法
-<a id="MethodHeader"></a>
-
- | _MethodHeader_ ::=
- | ----
- | _MethAttr_* [ _CallConv_ ] _Type_ [ `marshal` `'('` [ _NativeType_ ] `')'` ] _MethodName_ [ `'<'` _GenPars_ `'>'` ] `'('` _Parameters_ `')'` _ImplAttr_*
-
-方法头 (参见 §[II.10](ii.10-defining-types.md)) 包括：
-
- * 调用约定 (_CallConv_，参见 §[II.15.3](ii.15.3-calling-convention.md))
-
- * 任意数量的预定义方法属性 (_MethAttr_，参见 §[II.15.4.1.5](ii.15.4.1.5-the-param-type_directive.md))
-
- * 带有可选属性的返回类型
-
- * 可选的编组信息 (§[II.7.4](ii.7.4-native-data-types.md))
-
- * 方法名称
-
- * 可选的泛型参数 (在定义泛型方法时，参见 §[II.10.1.7](ii.10.1.7-generic-parameters-genpars.md)) 
-
- * 签名
-
- * 以及任意数量的实现属性 (_ImplAttr_，参见 §[II.15.4.3](ii.15.4.3-implementation-attributes-of-methods.md))
-
-没有返回值的方法应使用 **void** 作为返回类型。
-
- | _MethodName_ ::=
- | ----
- | `.cctor`
- | \| `.ctor`
- | \| _DottedName_
-
-方法名称可以是简单名称，也可以是用于实例构造函数和类型初始化器的特殊名称。
-
- | _Parameters_ ::=
- | -----
- | [ _Param_ [ `','` _Param_ ]* ]
-
- | _Param_ ::=
- | `...`
- | \| [ _ParamAttr_* ] _Type_ [ `marshal` `'('` [ _NativeType_ ] `')'` ] [ _Id_ ]
- 
-_Id_ (如果存在) 是参数的名称。参数可以通过使用其名称或参数的从零开始的索引来引用。在 CIL 指令中，它总是使用从零开始的索引进行编码 (名称用于方便在 ILAsm 中使用)。
-
-注意，与调用 **vararg** 方法不同，**vararg** 方法的定义不包括任何省略号 ("`…`") 
-
- | _ParamAttr_ ::=
- | ----
- | `'['` `in` `']'`
- | \| `'['` `opt` `']'`
- | \| `'['` `out` `']'`
-
-参数属性应附加到参数上 (参见 §[II.22.33](ii.22.33-param-0x08.md))，因此它们不是方法签名的一部分。
-
-_[注：_ 与参数属性不同，自定义修饰符 (**modopt** 和 **modreq**) *是*签名的一部分。因此，修饰符构成了方法的契约的一部分，而参数属性则不是。_结束注释]_
-
-**in** 和 **out** 只能附加到指针类型 (托管或非托管) 的参数上。它们指定参数是否旨在向方法提供输入，从方法返回值，或两者兼而有之。如果没有指定，则假定为 **in**。CLI 本身不强制这些位的语义，尽管它们可以用于优化性能，特别是在调用点和方法位于不同应用程序域、进程或计算机的场景中。
-
-**opt** 指定此参数旨在从最终用户的角度来看是可选的。要提供的值使用 **.param** 语法存储 (参见 §[II.15.4.1.4](ii.15.4.1.4-the-param-directive.md))。
-
-#### 13.4.1. 方法体
-
-方法体应包含程序的指令。然而，它也可以包含标签、额外的语法形式和许多为 *ilasm* 提供额外信息并有助于编译某些语言的方法的指令。
-
- | _MethodBodyItem_ ::=                                                                                       | 描述                                                   | 条款                                                    |
- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------- |
- | `.custom` _CustomDecl_                                                                                     | 自定义属性的定义。                                     | §[II.21](ii.21-custom-attributes.md)                    |
- | \| `.data` _DataDecl_                                                                                      | 将数据发射到数据段                                     | §[II.16.3](ii.16.3-embedding-data-in-a-pe-file.md)      |
- | \| `.emitbyte` _Int32_                                                                                     | 将一个无符号字节发射到方法的代码段。                   | §[II.15.4.1.1](ii.15.4.1.1-the-emitbyte-directive.md)   |
- | \| `.entrypoint`                                                                                           | 指定此方法是应用程序的入口点 (只允许一个这样的方法)。  | §[II.15.4.1.2](ii.15.4.1.2-the-entrypoint-directive.md) |
- | \| `.locals` [ `init` ] `'('` _LocalsSignature_ `')'`                                                      | 为此方法定义一组局部变量。                             | §[II.15.4.1.3](ii.15.4.1.3-the-locals-directive.md)     |
- | \| `.maxstack` _Int32_                                                                                     | `int32` 指定在执行方法期间评估堆栈上的元素的最大数量。 | §[II.15.4.1](ii.15.4.1-method-body.md)                  |
- | \| `.override` _TypeSpec_ `'::'` _MethodName_                                                              | 使用当前方法作为指定方法的实现。                       | §[II.10.3.2](ii.10.3.2-the-override-directive.md)       |
- | \| `.override method` _CallConv_ _Type_ _TypeSpec_ `'::'` _MethodName_ _GenArity_ `'('` _Parameters_ `')'` | 使用当前方法作为指定方法的实现。                       | §[II.10.3.2](ii.10.3.2-the-override-directive.md)       |
- | \| `.param` `'['` _Int32_ `']'` [ `'='` _FieldInit_ ]                                                      | 为参数 _Int32_ 存储一个常量 _FieldInit_ 值             | §[II.15.4.1.4](ii.15.4.1.4-the-param-directive.md)      |
- | \| `.param type` `'['` _Int32_ `']'`                                                                       | 指定泛型方法的类型参数                                 | §[II.15.4.1.5](ii.15.4.1.5-the-param-type_directive.md) |
- | \| _ExternSourceDecl_                                                                                      | `.line` 或 `#line`                                     | §[II.5.7](ii.5.7-source-line-information.md)            |
- | \| _Instr_                                                                                                 | 一条指令                                               | [Partition VI]()                                        |
- | \| _Id_ `':'`                                                                                              | 一个标签                                               | §[II.5.4](ii.5.4-labels-and-lists-of-labels.md)         |
- | \| _ScopeBlock_                                                                                            | 局部变量的词法范围                                     | §[II.15.4.4](ii.15.4.4-scope-blocks.md)                 |
- | \| _SecurityDecl_                                                                                          | `.permission` 或 `.permissionset`                      | §[II.20](ii.20-declarative-security.md)                 |
- | \| _SEHBlock_                                                                                              | 一个异常块                                             | §[II.19](ii.19-exception-handling.md)                   |
-
-源: 与必应的对话， 2023/12/25
-(1) github.com. https://github.com/stakx/ecma-335/tree/68d5015b146d347b2d76bd67d150af5f3fa68178/docs%2Fii.15.4.1-method-body.md.
-
-##### 13.4.1.1. .emitbyte 指令
-
- | _MethodBodyItem_ ::= &hellip;
- | \| `.emitbyte` _Int32_
- 
-此指令会导致一个无符号的 8 位值直接被发射到方法的 CIL 流中，就在指令出现的地方。
-
-_[注：_ **.emitbyte** 指令用于生成测试。在生成常规程序时不需要它。_结束注]_
-
-##### 13.4.1.2. .entrypoint 指令
-
- | _MethodBodyItem_ ::= &hellip;
- | \| `.entrypoint`
-
-**.entrypoint** 指令将当前方法 (应为静态方法) 标记为应用程序的入口点。VES 将调用此方法来启动应用程序。一个可执行文件应该有且只有一个入口点方法；库中的入口点方法不会被 VES 特别处理。这个入口点方法可以是全局方法，也可以出现在类型内部。 (指令的效果是将此方法的元数据令牌放入 PE 文件的 CLI 头部) 
-
-入口点方法应该不接受参数，或者接受一个字符串的向量。如果它接受一个字符串的向量，那么这些字符串应该代表可执行文件的参数，索引 0 包含第一个参数。指定这些参数的机制是特定于平台的，并未在此处指定。
-
-入口点方法的返回类型应该是 **void**，**int32**，或 **unsigned int32**。如果返回了 **int32** 或 **unsigned int32**，可执行文件可以向主机环境返回一个退出代码。值 0 应该表示应用程序正常终止。
-
-入口点方法的可访问性不应阻止其在开始执行时的使用。一旦开始，VES 应该像对待任何其他方法一样对待入口点。入口点方法不能在泛型类中定义。
-
-_[示例：_ 下面的代码打印出第一个参数并成功返回到操作系统：
-
- ```ilasm
- .method public static int32 MyEntry(string[] s) cil managed
- { .entrypoint
-   .maxstack 2
-   ldarg.0                  // load and print the first argument
-   ldc.i4.0
-   ldelem.ref
-   call void [mscorlib]System.Console::WriteLine(string)
-   ldc.i4.0                 // return success
-   ret
- }
- ```
-
-_结束示例]_
-
-Source: Conversation with Bing, 2023/12/25
-(1) github.com. https://github.com/stakx/ecma-335/tree/68d5015b146d347b2d76bd67d150af5f3fa68178/docs%2Fii.15.4.1.2-the-entrypoint-directive.md.
-
-##### 13.4.1.3. .locals 指令
-
-**.locals** 语句为当前方法声明一个或多个局部变量 (参见 [Partition I]())。
-
- | _MethodBodyItem_ ::= &hellip;
- | ----
- | \| `.locals` [ `init` ] `'('` _LocalsSignature_ `')'`
-
- | _LocalsSignature_ ::=
- | ----
- | _Local_ [ `','` _Local_ ]*
-
- | _Local_ ::=
- | ----
- | _Type_ [ _Id_ ]
-
-如果存在，_Id_ 是相应局部变量的名称。如果指定了 **init**，则根据它们的类型将变量初始化为默认值：引用类型初始化为 null，值类型被清零。  
-
-_[注：_ 可验证的方法应包含 **init** 关键字。参见 [Partition III]()。_结束注]_
-
-_[示例：_ 下面的代码声明了 4 个局部变量，每个变量都将被初始化为其默认值：
-
- ```ilasm
- .locals init ( int32 i, int32 j, float32 f, int64[] vect)
- ```
-
-_结束示例]_
-
-Source: Conversation with Bing, 2023/12/25
-(1) github.com. https://github.com/stakx/ecma-335/tree/68d5015b146d347b2d76bd67d150af5f3fa68178/docs%2Fii.15.4.1.3-the-locals-directive.md.
-
-##### 13.4.1.4. .param 指令
-
- | _MethodBodyItem_ ::= &hellip;
- | ----
- | \| `.param` `'['` _Int32_ `']'` [ `'='` _FieldInit_ ]
-
-此指令在元数据中存储与方法参数编号 _Int32_ 关联的常量值，参见 §[II.22.9](ii.22.9-constant-0x0b.md)。虽然 CLI 要求为参数提供一个值，但一些工具可以使用此属性的存在来表示工具而不是用户打算提供参数的值。与 CIL 指令不同，**.param** 使用索引 0 来指定方法的返回值，使用索引 1 来指定方法的第一个参数，使用索引 2 来指定方法的第二个参数，依此类推。
-
-_[注意：_ CLI 对这些值没有任何语义附加，完全取决于编译器实现他们希望的任何语义 (例如，所谓的默认参数值)。 _结束注意]_
-##### 13.4.1.5. .param type 指令
-<a id="param-type"></a>
-
- | _MethodBodyItem_ ::= &hellip;
- | ----
- | \| `.param type` `'['` _Int32_ `']'`
-
-此指令允许为泛型类型或方法指定类型参数。_Int32_ 是应用该指令的类型或方法参数的基于 1 的序数。_[注：_ 此指令与 **.custom** 指令一起使用，以将自定义属性与类型参数关联。_结束注释]_
-
-当在类范围内使用 **.param type** 指令时，它指的是该类的类型参数。当在类定义内的方法范围内使用该指令时，它指的是该方法的类型参数。否则，程序格式不正确。
-
-_[示例：_
-
- ```ilasm
- .class public G<T,U> {
-   .param type [1]  // refers to T
-   .custom instance void TypeParamAttribute::.ctor() = (01 00 ... )
-   .method public void Foo<M>(!!0 m) {
-      .param type [1] // refers to M
-      .custom instance void AnotherTypeParamAttribute::.ctor() = (01 00 ... )
-       …
-   }
-   …
- }
- ```
-
-_结束示例]_
-
-Source: Conversation with Bing, 2023/12/25
-(1) github.com. https://github.com/stakx/ecma-335/tree/68d5015b146d347b2d76bd67d150af5f3fa68178/docs%2Fii.15.4.1.5-the-param-type_directive.md.
-#### 13.4.2. 方法的预定义属性
-
- | _MethAttr_ ::=                                                        | 描述                                     | 条款         |
- | --------------------------------------------------------------------- | ---------------------------------------- | ------------ |
- | `abstract`                                                            | 方法是抽象的 (也必须是虚的)。            | §II.15.4.2.4 |
- | \| `assembly`                                                         | 程序集可访问性                           | §II.15.4.2.1 |
- | \| `compilercontrolled`                                               | 编译器控制的可访问性。                   | §II.15.4.2.1 |
- | \| `famandassem`                                                      | 家族和程序集可访问性                     | §II.15.4.2.1 |
- | \| `family`                                                           | 家族可访问性                             | §II.15.4.2.1 |
- | \| `famorassem`                                                       | 家族或程序集可访问性                     | §II.15.4.2.1 |
- | \| `final`                                                            | 此虚方法不能被派生类覆盖。               | §II.15.4.2.2 |
- | \| `hidebysig`                                                        | 通过签名隐藏。运行时忽略。               | §II.15.4.2.2 |
- | \| `newslot`                                                          | 指定此方法应在虚方法表中获取新的插槽。   | §II.15.4.2.3 |
- | \| `pinvokeimpl` `'('` _QSTRING_ [ `as` _QSTRING_ ] _PinvAttr_* `')'` | 方法实际上是在底层平台的本地代码中实现的 | §II.15.4.2.5 |
- | \| `private`                                                          | 私有可访问性                             | §II.15.4.2.1 |
- | \| `public`                                                           | 公共可访问性。                           | §II.15.4.2.1 |
- | \| `rtspecialname`                                                    | 方法名需要由运行时以特殊方式处理。       | §II.15.4.2.6 |
- | \| `specialname`                                                      | 方法名需要由某些工具以特殊方式处理。     | §II.15.4.2.6 |
- | \| `static`                                                           | 方法是静态的。                           | §II.15.4.2.2 |
- | \| `virtual`                                                          | 方法是虚的。                             | §II.15.4.2.2 |
- | \| `strict`                                                           | 在覆盖时检查可访问性                     | §II.15.4.2.2 |
-
-以下预定义属性的组合是无效的：
-
- * **static** 与 **final**、**newslot** 或 **virtual** 的任何一个组合
-
- * **abstract** 与 **final** 或 **pinvokeimpl** 的任何一个组合
-
- * **compilercontrolled** 与 **final**、**rtspecialname**、**specialname** 或 **virtual** 的任何一个组合
-
-##### 13.4.2.1. 可访问性信息
-
- | _MethAttr_ ::= &hellip;
- | ----
- | \| `assembly`
- | \| `compilercontrolled`
- | \| `famandassem`
- | \| `family`
- | \| `famorassem`
- | \| `private`
- | \| `public`
-
-这些属性中只有一个可以应用到给定的方法上。参见 [Partition I]()。这些属性定义了方法的可访问性，即它们规定了哪些代码可以访问该方法。例如，`public` 属性表示任何代码都可以访问该方法，而 `private` 属性表示只有定义该方法的类的代码才能访问该方法。其他属性提供了更复杂的访问控制，允许在类的继承层次结构中的不同级别进行访问。具体的使用方式和规则可以参考相应的章节。注意，每个方法只能有一个这样的属性。
-
-##### 13.4.2.2. 方法契约属性
-
- | _MethAttr_ ::= &hellip;
- | ----
- | \| `final`
- | \| `hidebysig`
- | \| `static`
- | \| `virtual`
- | \| `strict`
-
-这些属性可以组合，除非一个方法既是 **static** 又是 **virtual**；只有 **virtual** 方法才能是 **final** 或 **strict**；并且 **abstract** 方法不能是 **final**。
-
-**final** 方法不能被此类型的派生类覆盖。
-
-**hidebysig** 是为工具的使用提供的，被 VES 忽略。它指定声明的方法隐藏所有具有匹配方法签名的基类类型的方法；当省略时，方法应隐藏所有同名的方法，无论签名如何。
-
-_[理由：_ 一些语言 (如 C++) 使用隐藏-按名称语义，而其他语言 (如 C#、Java&trade;) 使用隐藏-按名称和签名语义。 _结束理由]_
-
-**static** 和 **virtual** 在 §[II.15.2](ii.15.2-static-instance-and-virtual-methods.md) 中有描述。
-
-只有当它们也是可访问的时，**strict virtual** 方法才能被覆盖。参见 §[II.23.1.10](ii.23.1.10-flags-for-methods-methodattributes.md)。
-
-##### 13.4.2.3. 覆盖行为
-<a id="newslot"></a>
-
- | _MethAttr_ ::= &hellip;
- | ----
- | \| `newslot`
-
-**newslot** 只能与 **virtual** 方法一起使用。参见 [II.10.3](ii.10.3-introducing-and-overriding-virtual-methods.md)。
-
-##### 13.4.2.4. 方法特性
-<a id="MethAttr-abstract"></a>
-
- | _MethAttr_ ::= &hellip;
- | ----
- | \| `abstract`
-
-**abstract** 只能与不是 **final** 的 **virtual** 方法一起使用。它指定方法的实现没有提供，但必须由派生类提供。**abstract** 方法只能出现在 **abstract** 类型中 (§[II.10.1.4](ii.10.1.4-inheritance-attributes.md))。这意味着，如果一个方法被标记为 **abstract**，那么它必须在一个派生类中被重写。此外，包含 **abstract** 方法的类型也必须被标记为 **abstract**。这些规则确保了类型的完整性和一致性，防止了在没有提供实现的情况下调用方法的可能性。具体的使用方式和规则可以参考相应的章节。注意，每个方法只能有一个这样的属性。
-
-##### 13.4.2.5. 互操作属性
-
- | _MethAttr_ ::= &hellip;
- | ----
- | \| `pinvokeimpl` `'('` _QSTRING_ [ `as` _QSTRING_ ] _PinvAttr_* `')'`
-
-参见 §[II.15.5.2](ii.15.5.2-platform-invoke.md) 和 §[22.22]()。
-
-##### 13.4.2.6. 特殊处理属性
-<a id="special-handle-attr"></a>
-
- | _MethAttr_ ::= &hellip;
- | ----
- | \| `rtspecialname`
- | \| `specialname`
-
-**rtspecialname** 属性指定运行时应以特殊方式处理方法名。特殊名称的例子包括 `.ctor` (对象构造函数) 和 `.cctor` (类型初始化器)。
-
-**specialname** 表示此方法的名称对某些工具有特殊含义。
-
-#### 13.4.3. 方法的实现属性
-<a id="method-init-attr"></a>
-
- | _ImplAttr_ ::=      | 描述                                   | 条款                                                          |
- | ------------------- | -------------------------------------- | ------------------------------------------------------------- |
- | `cil`               | 方法包含标准的 CIL 代码。              | §[II.15.4.3.1](ii.15.4.3.1-code-implementation-attributes.md) |
- | \| `forwardref`     | 此方法的主体没有在此声明中指定。       | §[II.15.4.3.3](ii.15.4.3.3-implementation-information.md)     |
- | \| `internalcall`   | 表示方法主体由 CLI 本身提供            | §[II.15.4.3.3](ii.15.4.3.3-implementation-information.md)     |
- | \| `managed`        | 方法是一个托管方法。                   | §[II.15.4.3.2](ii.15.4.3.2-managed-or-unmanaged.md)           |
- | \| `native`         | 方法包含本地代码。                     | §[II.15.4.3.1](ii.15.4.3.1-code-implementation-attributes.md) |
- | \| `noinlining`     | 运行时不应将方法内联展开。             | §[II.15.4.3.3](ii.15.4.3.3-implementation-information.md)     |
- | \| `nooptimization` | 在生成本地代码时，运行时不应优化方法。 | §[II.15.4.3.3](ii.15.4.3.3-implementation-information.md)     |
- | \| `runtime`        | 方法的主体未定义，但由运行时生成。     | §[II.15.4.3.1](ii.15.4.3.1-code-implementation-attributes.md) |
- | \| `synchronized`   | 方法应以单线程方式执行。               | §[II.15.4.3.3](ii.15.4.3.3-implementation-information.md)     |
- | \| `unmanaged`      | 指定方法是非托管的。                   | §[II.15.4.3.2](ii.15.4.3.2-managed-or-unmanaged.md)           |
-
-##### 13.4.3.1. 代码实现属性
-
- | _ImplAttr_ ::= &hellip;
- | ----
- | \| `cil`
- | \| `native`
- | \| `runtime`
-
-这些属性是互斥的；它们指定了方法包含的代码类型。
-
-**cil** 指定方法体由 cil 代码组成。除非方法被声明为抽象的，否则如果使用 cil，应提供方法体。
-
-**native** 指定方法是使用与其生成的特定处理器相关的本地代码实现的。**native** 方法不应有主体，而应引用声明主体的本地方法。通常，CLI 的 PInvoke 功能 (参见 §[II.15.5.2](ii.15.5.2-platform-invoke.md)) 用于引用本地方法。
-
-**runtime** 指定方法的实现由运行时自动提供，主要用于委托的方法 (参见 §[II.14.6](ii.14.6-delegates.md))。
-
-##### 13.4.3.2. 托管或非托管
-
- | _ImplAttr_ ::= &hellip;
- | ----
- | \| `managed`
- | \| `unmanaged`
- 
-这些不能组合。使用 CIL 实现的方法是**托管**的。**非托管**主要用于 PInvoke (§[II.15.5.2](ii.15.5.2-platform-invoke.md))。
-
-##### 13.4.3.3. 实现信息
-
- | _ImplAttr_ ::= &hellip;
- | ----
- | \| `forwardref`
- | \| `internalcall`
- | \| `noinlining` 
- | \| `nooptimization`
- | \| `synchronized`
-
-这些属性可以组合。
-
-**forwardref** 指定方法的主体在其他地方提供。当由 VES 加载程序集时，此属性不应存在。它用于将分别编译的模块组合并解析前向引用的工具 (如静态链接器)。
-
-**internalcall** 指定方法主体由 CLI 本身提供 (通常用于系统库中的低级方法)。它不应用于打算在 CLI 的实现之间使用的方法。
-
-**noinlining** 指定此方法的主体不应被 CIL 到本地代码的编译器包含到任何调用方法的代码中；它应保持为一个单独的例程。
-
-**nooptimization** 指定 CIL 到本地代码的编译器不应执行代码优化。
-
-_[理由：_ 指定一个方法不被内联可以确保它在调试 (例如，显示堆栈跟踪) 和分析中保持“可见”。它还为程序员提供了一种机制，可以覆盖 CIL 到本地代码编译器用于内联的默认启发式方法。_结束理由]_
-
-**synchronized** 指定方法的整个主体应该是单线程的。如果此方法是实例方法或虚方法，则在进入方法之前应获取对象上的锁。如果此方法是静态方法，则在进入方法之前应获取封闭类型上的锁。如果无法获取锁，请求线程不应继续进行，直到它被授予锁。这可能导致死锁。当方法退出时，无论是通过正常返回还是异常，锁都会被释放。使用 `tail.` 调用退出同步方法应该被实现为没有指定 `tail.`。
-
-**noinlining** 指定运行时不应内联此方法。内联是指将调用指令替换为被调用方法的主体的过程。这可以由运行时出于优化目的而完成。
-
-#### 13.4.4. 作用域块
-
- | _ScopeBlock_ ::=
- | ----
- | `'{'` _MethodBodyItem_* `'}'`
-
-_ScopeBlock_ 用于将方法体的元素组合在一起。例如，它用于指定构成异常处理器主体的代码序列。
-
-#### 13.4.5. vararg 方法
-
-**vararg** 方法接受可变数量的参数。它们应使用 **vararg** 调用约定 (§[II.15.3())。
-
-在每个调用点，都应使用方法引用来描述传递的固定和可变参数的类型。参数列表的固定部分应与额外的参数用省略号分隔 (参见 [Partition I]())。
-
-_[注意：_ 方法引用由 _MethodRef_ (§[II.22.25](ii.22.25-memberref-0x0a.md)) 或 _MethodDef_ (§[II.22.26](ii.22.26-methoddef-0x06.md)) 表示。即使方法在同一程序集中定义，也可能需要 _MethodRef_，因为 _MethodDef_ 只描述参数列表的固定部分。如果调用点没有传递任何额外的参数，那么它可以使用 _MethodDef_ 来调用在同一程序集中定义的 **vararg** 方法。_结束注意]_
-
-**vararg** 参数应通过使用 CIL 指令 `arglist` (参见 [Partition III]()) 获取参数列表的句柄来访问。句柄可以用于创建 `System.ArgIterator` 值类型的实例，该实例提供了一种类型安全的机制来访问参数 (参见 [Partition IV]())。
-
-_[示例：_ 下面的示例显示了如何声明一个 **vararg** 方法，以及如何访问第一个 **vararg** 参数，假设至少传递了一个额外的参数给该方法：
-
- ```ilasm
- .method public static vararg void MyMethod(int32 required) {
-   .maxstack 3
-   .locals init (valuetype [mscorlib]System.ArgIterator it, int32 x)
-
-   ldloca it    // 初始化迭代器
-   initobj  valuetype [mscorlib]System.ArgIterator
-   ldloca it
-   arglist     // 获取参数句柄
-   call instance void [mscorlib]System.ArgIterator::.ctor(valuetype
-       [mscorlib]System.RuntimeArgumentHandle)   // 调用迭代器的构造函数
-
-   /* 当检索到参数时，参数值将存储在 x 中，所以加载 x 的地址 */
-   ldloca x
-   ldloca it
-   // 检索参数，对于 required 的参数不重要
-   call instance typedref [mscorlib]System.ArgIterator::GetNextArg() 
-   call object [mscorlib]System.TypedReference::ToObject(typedref)  /* 检索对象 */
-   castclass [mscorlib]System.Int32  // 类型转换并拆箱
-   unbox int32
-   cpobj int32                       // 将值复制到 x 中
-   // 第一个 vararg 参数存储在 x 中
-   ret
- }
- ```
-
-_结束示例]_
-
-### 13.5. 未托管方法
-
-除了支持托管代码和托管数据外，CLI 还提供了从底层平台访问预先存在的本地代码 (称为未托管代码) 的设施。这些设施由于必要性是特定于平台的，因此在这里只部分指定。
-
-此标准指定：
-
- * 文件格式中的一种机制，用于向托管代码提供函数指针，该函数指针可以从未托管代码中调用 (§[II.15.5.1](ii.15.5.1-method-transition-thunks.md))。
-
- * 一种将某些方法定义标记为在未托管代码中实现的机制 (称为*平台调用*，参见 §[II.15.5.2](ii.15.5.2-platform-invoke.md))。
-
- * 一种标记与方法指针一起使用的调用点的机制，以指示调用是对未托管方法的调用 (§[II.15.5.3](ii.15.5.3-method-calls-via-function-pointers.md))。
-
- * 一小组预定义的数据类型，可以在所有 CLI 的实现上使用这些机制进行传递 (封送)  (§[II.15.5.4](ii.15.5.4-data-type-marshaling.md))。类型集合可以通过使用自定义属性和修饰符进行扩展，但这些扩展是特定于平台的。
-
-#### 13.5.1. 方法转换嵌入块
-
-_[注：_ 由于此机制不是 Kernel Profile 的一部分，因此可能不会出现在所有符合 CLI 的实现中。参见 [Partition IV]()。_结束注释]_
-
-为了从非托管代码调用托管代码，一些平台需要执行特定的转换序列。此外，一些平台要求转换数据类型的表示 (数据编组)。这两个问题都通过 **.vtfixup** 指令解决。此指令可以出现多次，但只能在 CIL 程序集文件的顶级出现，如下面的语法所示：
-
- | _Decl_ ::=               | 子句     |
- | ------------------------ | -------- |
- | `.vtfixup` _VTFixupDecl_ |
- | \| &hellip;              | §II.5.10 |
-
-**.vtfixup** 指令声明在某个内存位置有一个表，该表包含元数据令牌，这些令牌引用将被转换为方法指针的方法。当包含 **.vtfixup** 指令的文件加载到内存中执行时，CLI 将自动进行此转换。声明指定了表中的条目数量、所需的方法指针的类型、表中条目的宽度和表的位置：
-
- | _VTFixupDecl_ ::=
- | ----
- | [ _Int32_ ] _VTFixupAttr_* `at` _DataLabel_
-
- | _VTFixupAttr_ ::=
- | ----
- | `fromunmanaged`
- | \| `int32`
- | \| `int64`
-
-属性 **int32** 和 **int64** 是互斥的，**int32** 是默认值。这些属性指定了表中每个插槽的宽度。每个插槽包含一个 32 位的元数据令牌 (如果表有 64 位插槽，则用零填充)，CLI 将其转换为与插槽同宽的方法指针。
-
-如果指定了 **fromunmanaged**，CLI 将生成一个嵌入块，该嵌入块将非托管方法调用转换为托管调用，调用方法，并将结果返回到非托管环境。嵌入块还将以平台调用所描述的特定于平台的方式执行数据编组。
-
-ILAsm 语法没有指定创建令牌表的机制，但编译器可以简单地将令牌作为字节文字发出到使用 **.data** 指令指定的块中。
-
-#### 13.5.2. 平台调用
-
-使用 CLI 的*平台调用* (也称为 PInvoke 或 p/invoke) 功能可以调用在本地代码中定义的方法。平台调用将从托管状态切换到非托管状态，然后再切换回来，并处理必要的数据封送。需要使用 PInvoke 调用的方法被标记为 **pinvokeimpl**。此外，这些方法应具有实现属性 **native** 和 **unmanaged** (§[II.15.4.2.4](ii.15.4.2.4-method-attributes.md))。
-
- | _MethAttr_ ::=                                                     | 描述                                                    | 条款 |
- | ------------------------------------------------------------------ | ------------------------------------------------------- | ---- |
- | `pinvokeimpl` `'('` _QSTRING_ [ `as` _QSTRING_ ] _PinvAttr_* `')'` | 在本地代码中实现                                        |
- | \| &hellip;                                                        | §[II.15.4.1.5](ii.15.4.1.5-the-param-type_directive.md) |
-
-第一个引号内的字符串是一个平台特定的描述，指示方法的实现位于何处 (例如，在 Microsoft Windows&trade; 上，这将是实现该方法的 DLL 的名称)。第二个 (可选) 字符串是该方法在该平台上存在的名称，因为平台可以使用名称混淆规则，使得在托管程序中出现的名称与在本地实现中看到的名称不同 (例如，当本地代码由 C++ 编译器生成时，这是常见的)。
-
-只有静态方法，定义在全局范围 (即，类型之外)，可以被标记为 **pinvokeimpl**。声明为 pinvokeimpl 的方法不应在定义的一部分中指定主体。
-
- | _PinvAttr_ ::=   | 描述 (平台特定，仅供参考)        |
- | ---------------- | -------------------------------- |
- | `ansi`           | ANSI 字符集。                    |
- | \| `autochar`    | 自动确定字符集。                 |
- | \| `cdecl`       | 标准 C 风格调用                  |
- | \| `fastcall`    | C 风格快速调用。                 |
- | \| `stdcall`     | 标准 C++ 风格调用。              |
- | \| `thiscall`    | 方法接受一个隐式的 *this* 指针。 |
- | \| `unicode`     | Unicode 字符集。                 |
- | \| `platformapi` | 使用适合目标平台的调用约定。     |
-
-属性 **ansi**、**autochar** 和 **unicode** 是互斥的。它们决定了如何为此方法的调用封送字符串：**ansi** 表示本地代码将接收 (可能也会返回) 一个与 ANSI 字符集编码的字符串对应的平台特定表示 (通常，这将与 C 或 C++ 字符串常量的表示相匹配) ；**autochar** 表示对于底层平台来说是“自然”的平台特定表示；而 **unicode** 表示一个与该平台上用于 Unicode 方法的字符串编码对应的平台特定表示。
-
-属性 **cdecl**、**fastcall**、**stdcall**、**thiscall** 和 **platformapi** 是互斥的。它们是平台特定的，并指定本地代码的调用约定。
-
-_[示例：_ 下面显示了位于 Microsoft Windows&trade; DLL `user32.dll` 中的方法 `MessageBeep` 的声明：
-
- ```ilasm
- .method public static pinvokeimpl("user32.dll" stdcall) int8
-       MessageBeep(unsigned int32) native unmanaged {}
- ```
-
-_结束示例]_
-
-#### 13.5.3. 通过函数指针调用方法
-
-也可以通过函数指针调用非托管方法。使用指针调用托管或非托管方法之间没有区别。然而，非托管方法需要按照 §[II.15.5.2](ii.15.5.2-platform-invoke.md) 中的描述声明为 **pinvokeimpl**。使用函数指针调用托管方法在 §[II.14.5](ii.14.5-method-pointers.md) 中有描述。
-
-#### 13.5.4. 数据类型编组
-
-虽然数据类型编组必然是特定于平台的，但此标准规定了一组最小的数据类型，所有符合 CLI 的实现都应支持这些数据类型。可以使用自定义属性和/或自定义修饰符以特定于平台的方式支持额外的数据类型，以指定特定实现所需的任何特殊处理。
-
-以下数据类型应由所有符合 CLI 的实现进行编组；它们符合的本机数据类型是特定于实现的：
-
- * 所有整数数据类型 (**int8**，**int16**，**unsigned int8**，**bool**，**char** 等)，包括本机整数类型。
-
- * 枚举，作为其底层数据类型。
-
- * 所有浮点数据类型 (**float32** 和 **float64**)，如果 CLI 实现支持托管代码。
-
- * 类型 **string**。
-
- * 对上述任何类型的非托管指针。
-
-此外，以下类型应支持从托管代码到非托管代码的编组，但不必在反向支持 (即，作为调用非托管方法时的返回类型或作为从非托管方法调用到托管方法时的参数) ：
-
- * 上述任何类型的一维零基数组
- 
- * 委托 (从非托管代码调用到委托的机制是特定于平台的；不应假定编组委托将生成可以直接从非托管代码使用的函数指针)。
-
-最后，类型 `System.Runtime.InteropServices.GCHandle` 可用于将对象编组到非托管代码。非托管代码接收一个特定于平台的数据类型，该数据类型可以用作特定对象的“不透明句柄”。参见 [Partition IV]()。
-
-## 14. field：定义和引用字段
-<a id="field"></a>
-
-字段是存储程序数据的类型化内存位置。CLI 允许声明实例字段和静态字段。静态字段与类型关联，并在该类型的所有实例之间共享，而实例字段与该类型的特定实例关联。一旦实例化，一个实例就有其每个实例字段的自己的副本。CLI 还支持全局字段，这些字段是在任何类型定义之外声明的。全局字段应该是静态的。
-
-字段由 **.field** 指令定义：
-
-<pre>
-    <em>Field</em> ::= .field <em>FieldDecl</em>
-    <em>FieldDecl</em> ::= [ '[' <em>Int32</em> ']' ] <em>FieldAttr</em>* <em>Type</em> <em>Id</em> [ '=' <em>FieldInit</em> | at <em>DataLabel</em> ]
-</pre>
-
-_FieldDecl_ 有以下部分：
- * 一个可选的整数，指定字段在实例中的字节偏移量。如果存在，包含此字段的类型应具有显式布局特性。对于全局或静态字段，不应提供偏移量。
- * 任意数量的字段特性。
- * 类型。
- * 名称。
- * 可选地，一个 _FieldInit_ 子句或一个 [_DataLabel_](#DataLabel) 子句。
-
-全局字段应该有一个与之关联的数据标签。这指定了 PE 文件中该字段的数据的位置。类型的静态字段可以，但不必，分配数据标签。
-
- ```ilasm
- .field private class [.module Counter.dll]Counter counter
- .field public static initonly int32 pointCount
- .field private int32 xOrigin
- .field public static int32 count at D_0001B040
- ```
-
-_结束示例]_
-
-### 14.1. 字段的属性
-<a id="field-attr"></a>
-
-字段的属性指定了关于可访问性、契约信息、互操作属性以及特殊处理的信息。
-
-以下各小节包含了关于字段的每组预定义属性的额外信息。
-
- | _FieldAttr_ ::=                       | 描述                                       | 子句                                                 |
- | ------------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
- | `assembly`                            | 程序集可访问性。                           | §[II.16.1.1](ii.16.1.1-accessibility-information.md) |
- | \| `famandassem`                      | 家族和程序集可访问性。                     | §[II.16.1.1](ii.16.1.1-accessibility-information.md) |
- | \| `family`                           | 家族可访问性。                             | §[II.16.1.1](ii.16.1.1-accessibility-information.md) |
- | \| `famorassem`                       | 家族或程序集可访问性。                     | §[II.16.1.1](ii.16.1.1-accessibility-information.md) |
- | \| `initonly`                         | 标记为常量字段。                           | §[II.16.1.2](ii.16.1.2-field-contract-attributes.md) |
- | \| `literal`                          | 指定元数据字段。此字段在运行时不分配内存。 | §[II.16.1.2](ii.16.1.2-field-contract-attributes.md) |
- | \| `marshal` `'('` _NativeType_ `')'` | 编组信息。                                 | §[II.16.1.3](ii.16.1.3-interoperation-attributes.md) |
- | \| `notserialized`                    | 保留 (表示此字段不应被序列化)。            | §[II.16.1.2](ii.16.1.2-field-contract-attributes.md) |
- | \| `private`                          | 私有可访问性。                             | §[II.16.1.1](ii.16.1.1-accessibility-information.md) |
- | \| `compilercontrolled`               | 编译器控制的可访问性。                     | §[II.16.1.1](ii.16.1.1-accessibility-information.md) |
- | \| `public`                           | 公共可访问性。                             | §[II.16.1.1](ii.16.1.1-accessibility-information.md) |
- | \| `rtspecialname`                    | 运行时的特殊处理。                         | §[II.16.1.4](ii.16.1.4-other-attributes.md)          |
- | \| `specialname`                      | 其他工具的特殊名称。                       | §[II.16.1.4](ii.16.1.4-other-attributes.md)          |
- | \| `static`                           | 静态字段。                                 | §[II.16.1.2](ii.16.1.2-field-contract-attributes.md) |
-
-#### 14.1.1. 可访问性信息
-
-可访问性属性包括 **assembly**、**famandassem**、**family**、**famorassem**、**private**、**compilercontrolled** 和 **public**。这些属性是互斥的。可访问性属性在 §[II.8.2](ii.8.2-accessibility.md) 中有描述。
-
-
-#### 14.1.2. 字段契约属性
-
-字段契约属性有 **initonly**，**literal**，**static** 和 **notserialized**。这些属性可以组合；然而，只有静态字段应该是字面量。默认情况下，实例字段可以被序列化。
-
-**static**<a id="static-field"></a> 指定字段与类型本身相关联，而不是与类型的实例相关联。静态字段可以在没有类型实例的情况下访问，例如，通过静态方法。因此，在应用程序域内，静态字段在类型的所有实例之间共享，任何对此字段的修改都会影响所有实例。如果没有指定 **static**，则创建一个实例字段。
-
-**initonly**<a id="initonly-field"></a> 标记了在初始化后是常量的字段。这些字段只能在构造函数内部发生变化。如果字段是静态字段，那么它只能在声明它的类型的类型初始化器内部发生变化。如果它是一个实例字段，那么它只能在定义它的类型的一个实例构造函数中发生变化。它不应在任何其他方法或任何其他构造函数中发生变化，包括派生类的构造函数。
-
-_[注：_ 在 **initonly** 字段上使用 `ldflda` 或 `ldsflda` 会使代码无法验证。在无法验证的代码中，VES 不需要检查 initonly 字段是否在构造函数之外发生变化。如果一个方法改变了一个常量的值，VES 不需要报告任何错误。然而，这样的代码是无效的。_结束注]_
-
-**literal**<a id="literal-field"></a> 指定此字段表示一个常量值；这样的字段应该被赋值。与 **initonly** 字段相比，**literal** 字段在运行时不存在。它们没有分配内存。**literal** 字段成为元数据的一部分，但不能被代码访问。**literal** 字段通过使用 _FieldInit_ 语法 (§[II.16.2](ii.16.2-field-init-metadata.md)) 赋值。
-
-_[注：_ 生成 CIL 的工具有责任将源代码中对字面量的引用替换为其实际值。因此，更改字面量的值需要重新编译引用字面量的任何代码。因此，字面量值不具有版本韧性。_结束注]_
-
-#### 14.1.3. 互操作属性
-
-存在一个用于与预先存在的本地应用程序互操作的属性；它是特定于平台的，不应在打算在CLI的多个实现上运行的代码中使用。该属性是 **marshal**，它指定当字段的内容传递给非托管代码时，应将其转换为和从指定的本地数据类型。每个符合CLI的实现都将有默认的封送规则，以及可以使用 **marshal** 属性指定哪些自动转换的限制。另请参阅 §[II.15.5.4](ii.15.5.4-data-type-marshaling.md)。
-
-_[注意：_ 并非所有CLI的实现都需要对用户定义的类型进行封送。它在此标准中指定，以便选择提供它的实现将以一致的方式控制其行为。虽然这不足以保证使用此功能的代码的可移植性，但它确实增加了此类代码可能具有可移植性的可能性。 _结束注释]_
-
-#### 14.1.4. 其他属性
-
-**rtspecialname** 属性表示运行时应以特殊方式处理字段名称。
-
-_[原因：_ 目前没有需要用 **rtspecialname** 标记的字段名称。它是为了扩展，未来的标准化，以及增加字段和方法声明之间的一致性 (实例和类型初始化方法应该用这个属性标记)。按照惯例，枚举的单个实例字段被命名为 "`value__`" 并用 **rtspecialname** 标记。_结束原因]_
-
-**specialname** 属性表示字段名称对于运行时以外的工具有特殊含义，通常是因为它标记了对 CLS (参见 [Partition I]()) 有意义的名称。
-
-### 14.2. 字段初始化元数据
-<a id="field-init"></a>
-
-_FieldInit_ 元数据可以选择性地添加到字段声明中。此功能的使用不应与数据标签结合使用。
-
-_FieldInit_ 信息存储在元数据中，可以从元数据中查询此信息。但是，CLI 不使用此信息来自动初始化相应的字段。字段初始化器通常与**文字**字段 (§[II.16.1.2](ii.16.1.2-field-contract-attributes.md)) 或具有默认值的参数一起使用。参见 §[II.22.9](ii.22.9-constant-0x0b.md)。
-
-下表列出了字段初始化器的选项。请注意，尽管类型和字段初始化器都存储在元数据中，但并无要求它们匹配。 (任何导入编译器都负责将存储的值强制转换为目标字段类型)。下表中的描述列提供了额外的信息。
-
- | _FieldInit_ ::=                               | 描述                                                                     |
- | --------------------------------------------- | ------------------------------------------------------------------------ |
- | `bool` `'('` `true`                           | `false` `')'`                                                            | 布尔值，编码为真或假 |
- | \| `bytearray` `'('` _Bytes_ `')'`            | 字节字符串，存储时不进行转换。可以用一个零字节进行填充，使总字节数为偶数 |
- | \| `char` `'('` _Int32_ `')'`                 | 16位无符号整数 (Unicode字符)                                             |
- | \| `float32` `'('` _Float64_ `')'`            | 32位浮点数，括号中指定浮点数。                                           |
- | \| `float32` `'('` _Int32_ `')'`              | _Int32_ 是 float 的二进制表示                                            |
- | \| `float64` `'('` _Float64_ `')'`            | 64位浮点数，括号中指定浮点数。                                           |
- | \| `float64` `'('` _Int64_ `')'`              | _Int64_ 是 double 的二进制表示                                           |
- | \| [ `unsigned` ] `int8` `'('` _Int32_ `')'`  | 8位整数，括号中指定值。                                                  |
- | \| [ `unsigned` ] `int16` `'('` _Int32_ `')'` | 16位整数，括号中指定值。                                                 |
- | \| [ `unsigned` ] `int32` `'('` _Int32_ `')'` | 32位整数，括号中指定值。                                                 |
- | \| [ `unsigned` ] `int64` `'('` _Int64_ `')'` | 64位整数，括号中指定值。                                                 |
- | \| _QSTRING_                                  | 字符串。_QSTRING_ 存储为 Unicode                                         |
- | \| `nullref`                                  | 空对象引用                                                               |
-
-_[示例：_ 下面显示了这个的典型用法：
-
- ```ilasm
- .field public static literal valuetype ErrorCodes no_error = int8(0)
- ```
-
-名为 `no_error` 的字段是 `ErrorCodes` 类型 (值类型) 的文字，不为其分配内存。工具和编译器可以查找该值，并检测到它应该是一个值为 0 的 8 位有符号整数。_示例结束]_
-
-### 14.3. 在 PE 文件中嵌入数据
-<a id="data"></a>
-
-有几种方式可以声明存储在PE文件中的数据字段。在所有情况下，都使用 **.data** 指令。
-
-可以通过在顶层使用 **.data** 指令将数据嵌入到PE文件中。
-
- | _Decl_ ::=         | 条款                                                          |
- | ------------------ | ------------------------------------------------------------- |
- | `.data` _DataDecl_ |
- | \| &hellip;        | §[II.6.6](ii.6.6-declarations-inside-a-module-or-assembly.md) |
-
-数据也可以作为类型的一部分进行声明：
-
- | _ClassMember_ ::=  | 条款                                             |
- | ------------------ | ------------------------------------------------ |
- | `.data` _DataDecl_ |
- | \| &hellip;        | §[II.10.2](ii.10.2-body-of-a-type-definition.md) |
-
-另一种选择是在方法内部声明数据：
-
- | _MethodBodyItem_ ::= | 条款                                   |
- | -------------------- | -------------------------------------- |
- | `.data` _DataDecl_   |
- | \| &hellip;          | §[II.15.4.1](ii.15.4.1-method-body.md) |
-
-#### 14.3.1. data：数据声明
-
-**.data** 指令包含一个可选的数据标签和定义实际数据的主体。如果代码要访问数据，则应使用数据标签。
-
-<pre>
-    <em>DataDecl</em> ::= [ <em>DataLabel</em> '=' ] <em>DdBody</em>
-</pre>
-
-主体由一个数据项或括号中的数据项列表组成。数据项列表类似于数组。
-
-<pre>
-    <em>DdBody</em> ::= <em>DdItem</em> | '{' <em>DdItemList</em> '}'
-</pre>
-
-项目列表由任意数量的项目组成：
-
-<pre>
-    <em>DdItemList</em> ::= <em>DdItem</em> [ ',' <em>DdItemList</em> ]
-</pre>
-
-列表可以用来声明与一个标签关联的多个数据项。项目将按照声明的顺序布局。第一个数据项可以直接通过标签访问。要访问其他项目，使用指针算术，将每个数据项的大小加到列表中的下一个项目。使用指针算术将使应用程序无法验证。 (如果要在之后引用每个数据项，它应该有一个 _DataLabel_；如果要在数据项之间插入对齐填充，可以省略 _DataLabel_) 
-
-数据项声明数据的类型，并在括号中提供数据。如果数据项列表包含相同类型和初始值的项，以下语法可以用作某些类型的快捷方式：在声明后的括号中放入项目应复制的次数。
-
- | _DdItem_ ::=                                                   | 描述                 |
- | :------------------------------------------------------------- | -------------------- |
- | `'&'` `'(` _Id_ `')'`                                          | 标签的地址           |
- | \| `bytearray` `'('` _Bytes_ `')'`                             | 字节数组             |
- | \| `char` `'*'` `'('` _QSTRING_ `')'`                          | (Unicode) 字符数组   |
- | \| `float32` [ `'('` _Float64_ `')'` ] [ `'['` _Int32_ `']'` ] | 可复制的 32 位浮点数 |
- | \| `float64` [ `'('` _Float64_ `')'` ] [ `'['` _Int32_ `']'` ] | 可复制的 64 位浮点数 |
- | \| `int8` [ `'('` _Int32_ `')'` ] [ `'['` _Int32_ `']'` ]      | 可复制的 8 位整数    |
- | \| `int16` [ `'('` _Int32_ `')'` ] [ `'['` _Int32_ `']'` ]     | 可复制的 16 位整数   |
- | \| `int32` [ `'('` _Int32_ `')'` ] [ `'['` _Int32_ `']'` ]     | 可复制的 32 位整数   |
- | \| `int64` [ `'('` _Int64_ `')'` ] [ `'['` _Int32_ `']'` ]     | 可复制的 64 位整数   |
-
-以下声明了一个值为 123 的 32 位有符号整数：
-
- ```cil
- .data theInt = int32(123)
- ```
-
-以下声明了 10 个值为 3 的 8 位无符号整数的复制：
-
- ```cil
- .data theBytes = int8 (3) [10]
- ```
-
-#### 14.3.2. 从 PE 文件中访问数据
-<a id= "at-field"></a>
-
-使用 **.data** 指令在 PE 文件中存储的数据可以通过在数据的特定位置声明的静态变量 (全局的或类型的成员) 来访问：
-
- | _FieldDecl_ ::=
- | ----
- | _FieldAttr_* _Type_ _Id_ `at` _DataLabel_
- 
-然后，程序可以像访问任何其他静态变量一样访问数据，使用诸如 `ldsfld`，`ldsflda` 等指令 (参见 [Partition III]())。从 PE 文件内部访问数据的能力可能受到平台特定规则的限制，通常与 PE 文件格式本身的部分访问权限有关。
-
-_[示例：_ 下面访问了在 §[II.16.3.1](ii.16.3.1-data-declaration.md) 的示例中声明的数据。首先需要为数据声明一个静态变量，例如，全局静态变量：
-
- ```ilasm
- .field public static int32 myInt at theInt
- ```
-
-然后可以使用静态变量来加载数据：
-
- ```ilasm
- ldsfld int32 myInt
- // 数据在堆栈上
- ```
-
-_示例结束]_
-
-### 14.4. 非文字静态数据的初始化
-
-> _此小节及其子小节仅包含信息性文本。_
-
-许多支持静态数据的语言都提供了一种在程序开始执行之前初始化该数据的方法。有三种常见的机制可以做到这一点，CLI都支持这三种机制。
-
-#### 14.4.1. 链接时已知的数据
-
-当在程序链接 (或对于没有链接步骤的语言，在编译) 时已知要存储到静态数据中的正确值时，实际值可以直接存储到 PE 文件中，通常存储到数据区域 (§[II.16.3](ii.16.3-embedding-data-in-a-pe-file.md))。对变量的引用直接指向将此数据放置在内存中的位置，使用操作系统提供的修复机制来调整对此区域的任何引用，如果文件加载的地址与链接器假定的地址不同。
-
-在 CLI 中，如果静态变量是原始数值类型之一，或者是具有显式类型布局且没有嵌入到托管对象的引用的值类型，那么可以直接使用这种技术。在这种情况下，数据像往常一样布局在数据区域中，静态变量通过使用字段声明中的数据标签 (使用 at 语法) 分配一个特定的 RVA (即，从 PE 文件开始的偏移量)。
-
-然而，这种机制与 CLI 的应用程序域概念 (参见 [Partition I]()) 并不很好地交互。应用程序域旨在通过保证它们没有共享数据，将在同一操作系统进程中运行的两个应用程序隔离开来。由于 PE 文件在整个进程中是共享的，因此通过此机制访问的任何数据对进程中的所有应用程序域都是可见的，从而违反了应用程序域隔离边界。
-
-### 14.5. 加载时已知的数据
-
-当正确的值直到 PE 文件被加载时才知道 (例如，如果它包含基于多个 PE 文件的加载地址计算的值) 时，可能可以提供任意代码在 PE 文件加载时运行，但是这种机制是特定于平台的，并且可能在所有符合 CLI 的实现中都不可用。
-
-#### 14.5.1. 运行时已知的数据
-
-当正确的值不能在类型布局计算出来之前确定时，用户应提供作为类型初始化器一部分的代码来初始化静态数据。关于类型初始化的保证在 §[II.10.5.3.1](ii.10.5.3.1-type-initialization-guarantees.md) 中有所覆盖。如下文所述，全局静态变量在CLI中被建模为属于某种类型，因此同样的保证适用于全局和类型静态变量。
-
-由于托管类型的布局不需要在类型首次被引用时发生，因此无法通过简单地在PE文件中布局数据来静态初始化托管类型。相反，有一个类型初始化过程，按照以下步骤进行：
-
- 1. 所有静态变量都被置零。
-
- 2. 如果有的话，调用用户提供的类型初始化过程，如 §[II.10.5.3](ii.10.5.3-type-initializer.md) 所述。
-
-在类型初始化过程中有几种技术：
-
- * *生成显式代码*，将常量存储到静态变量的适当字段中。对于小型数据结构，这可能是有效的，但它要求将初始化器转换为本机代码，这可能会导致代码空间和执行时间问题。
-
- * *装箱值类型*。当静态变量只是原始数值类型或具有显式布局的值类型的装箱版本时，引入一个已知RVA的额外静态变量，该变量保存未装箱的实例，然后简单地使用box指令创建装箱副本。
-
- * *从静态本机数组的数据创建托管数组*。这可以通过将本机数组封送到托管数组来完成。要使用的特定封送器取决于本机数组。例如，它可以是safearray。
-
- * *默认初始化值类型的托管数组*。基类库提供了一个方法，该方法将每个未装箱值类型的数组元素的存储空间归零 (`System.Runtime.CompilerServices.InitializeArray`) 
-
-> _结束信息性文本。_
-
 ## 15. 定义属性
 <a id="property"></a>
 
@@ -1052,6 +178,7 @@ _[原理：_ 目前没有需要用 **rtspecialname** 标记的事件名称。它
 ```
 
 ## 17. 异常处理
+<a id="SEHBlock"></a>
 
 在CLI中，一个方法可以定义一系列被称为 _受保护_ 的CIL指令。这被称为 _try块_。然后，它可以将一个或多个 _处理程序_ 与该try块关联。如果在try块内的任何地方执行过程中发生异常，就会创建一个描述问题的异常对象。然后CLI接管，将控制权从抛出异常的点转移到愿意处理该异常的代码块。参见 [Partition I]()。
 
@@ -1224,7 +351,7 @@ _[示例：_
 
 _结束示例]_
 
-## 18. *SecurityDecl*：声明式安全
+## 18. SecurityDecl：声明式安全
 <a id="SecurityDecl"></a>
 
 许多针对 CLI 的语言使用属性语法将声明式安全属性附加到元数据中的项。这些信息实际上是由编译器转换为存储在元数据中的基于 XML 的表示形式，参见 §[II.22.11](ii.22.11-declsecurity-0x0e.md)。相比之下，*ilasm* 要求在其输入中表示转换信息。
@@ -1445,9 +572,9 @@ CLS 指定了某些自定义特性，并要求符合规范的语言支持它们�
 
 最后，*TypeDef* 表有一个特殊的排序约束：封闭类的定义应在其封闭的所有类的定义之前。
 
-元数据项 (元数据表中的记录) 由元数据令牌寻址。未编码的元数据令牌是 4 字节无符号整数，其中最高有效字节包含元数据表索引，三个最低有效字节包含基于 1 的记录索引。元数据表及其各自的索引在 §[II.22.2](ii.22.2-assembly-0x20.md) 和后续子条款中描述。
+元数据项 (元数据表中的记录) 由元数据 _token_ 寻址。未编码的元数据 _token_ 是 4 字节无符号整数，其中最高有效字节包含元数据表索引，三个最低有效字节包含基于 1 的记录索引。元数据表及其各自的索引在 §[II.22.2](ii.22.2-assembly-0x20.md) 和后续子条款中描述。
 
-编码的元数据令牌也包含表和记录索引，但格式不同。有关编码的详细信息，请参见 §[II.24.2.6](ii.24.2.6-metadata-stream.md)。
+编码的元数据 _token_ 也包含表和记录索引，但格式不同。有关编码的详细信息，请参见 §[II.24.2.6](ii.24.2.6-metadata-stream.md)。
 
 ### 20.1. 元数据验证规则
 
@@ -1565,7 +692,7 @@ _AssemblyRef_ 表有以下列：
 
  * _Flags_ (类型为 _AssemblyFlags_ 的 4 字节位掩码，参见 §[II.23.1.2](ii.23.1.2-values-for-assemblyflags.md)) 
 
- * _PublicKeyOrToken_ (Blob 堆的索引，表示标识此 Assembly 的作者的公钥或令牌) 
+ * _PublicKeyOrToken_ (Blob 堆的索引，表示标识此 Assembly 的作者的公钥或 _token_ ) 
 
  * _Name_ (String 堆的索引) 
 
@@ -1581,7 +708,7 @@ _AssemblyRef_ 表有以下列：
 
  2. _Flags_ 只应设置一个位，即 `PublicKey` 位 (参见 §[II.23.1.2](ii.23.1.2-values-for-assemblyflags.md))。所有其他位应为零。 \[错误\]
 
- 3. _PublicKeyOrToken_ 可以为 null 或非 null (注意 _Flags_.`PublicKey` 位指定 'blob' 是完整的公钥还是短哈希令牌) 
+ 3. _PublicKeyOrToken_ 可以为 null 或非 null (注意 _Flags_.`PublicKey` 位指定 'blob' 是完整的公钥还是短哈希 _token_ ) 
 
  4. 如果非 null，则 _PublicKeyOrToken_ 应索引 Blob 堆中的有效偏移 \[错误\]
 
@@ -1701,7 +828,7 @@ _Constant_ 表用于存储字段、参数和属性的编译时常量值。
 
 _Constant_ 表有以下列：
 
- * _Type_ (一个1字节常数，后面跟着一个1字节的填充零) ；参见 §[II.23.1.16](ii.23.1.16-element-types-used-in-signatures.md)。对于 _ilasm_ 中 _FieldInit_ 的 **nullref** 值 (§[II.16.2](ii.16.2-field-init-metadata.md))，_Type_ 的编码是 `ELEMENT_TYPE_CLASS`，其 _Value_ 是一个4字节的零。与 `ELEMENT_TYPE_CLASS` 在签名中的用法不同，这个不是后跟类型令牌。
+ * _Type_ (一个1字节常数，后面跟着一个1字节的填充零) ；参见 §[II.23.1.16](ii.23.1.16-element-types-used-in-signatures.md)。对于 _ilasm_ 中 _FieldInit_ 的 **nullref** 值 (§[II.16.2](ii.16.2-field-init-metadata.md))，_Type_ 的编码是 `ELEMENT_TYPE_CLASS`，其 _Value_ 是一个4字节的零。与 `ELEMENT_TYPE_CLASS` 在签名中的用法不同，这个不是后跟类型 _token_ 。
 
  * _Parent_ (一个索引，指向 _Param_、_Field_ 或 _Property_ 表；更准确地说，是一个 _HasConstant_ (§[II.24.2.6](ii.24.2.6-metadata-stream.md)) 编码索引) 
 
@@ -1834,7 +961,7 @@ _Action_ 是安全操作 (参见 `System.Security.SecurityAction` 在 [Partition
 
 **注释 2：** 属性应派生自 `System.Security.Permissions.SecurityAttribute`，但不应派生自 `System.Security.Permissions.CodeAccessSecurityAttribute`
 
-_Parent_ 是一个元数据令牌，它标识在 _PermissionSet_ 中编码的安全自定义属性定义的 _Method_，_Type_ 或 _Assembly_。
+_Parent_ 是一个元数据 _token_ ，它标识在 _PermissionSet_ 中编码的安全自定义属性定义的 _Method_，_Type_ 或 _Assembly_。
 
 _PermissionSet_ 是一个 'blob'，其格式如下：
 
@@ -1953,7 +1080,7 @@ _ExportedType_ 表为每种类型保存一行：
 
  1. 在此程序集的其他模块中定义；也就是说，从此程序集中导出。本质上，它存储了此程序集包含的其他模块中所有标记为公共的类型的 _TypeDef_ 行号。
  
-    实际的目标行在 _TypeDef_ 表中由 _TypeDefId_ (实际上是行号) 和 _Implementation_ (实际上是持有目标 _TypeDef_ 表的模块) 的组合给出。注意，这是元数据中 *foreign* 令牌的唯一出现；也就是说，令牌值在另一个模块中有意义。 (常规令牌值是对 *current* 模块中的表的索引) ；或者
+    实际的目标行在 _TypeDef_ 表中由 _TypeDefId_ (实际上是行号) 和 _Implementation_ (实际上是持有目标 _TypeDef_ 表的模块) 的组合给出。注意，这是元数据中 *foreign*  _token_ 的唯一出现；也就是说， _token_ 值在另一个模块中有意义。 (常规 _token_ 值是对 *current* 模块中的表的索引) ；或者
 
  2. 最初在此程序集中定义，但现在已移至另一个程序集。_Flags_ 必须设置 `IsTypeForwarder`，并且 _Implementation_ 是一个 _AssemblyRef_，表示现在可以在其中找到类型。
 
@@ -2490,13 +1617,13 @@ _MemberRef_ 表有以下列：
 
  1. _Class_ 应为以下之一：\[错误\]
 
-     1. 如果定义成员的类在另一个模块中定义，则为 _TypeRef_ 令牌。 (请注意，当成员在此相同的模块中定义时，使用 _TypeRef_ 令牌是不寻常的，但有效的，在这种情况下，可以使用其 _TypeDef_ 令牌代替。) 
+     1. 如果定义成员的类在另一个模块中定义，则为 _TypeRef_  _token_ 。 (请注意，当成员在此相同的模块中定义时，使用 _TypeRef_  _token_ 是不寻常的，但有效的，在这种情况下，可以使用其 _TypeDef_  _token_ 代替。) 
 
-     2. 如果成员在同一程序集的另一个模块中定义为全局函数或变量，则为 _ModuleRef_ 令牌。
+     2. 如果成员在同一程序集的另一个模块中定义为全局函数或变量，则为 _ModuleRef_  _token_ 。
 
-     3. 当用于为在此模块中定义的 vararg 方法提供调用点签名时，为 _MethodDef_ 令牌。_Name_ 应与相应 _MethodDef_ 行中的 _Name_ 匹配。_Signature_ 应与目标方法定义中的 _Signature_ 匹配 \[错误\]
+     3. 当用于为在此模块中定义的 vararg 方法提供调用点签名时，为 _MethodDef_  _token_ 。_Name_ 应与相应 _MethodDef_ 行中的 _Name_ 匹配。_Signature_ 应与目标方法定义中的 _Signature_ 匹配 \[错误\]
 
-     4. 如果成员是泛型类型的成员，则为 _TypeSpec_ 令牌
+     4. 如果成员是泛型类型的成员，则为 _TypeSpec_  _token_ 
 
  2. _Class_ 不应为 null (因为这将表示对全局函数或变量的未解析引用)  \[错误\]
 
@@ -3040,7 +2167,7 @@ _PropertyMap_ 和 _Property_ 表是将 **.property** 指令放在类上的结果
 ### 20.36. StandAloneSig: 0x11
 <a id="StandAloneSig_0x11"></a>
 
-签名存储在元数据 Blob 堆中。在大多数情况下，它们由某个表的某个列索引——_Field_._Signature_、_Method_._Signature_、_MemberRef_._Signature_ 等。然而，有两种情况需要一个元数据令牌来表示一个不由任何元数据表索引的签名。_StandAloneSig_ 表满足了这个需求。它只有一列，该列指向 Blob 堆中的一个 _Signature_。
+签名存储在元数据 Blob 堆中。在大多数情况下，它们由某个表的某个列索引——_Field_._Signature_、_Method_._Signature_、_MemberRef_._Signature_ 等。然而，有两种情况需要一个元数据 _token_ 来表示一个不由任何元数据表索引的签名。_StandAloneSig_ 表满足了这个需求。它只有一列，该列指向 Blob 堆中的一个 _Signature_。
 
 签名应描述以下之一：
 
@@ -3261,7 +2388,7 @@ _TypeDef_ 表有以下列：
 
      10. 除非它们是文字的，否则不应该有任何静态字段 \[错误\]
 
- 34. 嵌套类型 (如上所定义) 应该在 _NestedClass_ 表中拥有恰好一行，其中“拥有”意味着在 _NestedClass_ 表中的一行，其 _NestedClass_ 列包含此类型定义的 _TypeDef_ 令牌 \[错误\]
+ 34. 嵌套类型 (如上所定义) 应该在 _NestedClass_ 表中拥有恰好一行，其中“拥有”意味着在 _NestedClass_ 表中的一行，其 _NestedClass_ 列包含此类型定义的 _TypeDef_  _token_  \[错误\]
 
  35. ValueType 应该是封闭的 \[错误\]
 
@@ -3282,15 +2409,15 @@ _TypeRef_表有以下列：
 
  1. _ResolutionScope_应该严格是以下之一：
 
-    1. 空——在这种情况下，_ExportedType_表中应该有一行对应这个类型——它的_Implementation_字段应该包含一个_File_令牌或一个_AssemblyRef_令牌，说明类型在哪里定义 \[错误\]
+    1. 空——在这种情况下，_ExportedType_表中应该有一行对应这个类型——它的_Implementation_字段应该包含一个_File_ _token_ 或一个_AssemblyRef_ _token_ ，说明类型在哪里定义 \[错误\]
 
-    2. 一个_TypeRef_令牌，如果这是一个嵌套类型 (例如，可以通过检查它的_TypeDef_表中的_Flags_列来确定——可访问性子字段是`tdNestedXXX`集合中的一个)  \[错误\]
+    2. 一个_TypeRef_ _token_ ，如果这是一个嵌套类型 (例如，可以通过检查它的_TypeDef_表中的_Flags_列来确定——可访问性子字段是`tdNestedXXX`集合中的一个)  \[错误\]
 
-    3. 一个_ModuleRef_令牌，如果目标类型在与当前模块相同的程序集中的另一个模块中定义 \[错误\]
+    3. 一个_ModuleRef_ _token_ ，如果目标类型在与当前模块相同的程序集中的另一个模块中定义 \[错误\]
 
-    4. 一个_Module_令牌，如果目标类型在当前模块中定义——这在CLI ("压缩元数据") 模块中不应该出现 \[警告\]
+    4. 一个_Module_ _token_ ，如果目标类型在当前模块中定义——这在CLI ("压缩元数据") 模块中不应该出现 \[警告\]
 
-    5. 一个_AssemblyRef_令牌，如果目标类型在与当前模块不同的程序集中定义 \[错误\]
+    5. 一个_AssemblyRef_ _token_ ，如果目标类型在与当前模块不同的程序集中定义 \[错误\]
 
  2. _TypeName_应该在字符串堆中索引一个非空字符串 \[错误\]
 
@@ -3309,13 +2436,13 @@ _TypeRef_表有以下列：
 ### 20.39. TypeSpec: 0x1B
 <a id="TypeSpec_0x1B"></a>
 
-_TypeSpec_ 表只有一列，它索引了存储在 Blob 堆中的一个类型的规范。这为该类型提供了一个元数据令牌 (而不仅仅是一个指向 Blob 堆的索引)。这通常是必需的，例如，对数组操作，如创建或调用数组类的方法。
+_TypeSpec_ 表只有一列，它索引了存储在 Blob 堆中的一个类型的规范。这为该类型提供了一个元数据 _token_  (而不仅仅是一个指向 Blob 堆的索引)。这通常是必需的，例如，对数组操作，如创建或调用数组类的方法。
 
 _TypeSpec_ 表有以下列：
 
  * _Signature_  (索引到 Blob 堆，其中 blob 的格式如 §[II.23.2.14](ii.23.2.14-typespec.md) 所指定) 
 
-注意，_TypeSpec_ 令牌可以与任何接受 _TypeDef_ 或 _TypeRef_ 令牌的 CIL 指令一起使用；具体来说，`castclass`，`cpobj`，`initobj`，`isinst`，`ldelema`，`ldobj`，`mkrefany`，`newarr`，`refanyval`，`sizeof`，`stobj`，`box`，和 `unbox`。
+注意，_TypeSpec_  _token_ 可以与任何接受 _TypeDef_ 或 _TypeRef_  _token_ 的 CIL 指令一起使用；具体来说，`castclass`，`cpobj`，`initobj`，`isinst`，`ldelema`，`ldobj`，`mkrefany`，`newarr`，`refanyval`，`sizeof`，`stobj`，`box`，和 `unbox`。
 
 > _这只包含信息性文本。_
 
@@ -3328,6 +2455,8 @@ _TypeSpec_ 表有以下列：
 > _信息性文本结束。_
 
 ## 21. 元数据逻辑格式：其他结构
+<a id="metadata-format-others"></a>
+
 ### 21.1. 位掩码和标志
 
 此子条款解释了元数据表中使用的标志和位掩码。当符合规范的实现遇到未在此标准中指定的元数据结构 (如标志) 时，实现的行为是未指定的。
@@ -3622,8 +2751,8 @@ _TypeSpec_ 表有以下列：
  | `ELEMENT_TYPE_STRING`      | 0x0e | &nbsp;                                                                                                                       |
  | `ELEMENT_TYPE_PTR`         | 0x0f | 后跟 *type*                                                                                                                  |
  | `ELEMENT_TYPE_BYREF`       | 0x10 | 后跟 *type*                                                                                                                  |
- | `ELEMENT_TYPE_VALUETYPE`   | 0x11 | 后跟 _TypeDef_ 或 _TypeRef_ 令牌                                                                                             |
- | `ELEMENT_TYPE_CLASS`       | 0x12 | 后跟 _TypeDef_ 或 _TypeRef_ 令牌                                                                                             |
+ | `ELEMENT_TYPE_VALUETYPE`   | 0x11 | 后跟 _TypeDef_ 或 _TypeRef_  _token_                                                                                              |
+ | `ELEMENT_TYPE_CLASS`       | 0x12 | 后跟 _TypeDef_ 或 _TypeRef_  _token_                                                                                              |
  | `ELEMENT_TYPE_VAR`         | 0x13 | 泛型类型定义中的泛型参数，表示为 _number_ (压缩的无符号整数)                                                                 |
  | `ELEMENT_TYPE_ARRAY`       | 0x14 | *type* *rank* *boundsCount* *bound1* &hellip; *loCount* *lo1* &hellip;                                                       |
  | `ELEMENT_TYPE_GENERICINST` | 0x15 | 泛型类型实例化。后跟 *type* *type-arg-count* *type-1* &hellip; *type-n*                                                      |
@@ -3634,8 +2763,8 @@ _TypeSpec_ 表有以下列：
  | `ELEMENT_TYPE_OBJECT`      | 0x1c | `System.Object`                                                                                                              |
  | `ELEMENT_TYPE_SZARRAY`     | 0x1d | 单维数组，下界为0                                                                                                            |
  | `ELEMENT_TYPE_MVAR`        | 0x1e | 泛型方法定义中的泛型参数，表示为 *number* (压缩的无符号整数)                                                                 |
- | `ELEMENT_TYPE_CMOD_REQD`   | 0x1f | 必需的修饰符：后跟 _TypeDef_ 或 _TypeRef_ 令牌                                                                               |
- | `ELEMENT_TYPE_CMOD_OPT`    | 0x20 | 可选的修饰符：后跟 _TypeDef_ 或 _TypeRef_ 令牌                                                                               |
+ | `ELEMENT_TYPE_CMOD_REQD`   | 0x1f | 必需的修饰符：后跟 _TypeDef_ 或 _TypeRef_  _token_                                                                                |
+ | `ELEMENT_TYPE_CMOD_OPT`    | 0x20 | 可选的修饰符：后跟 _TypeDef_ 或 _TypeRef_  _token_                                                                                |
  | `ELEMENT_TYPE_INTERNAL`    | 0x21 | 在CLI中实现                                                                                                                  |
  | `ELEMENT_TYPE_MODIFIER`    | 0x40 | 与后续元素类型进行或运算                                                                                                     |
  | `ELEMENT_TYPE_SENTINEL`    | 0x41 | vararg方法签名的哨兵                                                                                                         |
@@ -3798,7 +2927,7 @@ _RetType_ 项描述了方法返回值的类型 (§[II.23.2.11](ii.23.2.11-rettyp
 
 _Param_ 项描述了每个方法参数的类型。应该有 _ParamCount_ 个 _Param_ 项的实例 (§[II.23.2.10](ii.23.2.10-param.md))。
 
-_Param_ 项描述了每个方法参数的类型。应该有 _ParamCount_ 个 _Param_ 项的实例。这开始就像一个 `VARARG` 方法的 _MethodDefSig_ (§[II.23.2.1](ii.23.2.1-methoddefsig.md))。但然后追加了一个 `SENTINEL` 令牌，后面跟着额外的 _Param_ 项来描述额外的 `VARARG` 参数。注意，_ParamCount_ 项应该指示签名中 _Param_ 项的总数 - 在 `SENTINEL` 字节 (0x41) 之前和之后。
+_Param_ 项描述了每个方法参数的类型。应该有 _ParamCount_ 个 _Param_ 项的实例。这开始就像一个 `VARARG` 方法的 _MethodDefSig_ (§[II.23.2.1](ii.23.2.1-methoddefsig.md))。但然后追加了一个 `SENTINEL`  _token_ ，后面跟着额外的 _Param_ 项来描述额外的 `VARARG` 参数。注意，_ParamCount_ 项应该指示签名中 _Param_ 项的总数 - 在 `SENTINEL` 字节 (0x41) 之前和之后。
 
 在罕见的情况下，如果调用点没有提供额外的参数，签名不应包含 `SENTINEL` (这是由下箭头显示的路径，它绕过 `SENTINEL` 并到达 _MethodRefSig_ 定义的末尾)。
 
@@ -3928,18 +3057,18 @@ _Signatures_ 中的 _CustomMod_ (自定义修饰符) 项的语法图如下：
 
 `CMOD_OPT` 或 `CMOD_REQD` 的值是压缩的，参见 §[II.23.2](ii.23.2-blobs-and-signatures.md)。
 
-`CMOD_OPT` 或 `CMOD_REQD` 后面跟着一个元数据令牌，该令牌索引 _TypeDef_ 表或 _TypeRef_ 表中的一行。然而，这些令牌是编码和压缩的 - 详情参见 §[II.23.2.8](ii.23.2.8-typedeforreforspecencoded.md)
+`CMOD_OPT` 或 `CMOD_REQD` 后面跟着一个元数据 _token_ ，该 _token_ 索引 _TypeDef_ 表或 _TypeRef_ 表中的一行。然而，这些 _token_ 是编码和压缩的 - 详情参见 §[II.23.2.8](ii.23.2.8-typedeforreforspecencoded.md)
 
 如果 CustomModifier 标记为 `CMOD_OPT`，那么任何导入编译器都可以完全忽略它。相反，如果 CustomModifier 标记为 `CMOD_REQD`，任何导入编译器都应该“理解”此 CustomModifier 所暗示的语义，以便引用周围的 Signature。
 
 
 #### 21.2.8. TypeDefOrRefOrSpecEncoded
 
-这些项是在签名中存储 _TypeDef_，_TypeRef_ 或 _TypeSpec_ 令牌的紧凑方式 (§[II.23.2.12](ii.23.2.12-type.md))。考虑一个常规的 _TypeRef_ 令牌，例如 0x01000012。最高字节 0x01 表示这是一个 _TypeRef_ 令牌 (参见 §[II.22](ii.22-metadata-logical-format-tables.md) 中支持的元数据令牌类型列表)。较低的3字节 (0x000012) 索引 _TypeRef_ 表中的行号 0x12。
+这些项是在签名中存储 _TypeDef_，_TypeRef_ 或 _TypeSpec_  _token_ 的紧凑方式 (§[II.23.2.12](ii.23.2.12-type.md))。考虑一个常规的 _TypeRef_  _token_ ，例如 0x01000012。最高字节 0x01 表示这是一个 _TypeRef_  _token_  (参见 §[II.22](ii.22-metadata-logical-format-tables.md) 中支持的元数据 _token_ 类型列表)。较低的3字节 (0x000012) 索引 _TypeRef_ 表中的行号 0x12。
 
-这个 _TypeRef_ 令牌的编码版本如下构造：
+这个 _TypeRef_  _token_ 的编码版本如下构造：
 
- 1. 将此令牌索引的表编码为最低有效的2位。要使用的位值是0，1和2，分别指定目标表是 _TypeDef_，_TypeRef_ 或 _TypeSpec_ 表。
+ 1. 将此 _token_ 索引的表编码为最低有效的2位。要使用的位值是0，1和2，分别指定目标表是 _TypeDef_，_TypeRef_ 或 _TypeSpec_ 表。
 
  2. 将3字节行索引 (在此示例中为 0x000012) 左移2位，并将其与步骤1中的2位编码进行 OR 操作。
 
@@ -3956,7 +3085,7 @@ _Signatures_ 中的 _CustomMod_ (自定义修饰符) 项的语法图如下：
              = 0x49
  ```
 
-所以，与原始的，常规的 _TypeRef_ 令牌值 0x01000012 不同，需要在签名 'blob' 中占用4字节的空间，这个 _TypeRef_ 令牌被编码为一个单字节。
+所以，与原始的，常规的 _TypeRef_  _token_ 值 0x01000012 不同，需要在签名 'blob' 中占用4字节的空间，这个 _TypeRef_  _token_ 被编码为一个单字节。
 
 #### 21.2.9. Constraint
 
@@ -4054,7 +3183,7 @@ _[注意：定义可以嵌套，因为类型本身可以是数组。结束注释
 
 #### 21.2.14. 类型规范(TypeSpec)
 
-在Blob堆中，由_TypeSpec_令牌索引的签名具有以下格式：
+在Blob堆中，由_TypeSpec_ _token_ 索引的签名具有以下格式：
 
  | _TypeSpecBlob_ ::=
  | ----
@@ -4070,7 +3199,7 @@ _[注意：定义可以嵌套，因为类型本身可以是数组。结束注释
 
 #### 21.2.15. MethodSpec
 
-由 _MethodSpec_ 令牌索引的 Blob 堆中的签名具有以下格式
+由 _MethodSpec_  _token_ 索引的 Blob 堆中的签名具有以下格式
 
  | _MethodSpecBlob_ ::=
  | ----
@@ -4139,7 +3268,7 @@ _Elem_采用此图中的一种形式，如下所示：
 
  * 如果参数种类是_string_， (上述图表的中间行) 那么blob包含一个_SerString_ - 一个_PackedLen_字节计数，后面跟着UTF8字符。如果字符串为null，其_PackedLen_的值为0xFF (没有后续字符)。如果字符串为空 ("")，那么_PackedLen_的值为0x00 (没有后续字符)。
 
- * 如果参数种类是`System.Type`， (同样，上述图表的中间行) 其值以_SerString_的形式存储 (如上一段所定义)，表示其规范名称。规范名称是其完整类型名称，后面可选地跟着定义它的程序集，其版本，文化和公钥令牌。如果省略了程序集名称，CLI首先在当前程序集中查找，然后在系统库 (`mscorlib`) 中查找；在这两种特殊情况下，允许省略程序集名称，版本，文化和公钥令牌。
+ * 如果参数种类是`System.Type`， (同样，上述图表的中间行) 其值以_SerString_的形式存储 (如上一段所定义)，表示其规范名称。规范名称是其完整类型名称，后面可选地跟着定义它的程序集，其版本，文化和公钥 _token_ 。如果省略了程序集名称，CLI首先在当前程序集中查找，然后在系统库 (`mscorlib`) 中查找；在这两种特殊情况下，允许省略程序集名称，版本，文化和公钥 _token_ 。
 
  * 如果参数种类是`System.Object`， (上述图表的第三行) 存储的值表示该值类型的"装箱"实例。在这种情况下，blob包含实际类型的_FieldOrPropType_ (见下文)，后面跟着参数的未装箱值。_[注意：_在这种情况下，不可能传递null值。_结束注释]_
 
@@ -4706,7 +3835,7 @@ CLI 头包含所有特定于运行时的数据条目和其他信息。头应放�
  | 6    | 2    | MinorRuntimeVersion     | 版本的次要部分，当前为 0。                                                |
  | 8    | 8    | MetaData                | 物理元数据的 RVA 和大小 (§[II.24](ii.24-metadata-physical-layout.md))。   |
  | 16   | 4    | Flags                   | 描述此运行时图像的标志。(§[II.25.3.3.1](ii.25.3.3.1-runtime-flags.md))。  |
- | 20   | 4    | EntryPointToken         | 图像入口点的 _MethodDef_ 或 _File_ 的令牌                                 |
+ | 20   | 4    | EntryPointToken         | 图像入口点的 _MethodDef_ 或 _File_ 的 _token_                                  |
  | 24   | 8    | Resources               | 实现特定资源的 RVA 和大小。                                               |
  | 32   | 8    | StrongNameSignature     | 此 PE 文件的哈希数据的 RVA，由 CLI 加载器用于绑定和版本控制               |
  | 40   | 8    | CodeManagerTable        | 始终为 0 (§[II.24.1](ii.24.1-fixed-fields.md))。                          |
@@ -4726,15 +3855,15 @@ CLI 头包含所有特定于运行时的数据条目和其他信息。头应放�
  | `COMIMAGE_FLAGS_NATIVE_ENTRYPOINT` | 0x00000010 | 应为0。                                                                                                                                                        |
  | `COMIMAGE_FLAGS_TRACKDEBUGDATA`    | 0x00010000 | 应为0 (§[II.24.1](ii.24.1-fixed-fields.md))。                                                                                                                  |
 
-##### 23.3.3.2. 入口点元数据令牌
+##### 23.3.3.2. 入口点元数据 _token_ 
 
- * 入口点令牌 (§[II.15.4.1.2](ii.15.4.1.2-the-entrypoint-directive.md)) 在多模块程序集的入口点不在清单程序集中时，始终是 _MethodDef_ 令牌 (§[II.22.26](ii.22.26-methoddef-0x06.md)) 或 _File_ 令牌 (§[II.22.19](ii.22.19-file-0x26.md))。方法的元数据中的签名和实现标志指示如何运行入口。
+ * 入口点 _token_  (§[II.15.4.1.2](ii.15.4.1.2-the-entrypoint-directive.md)) 在多模块程序集的入口点不在清单程序集中时，始终是 _MethodDef_  _token_  (§[II.22.26](ii.22.26-methoddef-0x06.md)) 或 _File_  _token_  (§[II.22.19](ii.22.19-file-0x26.md))。方法的元数据中的签名和实现标志指示如何运行入口。
 
 ##### 23.3.3.3. Vtable 修复
 
 某些选择不遵循公共类型系统运行时模型的语言可以拥有需要在 v-table 中表示的虚函数。这些 v-table 是由编译器布局的，而不是由运行时布局的。找到正确的 v-table 插槽并通过该插槽中保存的值间接调用也是由编译器完成的。运行时头中的 **VtableFixups** 字段包含 Vtable 修复数组的位置和大小 (参见 §[II.15.5.1](ii.15.5.1-method-transition-thunks.md))。V-table 应该被发射到 PE 文件的 *读-写* 部分。
 
-此数组中的每个条目描述了指定大小的 v-table 插槽的连续数组。每个插槽开始时都初始化为它们需要调用的方法的元数据令牌值。在图像加载时，运行时加载器将每个条目转换为 CPU 的机器代码的指针，并可以直接调用。
+此数组中的每个条目描述了指定大小的 v-table 插槽的连续数组。每个插槽开始时都初始化为它们需要调用的方法的元数据 _token_ 值。在图像加载时，运行时加载器将每个条目转换为 CPU 的机器代码的指针，并可以直接调用。
 
  | 偏移量 | 大小 | 字段               | 描述                     |
  | ------ | ---- | ------------------ | ------------------------ |
@@ -4747,7 +3876,7 @@ CLI 头包含所有特定于运行时的数据条目和其他信息。头应放�
  | `COR_VTABLE_32BIT`             | 0x01 | Vtable 插槽是 32 位的。                         |
  | `COR_VTABLE_64BIT`             | 0x02 | Vtable 插槽是 64 位的。                         |
  | `COR_VTABLE_FROM_UNMANAGED`    | 0x04 | 从非托管代码转换到托管代码。                    |
- | `COR_VTABLE_CALL_MOST_DERIVED` | 0x10 | 调用由令牌描述的最派生的方法 (仅对虚方法有效)。 |
+ | `COR_VTABLE_CALL_MOST_DERIVED` | 0x10 | 调用由 _token_ 描述的最派生的方法 (仅对虚方法有效)。 |
 
 ##### 23.3.3.4. 强名称签名
 
@@ -4759,7 +3888,7 @@ CLI 头包含所有特定于运行时的数据条目和其他信息。头应放�
 
 一个方法由方法头紧接着方法体组成，可能后面还跟着额外的方法数据部分 (§[II.25.4.5](ii.25.4.5-method-data-section.md))，通常是异常处理数据。如果存在异常处理数据，那么 `CorILMethod_MoreSects` 标志 (§[II.25.4.4](ii.25.4.4-flags-for-method-headers.md)) 应在方法头和之后的每个链式项中指定。
 
-方法头有两种形式 &ndash; tiny (§[II.25.4.2](ii.25.4.2-tiny-format.md)) 和 fat (§[II.25.4.3](ii.25.4.3-fat-format.md))。方法头中的两个最低有效位指示哪种类型存在 (§[II.25.4.1](ii.25.4.1-method-header-type-values.md))。tiny 头长 1 字节，只存储方法的代码大小。如果一个方法没有局部变量，maxstack 是 8 或更小，方法没有异常，方法大小小于 64 字节，并且方法没有高于 0x7 的标志，那么该方法将被赋予一个 tiny 头。fat 头携带完整信息 &ndash; 局部变量签名令牌，maxstack，代码大小，标志。tiny 方法头可以开始于任何字节边界。fat 方法头应开始于 4 字节边界。
+方法头有两种形式 &ndash; tiny (§[II.25.4.2](ii.25.4.2-tiny-format.md)) 和 fat (§[II.25.4.3](ii.25.4.3-fat-format.md))。方法头中的两个最低有效位指示哪种类型存在 (§[II.25.4.1](ii.25.4.1-method-header-type-values.md))。tiny 头长 1 字节，只存储方法的代码大小。如果一个方法没有局部变量，maxstack 是 8 或更小，方法没有异常，方法大小小于 64 字节，并且方法没有高于 0x7 的标志，那么该方法将被赋予一个 tiny 头。fat 头携带完整信息 &ndash; 局部变量签名 _token_ ，maxstack，代码大小，标志。tiny 方法头可以开始于任何字节边界。fat 方法头应开始于 4 字节边界。
 
 #### 23.4.1. 方法头类型值
 
@@ -4811,7 +3940,7 @@ Fat头部具有以下结构
  | 12 (位) | 4 (位)  | **Size**           | 以占用的4字节整数的计数表示此头部的大小 (当前为3)                                                      |
  | 2       | 2       | **MaxStack**       | 操作数栈上的最大项数                                                                                   |
  | 4       | 4       | **CodeSize**       | 实际方法体的字节大小                                                                                   |
- | 8       | 4       | **LocalVarSigTok** | 描述方法的局部变量布局的签名的元数据令牌。0表示没有局部变量存在                                        |
+ | 8       | 4       | **LocalVarSigTok** | 描述方法的局部变量布局的签名的元数据 _token_ 。0表示没有局部变量存在                                        |
 
 #### 23.4.4. 方法头的标志
 <a id="method-header"></a>
@@ -4866,7 +3995,7 @@ fat 异常头结构的布局如下：
  | 4      | 1    | **TryLength**     | try块的字节长度                            |
  | 5      | 2    | **HandlerOffset** | 此try块的处理程序的位置                    |
  | 7      | 1    | **HandlerLength** | 处理程序代码的字节大小                     |
- | 8      | 4    | **ClassToken**    | 基于类型的异常处理程序的元数据令牌         |
+ | 8      | 4    | **ClassToken**    | 基于类型的异常处理程序的元数据 _token_          |
  | 8      | 4    | **FilterOffset**  | 基于过滤器的异常处理程序在方法体中的偏移量 |
 
 大型异常处理条款的布局如下：
@@ -4878,7 +4007,7 @@ fat 异常头结构的布局如下：
  | 8      | 4    | **TryLength**     | try块的字节长度                            |
  | 12     | 4    | **HandlerOffset** | 此try块的处理程序的位置                    |
  | 16     | 4    | **HandlerLength** | 处理程序代码的字节大小                     |
- | 20     | 4    | **ClassToken**    | 基于类型的异常处理程序的元数据令牌         |
+ | 20     | 4    | **ClassToken**    | 基于类型的异常处理程序的元数据 _token_          |
  | 20     | 4    | **FilterOffset**  | 基于过滤器的异常处理程序在方法体中的偏移量 |
 
 每个异常处理条款使用以下标志值：
