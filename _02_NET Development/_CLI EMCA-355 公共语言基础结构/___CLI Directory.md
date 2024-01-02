@@ -3,7 +3,17 @@
 ### Partition 1: Concepts and Architecture
 >---
 
+`Key` = CIL 指令，Code
+***Word*** = 专业名词
+**CIL Key** = CIL Tokens 
+*CIL Word* = Metadata Ids
+Word = General word
+**`Metadata Table`** = Tables Name
+***`Tables Columns`*** = Tables columns
+*`Flags`*
 
+// 未收录
+ALG_SID_SHA1
 
 
 ---

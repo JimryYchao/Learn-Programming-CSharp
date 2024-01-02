@@ -6,7 +6,7 @@
 >---
 ### 21.1. BitMasks & Flags
 
-此小节解释了元数据表中使用的 Flags 和 BitMasks。当符合规范的实现遇到未在此标准中指定的元数据结构 (如标志) 时，实现的行为是未指定的。
+此小节解释了元数据表中使用的 *Flags* 和 *BitMasks*。当符合规范的实现遇到未在此标准中指定的元数据结构 (如 *Flags*) 时，实现的行为是未指定的。
 
 #### 21.1.1. AssemblyHashAlgorithm
 <a id="AssemblyHashAlgorithm-value"></a>
