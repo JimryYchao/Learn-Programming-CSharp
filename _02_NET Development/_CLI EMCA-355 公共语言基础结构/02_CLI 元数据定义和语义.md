@@ -4668,6 +4668,7 @@ CLS 对自定义特性的使用施加了某些约定，以便改进跨语言操�
 以下的子小节列出了所有的伪自定义特性和 _显著_ 的自定义特性，其中 _显著_ 意味着 CLI 和 / 或编译器直接关注它们，并以某种方式影响它们的行为。为了防止将来的名称冲突，`System` 命名空间中的所有自定义特性都保留用于标准化。
 
 #### 19.2.1. 伪自定义特性
+<a id="pseudo-custom-attr"></a>
 
 下表列出了 CLI 的伪自定义特性。 并非所有这些特性都在此标准中指定，但所有的名称都是保留的，不得用于其他目的。它们在 `System.Reflection`，`System.Runtime.CompilerServices` 和 `System.Runtime.InteropServices` 命名空间中定义。
 
