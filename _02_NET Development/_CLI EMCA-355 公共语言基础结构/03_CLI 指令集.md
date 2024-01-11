@@ -137,7 +137,7 @@ CLI 的 `char` 类型在内存中占用 2 字节，并使用 UTF-16 编码表示
 ### 指令变体表
 <a id= "ins-var-table"></a>
 
-在 §[III.3](【】) 中，为每个指令提供了一个指令变体表。它描述了指令的每个变体。表格的格式列列出了指令变体的操作码，以及跟随在指令流中的任何操作数。例如：
+在 §[[↗]](#base-ins) 中，为每个指令提供了一个指令变体表。它描述了指令的每个变体。表格的格式列列出了指令变体的操作码，以及跟随在指令流中的任何操作数。例如：
 
  | 格式                       | 汇编格式            | 描述                               |
  | -------------------------- | ------------------- | ---------------------------------- |
@@ -159,227 +159,227 @@ CIL 操作码长度为一个或多个字节；它们可以后跟零个或多个�
 > Opcode 编码
 <a id="OpTable1"></a>
 
-| Opcode    | Instruction      |
-| --------- | ---------------- |
-| 0x00      | `nop`            |
-| 0x01      | `break`          |
-| 0x02      | `ldarg.0`        |
-| 0x03      | `ldarg.1`        |
-| 0x04      | `ldarg.2`        |
-| 0x05      | `ldarg.3`        |
-| 0x06      | `ldloc.0`        |
-| 0x07      | `ldloc.1`        |
-| 0x08      | `ldloc.2`        |
-| 0x09      | `ldloc.3`        |
-| 0x0A      | `stloc.0`        |
-| 0x0B      | `stloc.1`        |
-| 0x0C      | `stloc.2`        |
-| 0x0D      | `stloc.3`        |
-| 0x0E      | `ldarg.s`        |
-| 0x0F      | `ldarga.s`       |
-| 0x10      | `starg.s`        |
-| 0x11      | `ldloc.s`        |
-| 0x12      | `ldloca.s`       |
-| 0x13      | `stloc.s`        |
-| 0x14      | `ldnull`         |
-| 0x15      | `ldc.i4.m1`      |
-| 0x16      | `ldc.i4.0`       |
-| 0x17      | `ldc.i4.1`       |
-| 0x18      | `ldc.i4.2`       |
-| 0x19      | `ldc.i4.3`       |
-| 0x1A      | `ldc.i4.4`       |
-| 0x1B      | `ldc.i4.5`       |
-| 0x1C      | `ldc.i4.6`       |
-| 0x1D      | `ldc.i4.7`       |
-| 0x1E      | `ldc.i4.8`       |
-| 0x1F      | `ldc.i4.s`       |
-| 0x20      | `ldc.i4`         |
-| 0x21      | `ldc.i8`         |
-| 0x22      | `ldc.r4`         |
-| 0x23      | `ldc.r8`         |
-| 0x25      | `dup`            |
-| 0x26      | `pop`            |
-| 0x27      | `jmp`            |
-| 0x28      | `call`           |
-| 0x29      | `calli`          |
-| 0x2A      | `ret`            |
-| 0x2B      | `br.s`           |
-| 0x2C      | `brfalse.s`      |
-| 0x2D      | `brtrue.s`       |
-| 0x2E      | `beq.s`          |
-| 0x2F      | `bge.s`          |
-| 0x30      | `bgt.s`          |
-| 0x31      | `ble.s`          |
-| 0x32      | `blt.s`          |
-| 0x33      | `bne.un.s`       |
-| 0x34      | `bge.un.s`       |
-| 0x35      | `bgt.un.s`       |
-| 0x36      | `ble.un.s`       |
-| 0x37      | `blt.un.s`       |
-| 0x38      | `br`             |
-| 0x39      | `brfalse`        |
-| 0x3A      | `brtrue`         |
-| 0x3B      | `beq`            |
-| 0x3C      | `bge`            |
-| 0x3D      | `bgt`            |
-| 0x3E      | `ble`            |
-| 0x3F      | `blt`            |
-| 0x40      | `bne.un`         |
-| 0x41      | `bge.un`         |
-| 0x42      | `bgt.un`         |
-| 0x43      | `ble.un`         |
-| 0x44      | `blt.un`         |
-| 0x45      | `switch`         |
-| 0x46      | `ldind.i1`       |
-| 0x47      | `ldind.u1`       |
-| 0x48      | `ldind.i2`       |
-| 0x49      | `ldind.u2`       |
-| 0x4A      | `ldind.i4`       |
-| 0x4B      | `ldind.u4`       |
-| 0x4C      | `ldind.i8`       |
-| 0x4D      | `ldind.i`        |
-| 0x4E      | `ldind.r4`       |
-| 0x4F      | `ldind.r8`       |
-| 0x50      | `ldind.ref`      |
-| 0x51      | `stind.ref`      |
-| 0x52      | `stind.i1`       |
-| 0x53      | `stind.i2`       |
-| 0x54      | `stind.i4`       |
-| 0x55      | `stind.i8`       |
-| 0x56      | `stind.r4`       |
-| 0x57      | `stind.r8`       |
-| 0x58      | `add`            |
-| 0x59      | `sub`            |
-| 0x5A      | `mul`            |
-| 0x5B      | `div`            |
-| 0x5C      | `div.un`         |
-| 0x5D      | `rem`            |
-| 0x5E      | `rem.un`         |
-| 0x5F      | `and`            |
-| 0x60      | `or`             |
-| 0x61      | `xor`            |
-| 0x62      | `shl`            |
-| 0x63      | `shr`            |
-| 0x64      | `shr.un`         |
-| 0x65      | `neg`            |
-| 0x66      | `not`            |
-| 0x67      | `conv.i1`        |
-| 0x68      | `conv.i2`        |
-| 0x69      | `conv.i4`        |
-| 0x6A      | `conv.i8`        |
-| 0x6B      | `conv.r4`        |
-| 0x6C      | `conv.r8`        |
-| 0x6D      | `conv.u4`        |
-| 0x6E      | `conv.u8`        |
-| 0x6F      | `callvirt`       |
-| 0x70      | `cpobj`          |
-| 0x71      | `ldobj`          |
-| 0x72      | `ldstr`          |
-| 0x73      | `newobj`         |
-| 0x74      | `castclass`      |
-| 0x75      | `isinst`         |
-| 0x76      | `conv.r.un`      |
-| 0x79      | `unbox`          |
-| 0x7A      | `throw`          |
-| 0x7B      | `ldfld`          |
-| 0x7C      | `ldflda`         |
-| 0x7D      | `stfld`          |
-| 0x7E      | `ldsfld`         |
-| 0x7F      | `ldsflda`        |
-| 0x80      | `stsfld`         |
-| 0x81      | `stobj`          |
-| 0x82      | `conv.ovf.i1.un` |
-| 0x83      | `conv.ovf.i2.un` |
-| 0x84      | `conv.ovf.i4.un` |
-| 0x85      | `conv.ovf.i8.un` |
-| 0x86      | `conv.ovf.u1.un` |
-| 0x87      | `conv.ovf.u2.un` |
-| 0x88      | `conv.ovf.u4.un` |
-| 0x89      | `conv.ovf.u8.un` |
-| 0x8A      | `conv.ovf.i.un`  |
-| 0x8B      | `conv.ovf.u.un`  |
-| 0x8C      | `box`            |
-| 0x8D      | `newarr`         |
-| 0x8E      | `ldlen`          |
-| 0x8F      | `ldelema`        |
-| 0x90      | `ldelem.i1`      |
-| 0x91      | `ldelem.u1`      |
-| 0x92      | `ldelem.i2`      |
-| 0x93      | `ldelem.u2`      |
-| 0x94      | `ldelem.i4`      |
-| 0x95      | `ldelem.u4`      |
-| 0x96      | `ldelem.i8`      |
-| 0x97      | `ldelem.i`       |
-| 0x98      | `ldelem.r4`      |
-| 0x99      | `ldelem.r8`      |
-| 0x9A      | `ldelem.ref`     |
-| 0x9B      | `stelem.i`       |
-| 0x9C      | `stelem.i1`      |
-| 0x9D      | `stelem.i2`      |
-| 0x9E      | `stelem.i4`      |
-| 0x9F      | `stelem.i8`      |
-| 0xA0      | `stelem.r4`      |
-| 0xA1      | `stelem.r8`      |
-| 0xA2      | `stelem.ref`     |
-| 0xA3      | `ldelem`         |
-| 0xA4      | `stelem`         |
-| 0xA5      | `unbox.any`      |
-| 0xB3      | `conv.ovf.i1`    |
-| 0xB4      | `conv.ovf.u1`    |
-| 0xB5      | `conv.ovf.i2`    |
-| 0xB6      | `conv.ovf.u2`    |
-| 0xB7      | `conv.ovf.i4`    |
-| 0xB8      | `conv.ovf.u4`    |
-| 0xB9      | `conv.ovf.i8`    |
-| 0xBA      | `conv.ovf.u8`    |
-| 0xC2      | `refanyval`      |
-| 0xC3      | `ckfinite`       |
-| 0xC6      | `mkrefany`       |
-| 0xD0      | `ldtoken`        |
-| 0xD1      | `conv.u2`        |
-| 0xD2      | `conv.u1`        |
-| 0xD3      | `conv.i`         |
-| 0xD4      | `conv.ovf.i`     |
-| 0xD5      | `conv.ovf.u`     |
-| 0xD6      | `add.ovf`        |
-| 0xD7      | `add.ovf.un`     |
-| 0xD8      | `mul.ovf`        |
-| 0xD9      | `mul.ovf.un`     |
-| 0xDA      | `sub.ovf`        |
-| 0xDB      | `sub.ovf.un`     |
-| 0xDC      | `endfinally`     |
-| 0xDD      | `leave`          |
-| 0xDE      | `leave.s`        |
-| 0xDF      | `stind.i`        |
-| 0xE0      | `conv.u`         |
-| 0xFE 0x00 | `arglist`        |
-| 0xFE 0x01 | `ceq`            |
-| 0xFE 0x02 | `cgt`            |
-| 0xFE 0x03 | `cgt.un`         |
-| 0xFE 0x04 | `clt`            |
-| 0xFE 0x05 | `clt.un`         |
-| 0xFE 0x06 | `ldftn`          |
-| 0xFE 0x07 | `ldvirtftn`      |
-| 0xFE 0x09 | `ldarg`          |
-| 0xFE 0x0A | `ldarga`         |
-| 0xFE 0x0B | `starg`          |
-| 0xFE 0x0C | `ldloc`          |
-| 0xFE 0x0D | `ldloca`         |
-| 0xFE 0x0E | `stloc`          |
-| 0xFE 0x0F | `localloc`       |
-| 0xFE 0x11 | `endfilter`      |
-| 0xFE 0x12 | `unaligned.`     |
-| 0xFE 0x13 | `volatile.`      |
-| 0xFE 0x14 | `tail.`          |
-| 0xFE 0x15 | `initobj`        |
-| 0xFE 0x16 | `constrained.`   |
-| 0xFE 0x17 | `cpblk`          |
-| 0xFE 0x18 | `initblk`        |
-| 0xFE 0x19 | `no.`            |
-| 0xFE 0x1A | `rethrow`        |
-| 0xFE 0x1C | `sizeof`         |
-| 0xFE 0x1D | `refanytype`     |
-| 0xFE 0x1E | `readonly.`      |
+| Opcode    | Instruction      | description                                                                                |
+| :-------- | :--------------- | :----------------------------------------------------------------------------------------- |
+| 0x00      | `nop`            | 无操作                                                                                     |
+| 0x01      | `break`          | 断点指令                                                                                   |
+| 0x02      | `ldarg.0`        | 将参数 0 加载到堆栈                                                                        |
+| 0x03      | `ldarg.1`        | 将参数 1 加载到堆栈                                                                        |
+| 0x04      | `ldarg.2`        | 将参数 2 加载到堆栈                                                                        |
+| 0x05      | `ldarg.3`        | 将参数 3 加载到堆栈                                                                        |
+| 0x06      | `ldloc.0`        | 将局部变量 0 加载到堆栈                                                                    |
+| 0x07      | `ldloc.1`        | 将局部变量 1 加载到堆栈                                                                    |
+| 0x08      | `ldloc.2`        | 将局部变量 2 加载到堆栈                                                                    |
+| 0x09      | `ldloc.3`        | 将局部变量 3 加载到堆栈                                                                    |
+| 0x0A      | `stloc.0`        | 将值从堆栈弹出到局部变量 0                                                                 |
+| 0x0B      | `stloc.1`        | 将值从堆栈弹出到局部变量 1                                                                 |
+| 0x0C      | `stloc.2`        | 将值从堆栈弹出到局部变量 2                                                                 |
+| 0x0D      | `stloc.3`        | 将值从堆栈弹出到局部变量 3                                                                 |
+| 0x0E      | `ldarg.s`        | 将编号为 _num_ 的参数加载到堆栈，短格式                                                    |
+| 0x0F      | `ldarga.s`       | 获取参数 _argNum_ 的地址，短格式                                                           |
+| 0x10      | `starg.s`        | 将值存储到编号为 _num_ 的参数中，短格式                                                    |
+| 0x11      | `ldloc.s`        | 将索引为 _indx_ 的局部变量加载到堆栈，短格式                                               |
+| 0x12      | `ldloca.s`       | 加载索引为 _indx_ 的局部变量的地址，短格式                                                 |
+| 0x13      | `stloc.s`        | 将值从堆栈弹出到局部变量 _indx_，短格式                                                    |
+| 0x14      | `ldnull`         | 在堆栈上推送一个空引用                                                                     |
+| 0x15      | `ldc.i4.m1`      | 将 -1 推送到堆栈作为 `int32`                                                               |
+| 0x16      | `ldc.i4.0`       | 将 0 推送到堆栈作为 `int32`                                                                |
+| 0x17      | `ldc.i4.1`       | 将 1 推送到堆栈作为 `int32`                                                                |
+| 0x18      | `ldc.i4.2`       | 将 2 推送到堆栈作为 `int32`                                                                |
+| 0x19      | `ldc.i4.3`       | 将 3 推送到堆栈作为 `int32`                                                                |
+| 0x1A      | `ldc.i4.4`       | 将 4 推送到堆栈作为 `int32`                                                                |
+| 0x1B      | `ldc.i4.5`       | 将 5 推送到堆栈作为 `int32`                                                                |
+| 0x1C      | `ldc.i4.6`       | 将 6 推送到堆栈作为 `int32`                                                                |
+| 0x1D      | `ldc.i4.7`       | 将 7 推送到堆栈作为 `int32`                                                                |
+| 0x1E      | `ldc.i4.8`       | 将 8 推送到堆栈作为 `int32`                                                                |
+| 0x1F      | `ldc.i4.s`       | 将 _num_ 推送到堆栈作为 `int32`，短格式                                                    |
+| 0x20      | `ldc.i4`         | 将类型为 `int32` 的 _num_ 推送到堆栈作为 `int32`                                           |
+| 0x21      | `ldc.i8`         | 将类型为 `int64` 的 _num_ 推送到堆栈作为 `int64`                                           |
+| 0x22      | `ldc.r4`         | 将类型为 `float32` 的 _num_ 推送到堆栈作为 `F`                                             |
+| 0x23      | `ldc.r8`         | 将类型为 `float64` 的 _num_ 推送到堆栈作为 `F`                                             |
+| 0x25      | `dup`            | 复制堆栈顶部的值                                                                           |
+| 0x26      | `pop`            | 从堆栈弹出值                                                                               |
+| 0x27      | `jmp`            | 退出当前方法并跳转到指定的方法                                                             |
+| 0x28      | `call`           | 调用由 _method_ 描述的方法                                                                 |
+| 0x29      | `calli`          | 使用由 _callsitedescr_ 描述的参数调用堆栈上指示的方法                                      |
+| 0x2A      | `ret`            | 可能带有值的从方法返回                                                                     |
+| 0x2B      | `br.s`           | 分支到 _target_，短格式                                                                    |
+| 0x2C      | `brfalse.s`      | 如果 _value_ 为零（假），则分支到 _target_，短格式                                         |
+| 0x2D      | `brtrue.s`       | 如果 _value_ 为非零（真），则分支到 _target_，短格式                                       |
+| 0x2E      | `beq.s`          | 如果等于则跳转到 _target_，短格式                                                          |
+| 0x2F      | `bge.s`          | 如果大于或等于则跳转到 _target_，短格式                                                    |
+| 0x30      | `bgt.s`          | 如果大于，则分支到 _target_，短格式                                                        |
+| 0x31      | `ble.s`          | 如果小于或等于，则分支到 _target_，短格式                                                  |
+| 0x32      | `blt.s`          | 如果小于，则分支到 _target_，短格式                                                        |
+| 0x33      | `bne.un.s`       | 如果不等于或无序，则分支到 _target_，短格式                                                |
+| 0x34      | `bge.un.s`       | 如果大于或等于（无符号或无序），则分支到 _target_，短格式                                  |
+| 0x35      | `bgt.un.s`       | 如果大于（无符号或无序），则分支到 _target_，短格式                                        |
+| 0x36      | `ble.un.s`       | 如果小于或等于（无符号或无序），则分支到 _target_，短格式                                  |
+| 0x37      | `blt.un.s`       | 如果小于（无符号或无序），则分支到 _target_，短格式                                        |
+| 0x38      | `br`             | 分支到 _target_                                                                            |
+| 0x39      | `brfalse`        | 如果 _value_ 为零（假），则分支到 _target_                                                 |
+| 0x3A      | `brtrue`         | 如果 _value_ 为非零（真），则分支到 _target_                                               |
+| 0x3B      | `beq`            | 如果等于则跳转到 _target_                                                                  |
+| 0x3C      | `bge`            | 如果大于或等于则跳转到 _target_                                                            |
+| 0x3D      | `bgt`            | 如果大于，则分支到 _target_                                                                |
+| 0x3E      | `ble`            | 如果小于或等于，则分支到 _target_                                                          |
+| 0x3F      | `blt`            | 如果小于，则分支到 _target_                                                                |
+| 0x40      | `bne.un`         | 如果不等于或无序，则分支到 _target_                                                        |
+| 0x41      | `bge.un`         | 如果大于或等于（无符号或无序），则分支到 _target_                                          |
+| 0x42      | `bgt.un`         | 如果大于（无符号或无序），则分支到 _target_                                                |
+| 0x43      | `ble.un`         | 如果小于或等于（无符号或无序），则分支到 _target_                                          |
+| 0x44      | `blt.un`         | 如果小于（无符号或无序），则分支到 _target_                                                |
+| 0x45      | `switch`         | 跳转到 _n_ 个值中的一个                                                                    |
+| 0x46      | `ldind.i1`       | 将类型为 `int8` 的值作为 `int32` 间接加载到堆栈                                            |
+| 0x47      | `ldind.u1`       | 将类型为 `unsigned int8` 的值作为 `int32` 间接加载到堆栈                                   |
+| 0x48      | `ldind.i2`       | 将类型为 `int16` 的值作为 `int32` 间接加载到堆栈                                           |
+| 0x49      | `ldind.u2`       | 将类型为 `unsigned int16` 的值作为 `int32` 间接加载到堆栈                                  |
+| 0x4A      | `ldind.i4`       | 将类型为 `int32` 的值作为 `int32` 间接加载到堆栈                                           |
+| 0x4B      | `ldind.u4`       | 将类型为 `unsigned int32` 的值作为 `int32` 间接加载到堆栈                                  |
+| 0x4C      | `ldind.i8`       | 将类型为 `int64` 的值作为 `int64` 间接加载到堆栈                                           |
+| 0x4D      | `ldind.i`        | 将类型为 `native int` 的值作为 `native int` 间接加载到堆栈                                 |
+| 0x4E      | `ldind.r4`       | 将类型为 `float32` 的值作为 `F` 间接加载到堆栈                                             |
+| 0x4F      | `ldind.r8`       | 将类型为 `float64` 的值作为 `F` 间接加载到堆栈                                             |
+| 0x50      | `ldind.ref`      | 将类型为对象引用的值作为 `O` 间接加载到堆栈                                                |
+| 0x51      | `stind.ref`      | 将类型为对象引用（类型 `O`）的值存储到 _address_ 处的内存中                                |
+| 0x52      | `stind.i1`       | 将类型为 `int8` 的值存储到 _address_ 处的内存中                                            |
+| 0x53      | `stind.i2`       | 将类型为 `int16` 的值存储到 _address_ 处的内存中                                           |
+| 0x54      | `stind.i4`       | 将类型为 `int32` 的值存储到 _address_ 处的内存中                                           |
+| 0x55      | `stind.i8`       | 将类型为 `int64` 的值存储到 _address_ 处的内存中                                           |
+| 0x56      | `stind.r4`       | 将类型为 `float32` 的值存储到 _address_ 处的内存中                                         |
+| 0x57      | `stind.r8`       | 将类型为 `float64` 的值存储到 _address_ 处的内存中                                         |
+| 0x58      | `add`            | 添加两个值，返回一个新值                                                                   |
+| 0x59      | `sub`            | 从 _value1_ 中减去 _value2_，返回一个新值。                                                |
+| 0x5A      | `mul`            | 乘法运算                                                                                   |
+| 0x5B      | `div`            | 除法运算两个值，返回商或浮点结果                                                           |
+| 0x5C      | `div.un`         | 除法运算两个值，无符号，返回商                                                             |
+| 0x5D      | `rem`            | 一个值除以另一个值后的余数                                                                 |
+| 0x5E      | `rem.un`         | 一个无符号值除以另一个值后的余数                                                           |
+| 0x5F      | `and`            | 两个整数值的按位与，返回一个整数值                                                         |
+| 0x60      | `or`             | 两个整数值的按位或，返回一个整数                                                           |
+| 0x61      | `xor`            | 整数值的按位异或，返回一个整数                                                             |
+| 0x62      | `shl`            | 将整数左移（移入零），返回一个整数                                                         |
+| 0x63      | `shr`            | 将整数右移（移入符号），返回一个整数                                                       |
+| 0x64      | `shr.un`         | 将整数右移（移入零），返回一个整数                                                         |
+| 0x65      | `neg`            | 取反                                                                                       |
+| 0x66      | `not`            | 按位取反                                                                                   |
+| 0x67      | `conv.i1`        | 转换为 `int8`，在堆栈上推送 `int32`                                                        |
+| 0x68      | `conv.i2`        | 转换为 `int16`，在堆栈上推送 `int32`                                                       |
+| 0x69      | `conv.i4`        | 转换为 `int32`，在堆栈上推送 `int32`                                                       |
+| 0x6A      | `conv.i8`        | 转换为 `int64`，在堆栈上推送 `int64`                                                       |
+| 0x6B      | `conv.r4`        | 转换为 `float32`，在堆栈上推送 `F`                                                         |
+| 0x6C      | `conv.r8`        | 转换为 `float64`，在堆栈上推送 `F`                                                         |
+| 0x6D      | `conv.u4`        | 转换为 `unsigned int32`，在堆栈上推送 `int32`                                              |
+| 0x6E      | `conv.u8`        | 转换为 `unsigned int64`，在堆栈上推送 `int64`                                              |
+| 0x6F      | `callvirt`       | 调用与对象关联的方法                                                                       |
+| 0x70      | `cpobj`          | 将值类型从 _src_ 复制到 _dest_                                                             |
+| 0x71      | `ldobj`          | 将存储在地址 _src_ 处的值复制到堆栈                                                        |
+| 0x72      | `ldstr`          | 将字面 _string_ 的字符串对象推入堆栈                                                       |
+| 0x73      | `newobj`         | 分配一个未初始化的对象或值类型并调用 _ctor_                                                |
+| 0x74      | `castclass`      | 将 _obj_ 转换为 _typeTok_                                                                  |
+| 0x75      | `isinst`         | 测试 _obj_ 是否是 _typeTok_ 的实例，返回 null 或该类或接口的实例                           |
+| 0x76      | `conv.r.un`      | 将无符号整数转换为浮点数，将 `F` 推送到堆栈                                                |
+| 0x79      | `unbox`          | 从 _obj_ 中提取值类型，这是其装箱表示形式                                                  |
+| 0x7A      | `throw`          | 抛出异常                                                                                   |
+| 0x7B      | `ldfld`          | 将对象（或值类型）_obj_ 的 _field_ 的值推入堆栈                                            |
+| 0x7C      | `ldflda`         | 将对象 _obj_ 的 _field_ 的地址推入堆栈                                                     |
+| 0x7D      | `stfld`          | 用 _value_ 替换对象 _obj_ 的 _field_ 的值                                                  |
+| 0x7E      | `ldsfld`         | 将 _field_ 的值推入堆栈                                                                    |
+| 0x7F      | `ldsflda`        | 将静态字段 _field_ 的地址推入堆栈                                                          |
+| 0x80      | `stsfld`         | 用 _val_ 替换 _field_ 的值                                                                 |
+| 0x81      | `stobj`          | 将类型为 _typeTok_ 的值存储到地址中                                                        |
+| 0x82      | `conv.ovf.i1.un` | 转换为 `int8`（在堆栈上为 `int32`），并在溢出时抛出异常                                    |
+| 0x83      | `conv.ovf.i2.un` | 转换为 `int16`（在堆栈上为 `int32`），并在溢出时抛出异常                                   |
+| 0x84      | `conv.ovf.i4.un` | 转换为 `int32`（在堆栈上为 `int32`），并在溢出时抛出异常                                   |
+| 0x85      | `conv.ovf.i8.un` | 转换为 `int64`（在堆栈上为 `int64`），并在溢出时抛出异常                                   |
+| 0x86      | `conv.ovf.u1.un` | 转换为 `unsigned int8`（在堆栈上为 `int32`），并在溢出时抛出异常                           |
+| 0x87      | `conv.ovf.u2.un` | 转换为 `unsigned int16`（在堆栈上为 `int32`），并在溢出时抛出异常                          |
+| 0x88      | `conv.ovf.u4.un` | 转换为 `unsigned int32`（在堆栈上为 `int32`），并在溢出时抛出异常                          |
+| 0x89      | `conv.ovf.u8.un` | 转换为 `unsigned int64`（在堆栈上为 `int64`），并在溢出时抛出异常                          |
+| 0x8A      | `conv.ovf.i.un`  | 转换为 `native int`（在堆栈上为 `native int`），并在溢出时抛出异常                         |
+| 0x8B      | `conv.ovf.u.un`  | 转换为 `native unsigned int`（在堆栈上为 `native int`），并在溢出时抛出异常                |
+| 0x8C      | `box`            | 将可装箱值转换为其装箱形式                                                                 |
+| 0x8D      | `newarr`         | 创建一个元素类型为 _etype_ 的新数组                                                        |
+| 0x8E      | `ldlen`          | 将数组的长度（类型为 `native unsigned int`）推入堆栈                                       |
+| 0x8F      | `ldelema`        | 将索引处的元素的地址加载到堆栈顶部                                                         |
+| 0x90      | `ldelem.i1`      | 将类型为 `int8` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`                            |
+| 0x91      | `ldelem.u1`      | 将类型为 `unsigned int8` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`                   |
+| 0x92      | `ldelem.i2`      | 将类型为 `int16` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`                           |
+| 0x93      | `ldelem.u2`      | 将类型为 `unsigned int16` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`                  |
+| 0x94      | `ldelem.i4`      | 将类型为 `int32` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`                           |
+| 0x95      | `ldelem.u4`      | 将类型为 `unsigned int32` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`                  |
+| 0x96      | `ldelem.i8`      | 将类型为 `int64` 的元素在 _index_ 处加载到堆栈顶部，作为 `int64`                           |
+| 0x97      | `ldelem.i`       | 将类型为 `native int` 的元素在 _index_ 处加载到堆栈顶部，作为 `native int`                 |
+| 0x98      | `ldelem.r4`      | 将类型为 `float32` 的元素在 _index_ 处加载到堆栈顶部，作为 `F`                             |
+| 0x99      | `ldelem.r8`      | 将类型为 `float64` 的元素在 _index_ 处加载到堆栈顶部，作为 `F`                             |
+| 0x9A      | `ldelem.ref`     | 将 _index_ 处的元素加载到堆栈顶部，作为 `O`。`O` 的类型与推入 CIL 堆栈的数组的元素类型相同 |
+| 0x9B      | `stelem.i`       | 用堆栈上的 `native int` _value_ 替换数组中 _index_ 处的元素                                |
+| 0x9C      | `stelem.i1`      | 用堆栈上的 `int8` _value_ 替换数组中 _index_ 处的元素                                      |
+| 0x9D      | `stelem.i2`      | 用堆栈上的 `int16` _value_ 替换数组中 _index_ 处的元素                                     |
+| 0x9E      | `stelem.i4`      | 用堆栈上的 `int32` _value_ 替换数组中 _index_ 处的元素                                     |
+| 0x9F      | `stelem.i8`      | 用堆栈上的 `int64` _value_ 替换数组中 _index_ 处的元素                                     |
+| 0xA0      | `stelem.r4`      | 用堆栈上的 `float32` _value_ 替换数组中 _index_ 处的元素                                   |
+| 0xA1      | `stelem.r8`      | 用堆栈上的 `float64` _value_ 替换数组中 _index_ 处的元素                                   |
+| 0xA2      | `stelem.ref`     | 用堆栈上的 ref _value_ 替换数组中 _index_ 处的元素                                         |
+| 0xA3      | `ldelem`         | 将索引处的元素加载到堆栈顶部                                                               |
+| 0xA4      | `stelem`         | 用堆栈上的值替换数组中 _index_ 处的元素                                                    |
+| 0xA5      | `unbox.any`      | 从 _obj_ 中提取值类型，这是其装箱表示形式                                                  |
+| 0xB3      | `conv.ovf.i1`    | 转换为 `int8`（在堆栈上为 `int32`），并在溢出时抛出异常                                    |
+| 0xB4      | `conv.ovf.u1`    | 转换为 `unsigned int8`（在堆栈上为 `int32`），并在溢出时抛出异常                           |
+| 0xB5      | `conv.ovf.i2`    | 转换为 `int16`（在堆栈上为 `int32`），并在溢出时抛出异常                                   |
+| 0xB6      | `conv.ovf.u2`    | 转换为 `unsigned int16`（在堆栈上为 `int32`），并在溢出时抛出异常                          |
+| 0xB7      | `conv.ovf.i4`    | 转换为 `int32`（在堆栈上为 `int32`），并在溢出时抛出异常                                   |
+| 0xB8      | `conv.ovf.u4`    | 转换为 `unsigned int32`（在堆栈上为 `int32`），并在溢出时抛出异常                          |
+| 0xB9      | `conv.ovf.i8`    | 转换为 `int64`（在堆栈上为 `int64`），并在溢出时抛出异常                                   |
+| 0xBA      | `conv.ovf.u8`    | 转换为 `unsigned int64`（在堆栈上为 `int64`），并在溢出时抛出异常                          |
+| 0xC2      | `refanyval`      | 推送存储在类型引用中的地址                                                                 |
+| 0xC3      | `ckfinite`       | 如果 _value_ 不是有限数，抛出 `ArithmeticException` 异常                                   |
+| 0xC6      | `mkrefany`       | 将类型为 _class_ 的 _ptr_ 的类型引用推入堆栈                                               |
+| 0xD0      | `ldtoken`        | 将元数据 *token* 转换为其运行时表示                                                        |
+| 0xD1      | `conv.u2`        | 转换为 `unsigned int16`，在堆栈上推送 `int32`                                              |
+| 0xD2      | `conv.u1`        | 转换为 `unsigned int8`，在堆栈上推送 `int32`                                               |
+| 0xD3      | `conv.i`         | 转换为 `native int`，在堆栈上推送 `native int`                                             |
+| 0xD4      | `conv.ovf.i`     | 转换为 `native int`（在堆栈上为 `native int`），并在溢出时抛出异常                         |
+| 0xD5      | `conv.ovf.u`     | 转换为 `native unsigned int`（在堆栈上为 `native int`），并在溢出时抛出异常                |
+| 0xD6      | `add.ovf`        | 添加带有溢出检查的有符号整数值                                                             |
+| 0xD7      | `add.ovf.un`     | 添加带有溢出检查的无符号整数值                                                             |
+| 0xD8      | `mul.ovf`        | 乘以有符号整数值。有符号结果应适合相同的大小                                               |
+| 0xD9      | `mul.ovf.un`     | 乘以无符号整数值。无符号结果应适合相同的大小                                               |
+| 0xDA      | `sub.ovf`        | 从一个 native int 中减去另一个 native int。有符号结果应适合相同的大小                      |
+| 0xDB      | `sub.ovf.un`     | 从一个 native unsigned int 中减去另一个 native unsigned int。无符号结果应适合相同的大小    |
+| 0xDC      | `endfinally`     | 结束异常块的 **finally** 子句                                                              |
+| 0xDD      | `leave`          | 退出代码的受保护区域                                                                       |
+| 0xDE      | `leave.s`        | 退出代码的受保护区域，短格式                                                               |
+| 0xDF      | `stind.i`        | 将类型为 `native int` 的值存储到 _address_ 处的内存中                                      |
+| 0xE0      | `conv.u`         | 转换为 `native unsigned int`，在堆栈上推送 `native int`                                    |
+| 0xFE 0x00 | `arglist`        | 返回当前方法的参数列表句柄                                                                 |
+| 0xFE 0x01 | `ceq`            | 如果 _value1_ 等于 _value2_，则推送 1（类型为 `int32`），否则推送 0                        |
+| 0xFE 0x02 | `cgt`            | 如果 _value1_ > _value2_，则推送 1（类型为 `int32`），否则推送 0                           |
+| 0xFE 0x03 | `cgt.un`         | 如果 _value1_ > _value2_，无符号或无序，推送 1（类型为 `int32`），否则推送 0               |
+| 0xFE 0x04 | `clt`            | 如果 _value1_ < _value2_，推送 1（类型为 `int32`），否则推送 0                             |
+| 0xFE 0x05 | `clt.un`         | 如果 _value1_ < _value2_，无符号或无序，推送 1（类型为 `int32`），否则推送 0               |
+| 0xFE 0x06 | `ldftn`          | 将一个指向由 _method_ 引用的方法的指针推送到堆栈                                           |
+| 0xFE 0x07 | `ldvirtftn`      | 将虚方法 *method* 的地址推入堆栈                                                           |
+| 0xFE 0x09 | `ldarg`          | 将编号为 _num_ 的参数加载到堆栈                                                            |
+| 0xFE 0x0A | `ldarga`         | 获取参数 _argNum_ 的地址                                                                   |
+| 0xFE 0x0B | `starg`          | 将值存储到编号为 _num_ 的参数中                                                            |
+| 0xFE 0x0C | `ldloc`          | 将索引为 _indx_ 的局部变量加载到堆栈                                                       |
+| 0xFE 0x0D | `ldloca`         | 加载索引为 _indx_ 的局部变量的地址                                                         |
+| 0xFE 0x0E | `stloc`          | 将值从堆栈弹出到局部变量 _indx_                                                            |
+| 0xFE 0x0F | `localloc`       | 从局部内存池分配空间                                                                       |
+| 0xFE 0x11 | `endfilter`      | 结束异常处理过滤器子句                                                                     |
+| 0xFE 0x12 | `unaligned.`     | 后续指针指令可能不对齐                                                                     |
+| 0xFE 0x13 | `volatile.`      | 后续指针引用是易变的                                                                       |
+| 0xFE 0x14 | `tail.`          | 后续调用终止当前方法                                                                       |
+| 0xFE 0x15 | `initobj`        | 初始化地址 _dest_ 处的值                                                                   |
+| 0xFE 0x16 | `constrained.`   | 在被约束为类型 `T` 的类型上调用虚方法                                                      |
+| 0xFE 0x17 | `cpblk`          | 从内存复制数据到内存                                                                       |
+| 0xFE 0x18 | `initblk`        | 将一块内存的所有字节设置为给定的字节值                                                     |
+| 0xFE 0x19 | `no.`            | 在执行后续指令的过程中，通常执行的指定错误检查可以 / 应该被跳过                            |
+| 0xFE 0x1A | `rethrow`        | 重新抛出当前异常                                                                           |
+| 0xFE 0x1C | `sizeof`         | 以 `unsigned int32` 的形式推送类型的字节大小                                               |
+| 0xFE 0x1D | `refanytype`     | 推送存储在类型引用中的类型标记                                                             |
+| 0xFE 0x1E | `readonly.`      | 指定后续数组地址操作在运行时不执行类型检查，并且它返回一个可控易变托管指针                 |
 
 >---
 ### 堆栈转换图
@@ -634,7 +634,7 @@ CIL 操作码长度为一个或多个字节；它们可以后跟零个或多个�
 
 #### 可验证 CIL 的流控制限制
 
-本小节指定了一个验证算法，该算法结合了关于单个 CIL 指令的信息（参见 §[III.3](【】)）和元数据验证，保证了内存完整性。
+本小节指定了一个验证算法，该算法结合了关于单个 CIL 指令的信息（参见 §[[↗]](#base-ins)）和元数据验证，保证了内存完整性。
 
 这里指定的算法为所有符合 CLI 的实现创建了一个最低级别，意味着任何被这个算法认为是可验证的程序都应被认为是可验证的，并且在所有符合 CLI 的实现上正确运行。
 
@@ -644,7 +644,7 @@ CLI 提供了一个安全权限（参见[Partition IV](【】)），用于控制
 
 CLI 的实现者被要求提供一种测试方法，以确定他们的实现生成的程序是否满足这个可移植的可验证性标准。他们也被要求详细说明他们的验证算法在哪些地方比这个标准更宽松。
 
-只有有效的程序才能被验证。为了便于解释，这里描述的验证算法假设程序是有效的，并且并没有明确要求测试所有的有效性条件。有效性条件是在每个 CIL 指令的基础上指定的（参见 §[III.3](【】)）。
+只有有效的程序才能被验证。为了便于解释，这里描述的验证算法假设程序是有效的，并且并没有明确要求测试所有的有效性条件。有效性条件是在每个 CIL 指令的基础上指定的（参见 §[_基本指令_](#base-ins)）。
 
 ##### 验证算法
 
@@ -665,9 +665,9 @@ CLI 可以使用明确赋值分析来确定哪些位置在读取之前被写入�
 
 除了无条件分支指令，`throw`，`rethrow` 和 `ret`，每个指令都有一条从当前指令到后续指令的控制流路径。每个分支指令（条件或无条件）也有一条到分支目标（或在 `switch` 指令的情况下的多条目标）的控制流路径。
 
-验证模拟每个 CIL 指令的操作来计算新的堆栈状态，任何堆栈状态的指定条件（参见§[III.3](【】)）与模拟的堆栈状态之间的类型不匹配将导致验证算法失败。验证只模拟对堆栈状态的影响：它不执行实际的计算。如果在下一个指令地址（对于条件分支或在 **try** 块内的指令，可能有多个这样的地址）存在一个不能与刚刚计算的堆栈状态合并的现有堆栈状态，那么算法也将失败。对于这个合并操作的规则，参见 §[_合并堆栈状态_](#merging-stack-states)。
+验证模拟每个 CIL 指令的操作来计算新的堆栈状态，任何堆栈状态的指定条件（参见 §[[↗]](#base-ins)）与模拟的堆栈状态之间的类型不匹配将导致验证算法失败。验证只模拟对堆栈状态的影响：它不执行实际的计算。如果在下一个指令地址（对于条件分支或在 **try** 块内的指令，可能有多个这样的地址）存在一个不能与刚刚计算的堆栈状态合并的现有堆栈状态，那么算法也将失败。对于这个合并操作的规则，参见 §[_合并堆栈状态_](#merging-stack-states)。
 
-CLI 支持 *受控可变性* (_controlled-mutability_) 托管指针的概念（参见 §[*可控易变托管指针*](#controlled-mutability-managed-pointers)，合并规则在 §[_合并堆栈状态_](#merging-stack-states)，`readonly.` 指令前缀在 §[III.2.3](【】)，`ldfld` 指令在 §[III.4.10](【】)，`stfld` 指令在§[III.4.28](【】)，以及 `unbox` 指令在 §[III.4.32](【】)）。
+CLI 支持 *受控可变性* (_controlled-mutability_) 托管指针的概念（参见 §[*可控易变托管指针*](#controlled-mutability-managed-pointers)，合并规则在 §[_合并堆栈状态_](#merging-stack-states)，`readonly.` 指令前缀在 §[[↗]](#readonly)，`ldfld` 指令在 §[[↗]](#ldfld)，`stfld` 指令在 §[[↗]](#stfld)，以及 `unbox` 指令在 §[[↗]](#unbox)）。
 
 VES 确保特殊约束和类型约束都得到满足。这些约束可以在构造闭类型时提前进行检查，也可以在调用受约束泛型类型的方法、受约束的泛型方法、访问受约束的泛型类型中的字段，或创建受约束的泛型类型的实例时尽可能晚地进行检查。
 
@@ -773,7 +773,7 @@ VES 确保所有静态变量初始化为全零位（即，内置类型为 0 或 
 
 ##### 委托构造
 
-委托构造的验证是基于代码序列而不是单个指令。这些信息在 `newobj` 指令的描述（§[III.4.21](【】)）中有详细说明。
+委托构造的验证是基于代码序列而不是单个指令。这些信息在 `newobj` 指令的描述（§[[↗]](#newobj)）中有详细说明。
 
 如果分支目标在这些指令序列中（除了在序列的开始处），则验证算法应失败。
 
@@ -854,6 +854,7 @@ _ptr_ 参数是一个托管指针（`&`）到 _thisType_。此外，在上述 _p
 
 >---
 ### readonly. ：后续指令返回可控易变托管指针
+<a id="readonly"></a>
 
  | Format | Assembly Format | Description                                                                |
  | :----- | :-------------- | :------------------------------------------------------------------------- |
@@ -980,6 +981,7 @@ CLI 实现需要尊重 `tail. call` 请求，其中调用方和被调用方的�
 
 ---
 ## 基本指令
+<a id="base-ins"></a>
 
 这些指令形成了一套 "***Turing*** ***Complete***" 的基本操作。它们独立于可能使用的对象模型。与 CTS 的对象模型具体相关的操作包含在对象模型指令部分。
 
@@ -1955,7 +1957,7 @@ _result_ = _value1_ `div` _value2_ 满足以下条件：
 
 | Format | Assembly Format | Description              |
 | :----- | :-------------- | :----------------------- |
-| FE 11  | `endfilter      | 结束异常处理过滤器子句。 |
+| FE 11  | `endfilter`     | 结束异常处理过滤器子句。 |
 
 > *堆栈转换*：
 
@@ -3183,23 +3185,968 @@ _array_ 应该是 `null` 或一个单维、零基数组。
 验证将结果 _value_ 的类型跟踪为 _typeTok_。
 
 >---
+### ldelem.\<type\> ：从数组中加载元素
 
-
-
-
-
-| Format | Assembly Format | Description |
-| :----- | :-------------- | :---------- |
+| Format | Assembly Format | Description                                                                                       |
+| :----- | :-------------- | :------------------------------------------------------------------------------------------------ |
+| 90     | `ldelem.i1`     | 将类型为 `int8` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`。                                 |
+| 92     | `ldelem.i2`     | 将类型为 `int16` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`。                                |
+| 94     | `ldelem.i4`     | 将类型为 `int32` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`。                                |
+| 96     | `ldelem.i8`     | 将类型为 `int64` 的元素在 _index_ 处加载到堆栈顶部，作为 `int64`。                                |
+| 91     | `ldelem.u1`     | 将类型为 `unsigned int8` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`。                        |
+| 93     | `ldelem.u2`     | 将类型为 `unsigned int16` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`。                       |
+| 95     | `ldelem.u4`     | 将类型为 `unsigned int32` 的元素在 _index_ 处加载到堆栈顶部，作为 `int32`。                       |
+| 96     | `ldelem.u8`     | 将类型为 `unsigned int64` 的元素在 _index_ 处加载到堆栈顶部，作为 `int64`（`ldelem.i8` 的别名）。 |
+| 98     | `ldelem.r4`     | 将类型为 `float32` 的元素在 _index_ 处加载到堆栈顶部，作为 `F`。                                  |
+| 99     | `ldelem.r8`     | 将类型为 `float64` 的元素在 _index_ 处加载到堆栈顶部，作为 `F`。                                  |
+| 97     | `ldelem.i`      | 将类型为 `native int` 的元素在 _index_ 处加载到堆栈顶部，作为 `native int`。                      |
+| 9A     | `ldelem.ref`    | 将 _index_ 处的元素加载到堆栈顶部，作为 `O`。`O` 的类型与推入 CIL 堆栈的数组的元素类型相同。      |
 
 > *堆栈转换*：
 
+&hellip;, _array_, _index_ &rarr; &hellip;, _value_
+
 > *描述*：
+
+`ldelem.<type>` 指令加载零基一维数组 _array_ 中索引 _index_（类型为 `int32` 或 `native int`）处的元素的值，并将其放置在堆栈顶部。对于 `ldelem.ref`，返回 _value_ 的类型是 _array_ 的元素类型，对于其他指令变体，它是指令中指示的 _\<type\>_。
+
+所有变体都等同于带有适当 _typeTok_ 的 `ldelem` 指令。
+
+对于不是零基的一维数组和多维数组，数组类提供了一个 `Get` 方法。
+
+如果需要，当元素加载到堆栈上时，元素会转换为其中间类型的表示形式。即小于 4 字节的元素、布尔值或字符通过适当的符号或零扩展转换为 4 字节。浮点值转换为其本机大小（类型 `F`）。
 
 > *异常*：
 
+如果 _array_ 为 null，将抛出 `System.NullReferenceException` 异常。
+
+如果 _index_ 为负数，或大于 _array_ 的边界，将抛出 `System.IndexOutOfRangeException` 异常。
+
 > *正确性*：
 
+正确的 CIL 代码要求 _array_ 是 null 或一个零基、一维数组，其声明的元素类型是 *数组元素可赋值给* 此特定指令后缀的类型。
+
 > *可验证性*：
+
+验证要求：
+
+ * _array_ 的跟踪类型是 `T[]`，对于某个 `T`；
+ * 对于 `ldelem.ref`，`T` 是引用类型，对于其他指令变体，`T` 是 *数组元素可赋值给* 指令中的类型；并且
+ * _index_ 的类型是 `int32` 或 `native int`。
+
+验证将结果 _value_ 的类型跟踪为 `ldelem.ref` 的 `T`，或者其他变体中的指令的 _\<type\>_。
+
+>---
+### ldelema ：加载数组元素的地址
+
+| Format     | Assembly Format     | Description                          |
+| :--------- | :------------------ | :----------------------------------- |
+| 8F _\<T\>_ | `ldelema` _typeTok_ | 将索引处的元素的地址加载到堆栈顶部。 |
+
+> *堆栈转换*：
+
+&hellip;, _array_, _index_ &rarr; &hellip;, _address_
+
+> *描述*：
+
+`ldelema` 指令加载零基一维数组 _array_（元素类型为 *验证可赋值给 * _typeTok_）中索引 _index_（类型为 `int32` 或 `native int`）处的元素的地址，并将其放置在堆栈顶部。数组是对象，因此由类型 `O` 的值表示。返回地址是一个托管指针（类型 `&`）。
+
+对于不是零基的一维数组和多维数组，数组类提供了一个 `Address` 方法。
+
+如果此指令前缀为 `readonly.`，它将生成一个可控易变托管指针。
+
+> *异常*：
+
+如果 _array_ 为 null，将抛出 `System.NullReferenceException` 异常。
+
+如果 _index_ 为负数，或大于 _array_ 的边界，将抛出 `System.IndexOutOfRangeException` 异常。
+
+如果 _array_ 不包含所需类型的元素，将抛出 `System.ArrayTypeMismatchException` 异常。
+
+> *正确性*：
+
+正确的 CIL 确保类是指向类的 *TypeDef*，*TypeRef* 或 *TypeSpec* *token*，并且 _array_ 确实总是 `null` 或一个零基、一维数组，其声明的元素类型是 *验证可赋值给* _typeTok_。
+
+> *可验证性*：
+
+验证要求：
+ * _array_ 的跟踪类型是 `T[]`，对于某个 `T`，或 `Null` 类型（§[III.1.8.1.2](iii.1.8.1.2-verification-type-system.md)）；
+ * 到 `T` 的托管指针是 *指针元素可赋值给* 到 _typeTok_ 的托管指针；并且
+ * _index_ 的类型是 `int32` 或 `native int`。
+
+验证将结果 _address_ 的类型跟踪为到 _typeTok_ 验证类型的托管指针。
+
+>---
+### ldfld ：加载对象的字段
+<a id="ldfld"></a>
+
+| Format     | Assembly Format | Description                                       |
+| :--------- | :-------------- | :------------------------------------------------ |
+| 7B _\<T\>_ | `ldfld` _field_ | 将对象（或值类型）_obj_ 的 _field_ 的值推入堆栈。 |
+
+> *堆栈转换*：
+
+&hellip;, _obj_ &rarr; &hellip;, _value_
+
+> *描述*：
+
+`ldfld` 指令将 _obj_ 的字段的值推入堆栈。_obj_ 应该是一个对象（类型 `O`），一个托管指针（类型 `&`），一个非托管指针（类型 `native int`），或一个值类型的实例。在可验证代码中不允许使用非托管指针。_field_ 是一个元数据 *token*（*FieldRef* 或 *FieldDef*），应该引用一个字段成员。返回类型与 _field_ 相关联。`ldfld` 将对象引用从堆栈弹出，并将字段的值推入其位置。字段可以是实例字段（在这种情况下，_obj_ 不应为 null）或静态字段。
+
+`ldfld` 指令可以由 `unaligned.` 和 `volatile.` 前缀中的一个或两个前缀。如果需要，字段值在加载到堆栈时会转换为其 *中间类型* 的表示形式。 即小于 4 字节的字段值、布尔值或字符通过适当的符号或零扩展转换为 4 字节。浮点值转换为其本机大小（类型 `F`）。
+
+> *异常*：
+
+如果 _field_ 不可访问，将抛出 `System.FieldAccessException` 异常。
+
+如果在元数据中找不到 _field_，将抛出 `System.MissingFieldException` 异常。这通常在 CIL-to-native-code 时检查，而不是在运行时。
+
+如果 _obj_ 为 `null` 并且字段不是静态的，将抛出 `System.NullReferenceException` 异常。
+
+> *正确性*：
+
+正确的 CIL 确保 _field_ 是一个有效的引用字段的  *token*，并且 _obj_ 的类型与 _field_ 的 Class 兼容。
+
+> *可验证性*：
+
+对于可验证的代码，_obj_ 不应该是一个非托管指针。_obj_ 的跟踪类型应该具有，或者是一个到具有静态或实例字段的类型的托管指针。
+
+不可验证地访问重叠的对象引用字段。
+
+只有当与其重叠的每个字段也可访问时，字段才可访问。
+
+验证将堆栈上的 _value_ 的类型跟踪为 _field_ 类型的 *中间类型*。
+
+>---
+### ldflda ：加载字段地址
+
+| Format     | Assembly Format  | Description                              |
+| :--------- | :--------------- | :--------------------------------------- |
+| 7C _\<T\>_ | `ldflda` _field_ | 将对象 _obj_ 的 _field_ 的地址推入堆栈。 |
+
+> *堆栈转换*：
+
+&hellip;, _obj_ &rarr; &hellip;, _address_
+
+> *描述*：
+
+`ldflda` 指令将 _obj_ 的一个字段的地址推入堆栈。_obj_ 是一个对象（类型 `O`），一个托管指针（类型 `&`），或一个非托管指针（类型 `native int`）。在可验证的代码中不允许使用非托管指针。由 `ldflda` 返回的值是一个托管指针（类型 `&`），除非 _obj_ 是一个非托管指针，在这种情况下它是一个非托管指针（类型 `native int`）。
+
+_field_ 是一个元数据 *token*（*FieldRef* 或 *FieldDef*），应该引用一个字段成员。字段可以是实例字段（在这种情况下，_obj_ 不应为 `null`）或静态字段。
+
+> *异常*：
+
+如果 _field_ 不可访问，将抛出 `System.FieldAccessException` 异常。
+
+如果 _obj_ 不在其正在访问的应用程序域内，将抛出 `System.InvalidOperationException` 异常。无法加载不在访问应用程序域内的字段的地址。
+
+如果在元数据中找不到 _field_，将抛出 `System.MissingFieldException` 异常。这通常在 CIL-to-native-code 时检查，而不是在运行时。
+
+如果 _obj_ 为 `null` 并且字段不是静态的，将抛出 `System.NullReferenceException` 异常。
+
+> *正确性*：
+
+正确的 CIL 确保 _field_ 是一个有效的 *FieldRef* *token*，并且 _obj_ 的类型与 _field_ 的 Class 兼容。
+
+> *可验证性*：
+
+对于可验证的代码，_obj_ 不应该是一个非托管指针。
+
+_obj_ 的跟踪类型应该具有，或者是一个到具有静态或实例字段的类型的托管指针。
+
+对于可验证的代码，_field_ 不能是 **initonly**。
+
+不可验证地访问重叠的对象引用 _field_。
+
+只有当与其重叠的每个字段也可访问时，字段才可访问。
+
+验证将堆栈上的值的类型跟踪为到 _field_ 的 *验证类型* 的托管指针。
+
+> *备注*：
+
+使用 `ldflda` 计算静态、**initonly** 字段的地址，然后使用结果指针在类初始化器的主体之外修改该值可能会导致不可预测的行为。
+
+>---
+### ldlen ：加载数组的长度
+
+| Format | Assembly Format | Description                                            |
+| :----- | :-------------- | :----------------------------------------------------- |
+| 8E     | `ldlen`         | 将数组的长度（类型为 `native unsigned int`）推入堆栈。 |
+
+> *堆栈转换*：
+
+&hellip;, _array_ &rarr; &hellip;, length
+
+> *描述*：
+
+`ldlen` 指令将 _array_（一个零基一维数组）的元素数量推入堆栈。数组是对象，因此由类型 `O` 的值表示。返回值是 `native unsigned int`。
+
+> *异常*：
+
+如果 _array_ 为 `null`，将抛出 `System.NullReferenceException` 异常。
+
+> *正确性*：
+
+正确的 CIL 确保 `array` 确实总是 `null` 或一个零基、一维数组。
+
+>---
+### ldobj ：将地址处的值复制到堆栈
+
+ | Format      | Assembly Format   | Description                           |
+ | :---------- | :---------------- | :------------------------------------ |
+ | 71 _\<\T\>_ | `ldobj` _typeTok_ | 将存储在地址 _src_ 处的值复制到堆栈。 |
+
+> *堆栈转换*：
+
+&hellip;, _src_ &rarr; &hellip;, _val_
+
+> *描述*：
+
+`ldobj` 指令将一个值复制到求值堆栈。_typeTok_ 是一个元数据 *token*（*TypeDef*，*TypeRef* 或 *TypeSpec*）。_src_ 是一个非托管指针（`native int`），或一个托管指针（`&`）。如果 _typeTok_ 不是泛型参数并且是引用类型或内置值类，则 `ldind` 指令为 `ldobj` 指令提供了简写。
+
+`ldobj` 指令可以用来将值类型作为参数传递。
+
+如果需要，当加载到堆栈时，值会转换为 _typeTok_ 的 *中间类型* 的表示形式。即小于 4 字节的整数值、布尔值或字符通过适当的符号或零扩展转换为 4 字节。浮点值转换为 `F` 类型。
+
+`ldobj` 指令的操作可以通过紧接在前面的 `volatile.` 或 `unaligned.` 前缀指令进行更改。
+
+> *异常*：
+
+如果检测到无效地址，可能会抛出 `System.NullReferenceException` 异常。
+
+如果找不到 _typeTok_，将抛出 `System.TypeLoadException` 异常。这通常在 CIL 转换为本机代码时而不是在运行时检测到。
+> *正确性*：
+
+_typeTok_ 应该是一个有效的 *TypeDef*，*TypeRef* 或 *TypeSpec* 元数据 *token*。
+
+与 `ldind` 指令不同，`ldobj` 指令可以与泛型参数类型一起使用。
+
+> *可验证性*：
+
+堆栈顶部的源值的跟踪类型应该是到某种类型 _srcType_ 的托管指针，且 _srcType_ 应该是 *可赋值给* 类型 _typeTok_。
+
+验证将结果 _val_ 的类型跟踪为 _typeTok_ 的 *中间类型*。
+
+>---
+### ldsfld ：加载类的静态字段
+
+ | Format     | Assembly Format  | Description               |
+ | :--------- | :--------------- | :------------------------ |
+ | 7E _\<T\>_ | `ldsfld` _field_ | 将 _field_ 的值推入堆栈。 |
+
+> *堆栈转换*：
+
+&hellip;, &rarr; &hellip;, _value_
+
+> *描述*：
+
+`ldsfld` 指令将静态字段（在类的所有实例中共享）的值推入堆栈。_field_ 是一个元数据 *token*（*FieldRef* 或 *FieldDef*），引用一个静态字段成员。返回类型与 _field_ 相关联。
+
+`ldsfld` 指令可以有 `volatile.` 前缀。如果需要，字段值在加载到堆栈时会转换为其 *中间类型* 的表示形式。即小于 4 字节的字段值、布尔值或字符通过适当的符号或零扩展转换为 4 字节。浮点值转换为其本机大小（类型 `F`）。
+
+> *异常*：
+
+如果 _field_ 不可访问，将抛出 `System.FieldAccessException` 异常。
+
+如果在元数据中找不到 _field_，将抛出 `System.MissingFieldException` 异常。这通常在 CIL-to-native-code 时检查，而不是在运行时。
+
+> *正确性*：
+
+正确的 CIL 确保 _field_ 是一个有效的引用静态字段成员的元数据 *token*。
+
+> *可验证性*：
+
+验证将堆栈上的值的类型跟踪为字段类型的 *中间类型*。
+
+>---
+### ldsflda ：加载静态字段地址
+
+ | Format     | Assembly Format   | Description                         |
+ | :--------- | :---------------- | :---------------------------------- |
+ | 7F _\<T\>_ | `ldsflda` _field_ | 将静态字段 _field_ 的地址推入堆栈。 |
+
+> *堆栈转换*：
+
+&hellip;, &rarr; &hellip;, _address_
+
+> *描述*：
+
+`ldsflda` 指令将静态字段的地址（如果 _field_ 引用的类型的内存是托管的，则为托管指针，类型为 `&`；否则为非托管指针，类型为 `native int`）推入堆栈。`field` 是一个元数据 *token*（*FieldRef* 或 *Fielddef*），引用一个静态字段成员。_field_ 可以是具有分配 RVA 的静态全局变量，在这种情况下，其内存是非托管的；其中 RVA 代表相对虚拟地址，即字段从其包含的 PE 文件加载到内存的基地址的偏移。
+
+> *异常*：
+
+如果 _field_ 不可访问，将抛出 `System.FieldAccessException` 异常。
+
+如果在元数据中找不到 _field_，将抛出 `System.MissingFieldException` 异常。这通常在 CIL-to-native-code 时检查，而不是在运行时。
+
+> *正确性*：
+
+如果 _field_ 引用的类型的内存是托管的，正确的 CIL 确保 _field_ 是一个有效的引用静态字段成员的元数据 *token*。
+
+> *可验证性*：
+
+对于可验证的代码，_field_ 不能是 init-only。
+
+如果 _field_ 引用的类型的内存是托管的，验证将堆栈上加载的值的类型跟踪为到 _field_ 的 *中间类型* 的托管指针。如果 _field_ 引用的类型的内存是非托管的，验证将堆栈上加载的值的类型跟踪为非托管指针。
+
+> *备注*:
+
+使用 `ldsflda` 计算静态、**initonly** 字段的地址，然后使用结果指针在类初始化器的主体之外修改该值可能会导致不可预测的行为。
+
+>---
+### ldstr ：加载字面字符串
+
+| Format     | Assembly Format  | Description                            |
+| :--------- | :--------------- | :------------------------------------- |
+| 72 _\<T\>_ | `ldstr` _string_ | 将字面 _string_ 的字符串对象推入堆栈。 |
+
+> *堆栈转换*：
+
+&hellip;, &rarr; &hellip;, `string`
+
+> *描述*：
+
+`ldstr` 指令将一个新的字符串对象（表示存储在元数据中的字面量 _string_，这是一个字符串字面量）推入堆栈。
+
+默认情况下，CLI 保证两个 `ldstr` 指令引用的两个元数据标记具有相同的字符序列，返回完全相同的字符串对象（这个过程称为 "字符串内联"）。这种行为可以使用 `System.Runtime.CompilerServices.CompilationRelaxationsAttribute` 和 `System.Runtime.CompilerServices.CompilationRelaxations.NoStringInterning` 进行控制。
+
+> *正确性*：
+
+正确的 CIL 要求 _string_ 是一个有效的字符串字面量元数据 *token*。
+
+>---
+### ldtoken ：加载元数据 *token* 的运行时表示
+
+ | Format     | Assembly Format   | Description                           |
+ | :--------- | :---------------- | :------------------------------------ |
+ | D0 _\<T\>_ | `ldtoken` _token_ | 将元数据 *token* 转换为其运行时表示。 |
+
+> *堆栈转换*：
+
+&hellip; &rarr; &hellip;, `RuntimeHandle`
+
+> *描述*：
+
+`ldtoken` 指令将指定的元数据标记的 `RuntimeHandle` 推入堆栈。标记应为以下之一：
+ * *MethodDef*，*MethodRef* 或 *MethodSpec*：推入 `RuntimeMethodHandle`
+ * *TypeDef*，*TypeRef* 或 *TypeSpec*：推入 `RuntimeTypeHandle`
+ * *FieldDef* 或 *FieldRef*：推入 `RuntimeFieldHandle`
+
+堆栈上推入的值可以在系统类库的反射方法中使用。
+
+> *正确性*：
+
+正确的 CIL 要求 _token_ 描述了上述类型的有效元数据 *token*。
+
+>---
+### ldvirtftn ：加载虚方法指针
+
+| Format        | Assembly Format      | Description                        |
+| :------------ | :------------------- | :--------------------------------- |
+| FE 07 _\<T\>_ | `ldvirtftn` _method_ | 将虚方法 *method* 的地址推入堆栈。 |
+
+> *堆栈转换*：
+
+&hellip; _object_ &rarr; &hellip;, _ftn_
+
+> *描述*：
+
+`ldvirtftn` 指令将一个方法指针推入堆栈，该方法指针指向实现与 _object_ 关联并由方法引用 _method_（元数据 *token*，*MethodDef*，*MethodRef* 或 *MethodSpec*）描述的虚方法的本地代码，或者推入与 _object_ 关联的方法的其他实现特定描述。如果推入的值引用托管方法（或从托管代码转换到非托管代码的存根），则可以使用 `calli` 指令调用。它也可以用于构造委托，存储在变量中等。
+
+返回的值指向使用 _method_ 指定的调用约定的本地代码。因此，如果该例程期望相应的调用约定，那么方法指针可以传递给非托管本地代码（例如，作为回调例程）。此指令计算的地址可以是专门为此目的生成的 *thunk*（例如，当方法的本地版本不可用时，重新进入 CLI）。
+
+实现此指令有许多选项。从概念上讲，此指令将指定方法的地址的表示形式放在虚拟机的求值堆栈上。就本机代码而言，这可以是一个地址（如指定的），包含地址的数据结构，或者可以用于计算地址的任何值，具体取决于底层机器的架构，本机调用约定，以及 VES 的实现技术（JIT，解释器，线程代码等）。
+
+> *异常*：
+
+当试图无效地访问非公共方法时，可能会抛出 `System.MethodAccessException` 异常。
+
+如果 _object_ 为 `null`，将抛出 `System.NullReferenceException` 异常。
+
+> *正确性*：
+
+正确的 CIL 确保 _method_ 是一个有效的 *MethodDef*，*MethodRef* 或 *MethodSpec* *token*。还要确保 _method_ 引用了为 _object_ 定义的非静态方法。
+
+> *可验证性*：
+
+验证要求 _object_ 的跟踪类型与 _method_ 结合确定最终虚方法。如果确定的方法不是最终的，那么其 **this** 指针的确切类型无法静态确定。
+
+对于上述要求有一个定义的例外，如 `newobj` 所述。验证跟踪值的方法签名，其中包括参数的数量和类型，**this** 指针的类型，以及返回类型和调用约定。
+
+另请参见 `newobj` 指令。
+
+>---
+### mkrefany ：在堆栈上推送一个类型引用
+
+| Format     | Assembly Format    | Description                                    |
+| :--------- | :----------------- | :--------------------------------------------- |
+| C6 _\<T\>_ | `mkrefany` _class_ | 将类型为 _class_ 的 _ptr_ 的类型引用推入堆栈。 |
+
+> *堆栈转换*：
+
+&hellip;, _ptr_ &rarr; &hellip;, _typedRef_
+
+> *描述*：
+
+`mkrefany` 指令支持传递动态类型引用。_ptr_ 应该是一个指针（类型 `&`，或 `native int`），它保存了一块数据的地址。_class_ 是描述 _ptr_ 类型的类标记（*TypeRef*，*TypeDef* 或 *TypeSpec*）。`mkrefany` 在堆栈上推入一个类型引用，即 _ptr_ 和 _class_ 的不透明描述符。此指令使得可以将动态类型引用作为参数传递。调用方可以使用 `refanytype` 和 `refanyval` 指令分别检索参数的类型（_class_）和地址（_ptr_）。
+
+> *异常*：
+
+如果找不到 _class_，将抛出 `System.TypeLoadException` 异常。这通常在 CIL-to-native-code 时检查，而不是在运行时。
+
+> *正确性*：
+
+正确的 CIL 确保 _class_ 是一个描述某种类型的有效 *TypeRef*，*TypeDef* 或 *TypeSpec* *token*，并且 _ptr_ 是一个指向确切该类型的指针。
+
+> *可验证性*：
+
+验证还要求 _ptr_ 是一个托管指针。如果无法推断出 _ptr_ 是一个指向 _class_ 实例的指针，验证将失败。
+
+>---
+### newarr ：创建一个零基一维数组
+
+ | Format     | Assembly Format  | Description                           |
+ | :--------- | :--------------- | :------------------------------------ |
+ | 8D _\<T\>_ | `newarr` _etype_ | 创建一个元素类型为 _etype_ 的新数组。 |
+
+> *堆栈转换*：
+
+&hellip;, _numElems_ &rarr; &hellip;, _array_
+
+> *描述*：
+
+`newarr` 指令将一个引用推入堆栈，该引用引用一个新的零基一维数组，其元素的类型为 _etype_，一个元数据 *token*（*TypeRef*，*TypeDef* 或 *TypeSpec*）。_numElems_（类型为 `native int` 或 `int32`）指定数组中的元素数量。有效的数组索引是 0 &le; index < _numElems_。数组的元素可以是任何类型，包括值类型。
+
+使用引用适当值类型（`System.Int32` 等）的元数据标记创建零基一维数字数组。数组的元素初始化为适当类型的 0。
+
+非零基的一维数组和多维数组是使用 `newobj` 而不是 `newarr` 创建的。更常见的是，它们是使用基础框架中的 `System.Array` 类的方法创建的。
+
+> *异常*：
+
+如果没有足够的内存来满足请求，将抛出 `System.OutOfMemoryException` 异常。
+
+如果 _numElems_ 是 < 0，将抛出 `System.OverflowException` 异常。
+
+> *正确性*：
+
+正确的 CIL 确保 _etype_ 是一个有效的 *TypeRef*，*TypeDef* 或 *TypeSpec* *token*。
+
+> *可验证性*：
+
+_numElems_ 应为 `native int` 或 `int32` 类型。
+
+>---
+### newobj ：创建新对象
+<a id="newobj"></a>
+
+| Format     | Assembly Format | Description                                   |
+| :--------- | :-------------- | :-------------------------------------------- |
+| 73 _\<T\>_ | `newobj` _ctor_ | 分配一个未初始化的对象或值类型并调用 _ctor_。 |
+
+> *堆栈转换*：
+
+&hellip;, _arg1_, &hellip; _argN_ &rarr; &hellip;, _obj_
+
+> *描述*：
+
+`newobj` 指令创建一个新对象或一个值类型的新实例。_ctor_ 是一个元数据标记（一个标记为构造函数的 *MethodRef* 或 *MethodDef*），它指示要调用的构造函数的名称、类和签名。如果找不到与指定的名称、类和签名完全匹配的构造函数，将抛出 `MissingMethodException` 异常。
+
+`newobj` 指令分配与 _ctor_ 关联的类的一个新实例，并将新实例中的所有字段初始化为适当类型的 0 或适当的 `null`。然后，它使用给定的参数以及新创建的实例调用构造函数。在调用构造函数后，现在已初始化的对象引用被推入堆栈。
+
+从构造函数的角度看，未初始化的对象是参数 0，传递给 `newobj` 的其他参数按顺序排列。
+
+所有零基一维数组都是使用 `newarr` 而不是 `newobj` 创建的。另一方面，所有其他数组（维数超过一维，或者一维但不是零基）都是使用 `newobj` 创建的。
+
+值类型通常不是使用 `newobj` 创建的。它们通常作为参数或局部变量分配，使用 `newarr`（对于零基一维数组），或作为对象的字段。一旦分配，它们就使用 `initobj` 初始化。然而，`newobj` 指令可以用来在堆栈上创建一个值类型的新实例，然后可以将其作为参数传递，存储在局部变量中等。
+
+> *异常*：
+
+如果 ctor 的类是抽象的，将抛出 `System.InvalidOperationException` 异常。
+
+如果 _ctor_ 不可访问，将抛出 `System.MethodAccessException` 异常。
+
+如果没有足够的内存来满足请求，将抛出 `System.OutOfMemoryException` 异常。
+
+如果找不到具有指定名称、类和签名的构造函数方法，将抛出 `System.MissingMethodException` 异常。这通常在 CIL-to-native-code 时检查，而不是在运行时。
+
+> *正确性*：
+
+正确的 CIL 确保 _ctor_ 是一个有效的 *MethodRef* 或 *MethodDef* *token*，并且堆栈上的参数是 *可赋值给* 构造函数的参数。
+
+> *可验证性*：
+
+验证取决于是否正在创建委托或其他对象。有三种情况，按顺序排列：
+
+ 1. 如果 `newobj` 指令是 `dup`；`ldvirtftn`；`newobj` 指令序列的一部分，并且 _ctor_ 元数据 *token* 引用一个委托类型，那么正在创建一个虚函数的委托；
+ 2. 如果 `newobj` 指令是 `ldftn`；`newobj` 指令序列的一部分，并且 _ctor_ 元数据 *token* 引用一个委托类型，那么正在创建一个静态或非虚实例函数的委托；
+ 3. 否则，如果 _ctor_ 元数据 *token* 不引用委托类型，那么正在创建其他一些对象。
+
+没有其他情况是可验证的。以下是三种情况的不同验证规则。
+
+> *虚拟调度委托创建的可验证性*:
+
+当 `newobj` 指令是以下指令序列的一部分时：
+
+ ```cil
+ dup
+ ldvirtftn <function>
+ newobj <ctor>
+ ```
+
+指令序列，然后验证检查：
+ 1. 在 `dup` 指令之前的堆栈上有一个类型为 *T* 的 _target_；
+ 2. function 是类型 *T* 上的虚方法的 *MethodRef* 或 *MethodDef* 或 *MethodSpec* 元数据 *token*；
+ 3. _ctor_ 是标记为委托类型 _deltype_ 的构造函数的  *MethodRef* 或 *MethodDef* 元数据 *token*；
+ 4. _ctor_ 可从 `newobj` 点访问；
+ 5. function 的签名是 *委托可赋值给* _deltype_ 的签名（即 _deltype_ 的 `Invoke` 方法的签名）；
+ 6. _target_ 的验证类型是 *验证可赋值给* _function_ 的 **this** 签名；并且
+ 7. 序列中没有分支指令定位到 `ldvirtftn` 或 `newobj` 指令。
+
+验证将 _obj_ 的类型跟踪为 _deltype_。
+
+> *静态和实例方法的接口调度委托创建的可验证性*：
+
+当 `newobj` 指令是以下指令序列的一部分时：
+
+ ```cil
+  ldftn <function>
+  newobj <ctor>
+  ```
+指令序列，然后验证检查：
+
+ 1. _function_ 是静态或非虚实例方法的 *MethodRef* 或 *MethodDef* 或 *MethodSpec* 元数据 *token*；
+ 2. 在 `ldftn` 指令之前的堆栈上有一个 _target_，并且 _target_ 的验证类型是：
+     1. 如果 _function_ 引用实例方法，则 *验证可赋值给* _function_ 的 **this** 签名，或者
+     2. 如果 _function_ 引用静态方法，则为 `null`（即 `ldnull` 的结果）
+ 3. _ctor_ 是标记为委托类型 _deltype_ 的构造函数的 *MethodRef* 或 *MethodDef* 元数据 *token*；
+ 4. _ctor_ 可从 `newobj` 点访问；
+ 5. _function_ 的签名是 *委托可赋值给* _deltype_ 的签名（即 _deltype_ 的 `Invoke` 方法的签名）；并且
+ 6. 当 _function_ 是非 **final** 虚方法，且堆栈上的 _target_ 不是装箱的值类型时，验证检查 _target_ 是 `ldarg.s 0`，`ldarg 0` 或 `ldarg.0` 的结果，且创建者的主体不包含 `starg.s 0`，`starg 0` 或 `ldarga.s 0`，`ldarga 0`。这反映了 `call` 指令的要求和理由。并且
+ 7. 序列中没有分支指令定位到 `newobj` 指令。
+
+验证将 _obj_ 的类型跟踪为 _deltype_。
+
+> *非委托对象的创建的可验证性*：
+
+验证检查：
+ 1. _ctor_ 是标记为非委托类型 *T* 的构造函数的 *MethodRef* 或 *MethodDef* 元数据 *token*；
+ 2. _ctor_ 可从 `newobj` 点访问；并且
+ 3. 堆栈上的参数；_arg1_，&hellip; _argN_；的类型是 *验证可赋值给* _ctor_ 签名的参数签名。
+ 
+ 验证将 _obj_ 的类型跟踪为 _T_。
+
+>---
+### refanytype ：从类型引用中加载类型
+
+| Format | Assembly Format | Description                      |
+| :----- | :-------------- | :------------------------------- |
+| FE 1D  | `refanytype`    | 推送存储在类型引用中的类型标记。 |
+
+> *堆栈转换*：
+
+&hellip;, _TypedRef_ &rarr; &hellip;, _type_
+
+> *描述*：
+
+检索嵌入在 _TypedRef_ 中的类型标记。参见 `mkrefany` 指令。
+
+> *异常*：
+
+正确的 CIL 确保 _TypedRef_ 是一个有效的类型引用（由先前的 `mkrefany` 调用创建）。
+
+> *可验证性*：
+
+`refanytype` 指令始终可验证。
+
+>---
+### refanyval ：从类型引用中加载地址
+
+ | Format     | Assembly Format    | Description                  |
+ | :--------- | :----------------- | :--------------------------- |
+ | C2 _\<T\>_ | `refanyval` _type_ | 推送存储在类型引用中的地址。 |
+
+> *堆栈转换*：
+
+&hellip;, _TypedRef_ &rarr; &hellip;, _address_
+
+> *描述*：
+
+检索嵌入在 _TypedRef_ 中的地址（类型为 `&`）。_TypedRef_ 中的引用类型应与 _type_ 指定的类型匹配（元数据 *token*，*TypeDef*，*TypeRef* 或 *TypeSpec*）。参见 `mkrefany` 指令。
+
+> *异常*：
+
+如果 _type_ 与存储在 _TypedRef_ 中的类型不完全相同（即，提供给构造 _TypedRef_ 的 `mkrefany` 指令的类），将抛出 `System.InvalidCastException` 异常。
+
+如果找不到 _type_，将抛出 `System.TypeLoadException` 异常。
+
+> *正确性*：
+
+正确的 CIL 确保 _TypedRef_ 是一个有效的类型引用（由先前的 `mkrefany` 调用创建）。
+
+> *可验证性*：
+
+`refanyval` 指令始终可验证。
+
+>---
+### rethrow ：重新抛出当前异常
+
+ | Format | Assembly Format | Description        |
+ | :----- | :-------------- | :----------------- |
+ | FE 1A  | `rethrow`       | 重新抛出当前异常。 |
+
+> *堆栈转换*：
+
+&hellip;, &rarr; &hellip;,
+
+> *描述*：
+
+`rethrow` 指令只允许在 **catch** 处理程序的主体内使用。它抛出与此处理程序捕获的相同的异常。重新抛出不会改变对象中的堆栈跟踪。
+
+> *异常*：
+
+抛出原始异常。
+
+> *正确性*：
+
+正确的 CIL 只在 **catch** 处理程序的主体内使用此指令（不包括嵌入在该 **catch** 处理程序中的任何异常处理程序）。如果在其他地方发生重新抛出，将抛出一个异常，但是准确的异常是未定义的
+
+>---
+### sizeof ：加载类型的字节大小
+
+ | Format        | Assembly Format    | Description                                    |
+ | :------------ | :----------------- | :--------------------------------------------- |
+ | FE 1C _\<T\>_ | `sizeof` _typeTok_ | 以 `unsigned int32` 的形式推送类型的字节大小。 |
+
+> *堆栈转换*：
+
+&hellip;, &rarr; &hellip;, _size_ (4 字节，无符号)
+
+> *描述*：
+
+返回类型的字节大小。_typeTok_ 可以是泛型参数，引用类型或值类型。
+
+对于引用类型，返回的大小是相应类型的引用值的大小，而不是引用值引用的对象中存储的数据的大小。
+
+值类型的定义可以在生成 CIL 时和加载执行时之间改变。因此，当生成 CIL 时，类型的大小并不总是已知的。`sizeof` 指令允许 CIL 代码在运行时确定大小，而无需调用框架类库。计算可以完全在运行时或在编译 CIL-to-native-code 时进行。`sizeof` 返回此类型的数组中每个元素将占用的总大小 — 包括实现选择添加的任何填充。具体来说，数组元素相距 `sizeof` 字节。
+
+> *正确性*：
+
+_typeTok_ 应为 *TypeDef*，*TypeRef* 或 *TypeSpec* 元数据 *token*。
+
+> *可验证性*：
+
+`sizeof` 始终可验证。
+
+>---
+### stelem ：将元素存储到数组中
+
+| Format     | Assembly Format    | Description                             |
+| :--------- | :----------------- | :-------------------------------------- |
+| A4 _\<T\>_ | `stelem` _typeTok_ | 用堆栈上的值替换数组中 _index_ 处的元素 |
+
+> *堆栈转换*：
+
+&hellip;, _array_, _index_, _value_, &rarr; &hellip;
+
+> *描述*：
+
+`stelem` 指令用 _value_ 替换一维数组 _array_ 中零基索引 _index_（类型为 `native int` 或 `int32`）处的元素的值。数组是对象，因此由类型 `O` 的值表示。值的类型必须与指令中的 _typeTok_ *数组元素兼容*。
+
+存储到保存小于 4 字节值的数组中，其中间类型为 `int32`，会在值从堆栈移动到数组时截断该值。浮点值从其本地大小（类型 `F`）四舍五入到与数组关联的大小。
+
+对于非零基的一维数组和多维数组，数组类提供了一个 `StoreElement` 方法。
+
+> *异常*：
+
+如果 _array_ 为 null，将抛出 `System.NullReferenceException` 异常。
+
+如果 _index_ 大于 _array_ 的边界，将抛出 `System.IndexOutOfRangeException` 异常。
+
+如果 _array_ 不包含所需类型的元素，将抛出 `System.ArrayTypeMismatchException` 异常。
+
+> *正确性*：
+
+_typeTok_ 应为有效的 `typedef`，`typeref` 或 `typespec` 元数据标记。
+
+_array_ 应为 null 或单维数组。
+
+> *可验证性*：
+
+验证要求：
+ * _array_ 的跟踪类型是 `T[]`，对于某个 `T`；
+ * _value_ 的跟踪类型是 *数组元素兼容* 的 _typeTok_；
+ * _typeTok_ 是 *数组元素兼容* 的 `T`；并且
+ * _index_ 的类型是 `int32` 或 `native int`。
+
+>---
+### stelem.\<type\> ：将元素存储到数组中
+
+| Format | Assembly Format | Description                                                   |
+| :----- | :-------------- | :------------------------------------------------------------ |
+| 9C     | `stelem.i1`     | 用堆栈上的 `int8` _value_ 替换数组中 _index_ 处的元素。       |
+| 9D     | `stelem.i2`     | 用堆栈上的 `int16` _value_ 替换数组中 _index_ 处的元素。      |
+| 9E     | `stelem.i4`     | 用堆栈上的 `int32` _value_ 替换数组中 _index_ 处的元素。      |
+| 9F     | `stelem.i8`     | 用堆栈上的 `int64` _value_ 替换数组中 _index_ 处的元素。      |
+| A0     | `stelem.r4`     | 用堆栈上的 `float32` _value_ 替换数组中 _index_ 处的元素。    |
+| A1     | `stelem.r8`     | 用堆栈上的 `float64` _value_ 替换数组中 _index_ 处的元素。    |
+| 9B     | `stelem.i`      | 用堆栈上的 `native int` _value_ 替换数组中 _index_ 处的元素。 |
+| A2     | `stelem.ref`    | 用堆栈上的 ref _value_ 替换数组中 _index_ 处的元素。          |
+
+> *堆栈转换*：
+
+&hellip;, _array_, _index_, _value_ &rarr; &hellip;,
+
+> *描述*：
+
+`stelem.`_\<type\>_ 指令用 _value_ 替换一维数组 _array_ 中零基索引 _index_（类型为 `int32` 或 `native int`）处的元素的值。数组是对象，因此由类型 `O` 的值表示。
+
+存储到保存小于 4 字节值的数组中，其中中间类型为 `int32`，会在值从堆栈移动到数组时截断该值。浮点值从其本地大小（类型 `F`）四舍五入到与数组关联的大小。
+
+除 `stelem.ref` 外，所有变体都等同于带有适当 _typeTok_ 的 `stelem` 指令。
+
+请注意，`stelem.ref` 在将值分配给数组元素之前，隐式地将值转换为 _array_ 的元素类型。即使对于已验证的代码，这种转换也可能失败。因此，`stelem.ref` 指令可以抛出 `ArrayTypeMismatchException` 异常。这种行为与 `stelem` 不同。
+
+对于非零基的一维数组和多维数组，数组类提供了一个 `StoreElement` 方法。
+
+> *异常*：
+
+如果 _array_ 为 null，将抛出 `System.NullReferenceException` 异常。
+
+如果 _index_ 为负数，或大于 _array_ 的边界，将抛出 `System.IndexOutOfRangeException` 异常。
+
+如果 _array_ 不包含所需类型的元素，将抛出 `System.ArrayTypeMismatchException` 异常。
+
+> *正确性*：
+
+正确的 CIL 要求 _array_ 是一个零基一维数组，且指令中的类型是 *数组元素兼容* 其声明的元素类型。
+
+> *可验证性*：
+
+验证要求：
+ * _array_ 的跟踪类型是 `T[]`，对于某个 `T`；
+ * 对于 `stelem.ref`，_value_ 的跟踪类型是引用类型，并且是 *(数组元素)兼容* 的 `T`；
+ * 对于其他指令变体，_value_ 的跟踪类型是 *数组元素兼容* 指令中的类型，且指令中的类型是 *数组元素兼容* 的 `T`；并且
+ * _index_ 的类型是 `int32` 或 `native int`。
+
+>---
+### stfld ：将值存储到对象的字段中
+
+| Format     | Assembly Format | Description                                 |
+| :--------- | :-------------- | :------------------------------------------ |
+| 7D _\<T\>_ | `stfld` _field_ | 用 _value_ 替换对象 _obj_ 的 _field_ 的值。 |
+
+> *堆栈转换*：
+
+&hellip;, _obj_, _value_ &rarr; &hellip;,
+
+> *描述*：
+
+`stfld` 指令用 _value_ 替换 _obj_（一个 `O`）或通过指针（类型为 `native int` 或 `&`）的 _field_ 的值。_field_ 是一个元数据标记（一个 *FieldRef* 或 *FieldDef*），它引用一个字段成员引用。`stfld` 弹出值和对象引用，并更新对象。
+
+存储到保存小于 4 字节值的字段中，会在值从堆栈移动到局部变量时截断该值。浮点值从其本地大小（类型 `F`）四舍五入到与参数关联的大小。
+
+`stfld` 指令可以有 `unaligned.` 和 `volatile.` 的一个或两个前缀。
+
+> *异常*：
+
+如果 _field_ 不可访问，将抛出 `System.FieldAccessException` 异常。
+
+如果 _obj_ 为 null 并且字段不是静态的，将抛出 `System.NullReferenceException` 异常。
+
+如果在元数据中找不到 _field_，将抛出 `System.MissingFieldException` 异常。这通常在 CIL-to-native-code 时检查，而不是在运行时。
+
+> *正确性*：
+
+正确的 CIL 确保 _field_ 是一个有效的引用字段的 *token*，并且 _obj_ 和 _value_ 将始终具有适合执行的赋值的类型，受到隐式转换的约束。
+
+> *可验证性*：
+
+对于可验证的代码，_obj_ 不应是一个非托管指针。
+
+在类初始化器的主体之外使用 `stfld` 更改静态的、只读字段的值可能会导致不可预测的行为。然而，它不能破坏内存完整性或类型安全，因此它不是由验证来测试的。
+
+_obj_ 的跟踪类型应具有，或者是一个具有静态或实例 _field_ 的类型的托管指针。
+
+不可验证地访问重叠的对象引用字段。只有当每个与其重叠的字段都可访问时，字段才可访问。
+
+验证还检查 _value_ 的类型是否是 *验证可赋值给* 字段的类型。
+
+>---
+### stobj ：将值存储到地址中
+
+| Format     | Assembly Format   | Description                           |
+| :--------- | :---------------- | :------------------------------------ |
+| 81 _\<T\>_ | `stobj` _typeTok_ | 将类型为 _typeTok_ 的值存储到地址中。 |
+
+> *堆栈转换*：
+
+&hellip;, _dest_, _src_ &rarr; &hellip;,
+
+> *描述*：
+
+`stobj` 指令将值 _src_ 复制到地址 _dest_。如果 _typeTok_ 不是泛型参数并且是引用类型或内置值类，则 `stind` 指令为 `stobj` 指令提供了简写。
+
+存储到内存中的值小于 4 字节的值会在值从堆栈移动到内存时截断该值。浮点值从其本地大小（类型 `F`）四舍五入到与 _typeTok_ 关联的大小。
+
+`stobj` 指令的操作可以通过紧接在前面的 `volatile.` 或 `unaligned.` 前缀指令进行更改。
+
+> *异常*：
+
+如果检测到无效地址，可能会抛出 `System.NullReferenceException` 异常。
+
+如果找不到 _typeTok_，将抛出 `System.TypeLoadException` 异常。这通常在 CIL-to-native-code 时检测，而不是在运行时。
+
+> *正确性*：
+
+正确的 CIL 确保 _dest_ 是指向 `T` 的指针，且 _src_ 的类型是 *验证可赋值给* `T`。
+
+_typeTok_ 应为有效的 *TypeDef*，*TypeRef* 或 *TypeSpec* 元数据 *token*。
+
+与 `stind` 指令不同，`stobj` 指令可以与泛型参数类型一起使用。
+
+> *可验证性*：
+
+让堆栈顶部的值的跟踪类型为某种类型 _srcType_。当 _srcType_ 是引用类型时，值应被初始化。在前面的堆栈槽中的目标地址 _dest_ 的跟踪类型应为某种类型 _destType_ 的托管指针（类型为 _destType_&）。最后，_srcType_ 应为 *验证可赋值给* _typeTok_。
+
+>---
+### stsfld ：存储类的静态字段
+<a id="stfld"></a>
+
+ | Format     | Assembly Format  | Description                  |
+ | :--------- | :--------------- | :--------------------------- |
+ | 80 _\<T\>_ | `stsfld` _field_ | 用 _val_ 替换 _field_ 的值。 |
+
+> *堆栈转换*：
+
+&hellip;, _val_ &rarr; &hellip;,
+
+> *描述*：
+
+`stsfld` 指令用堆栈上的值替换静态字段的值。_field_ 是一个元数据 *token*（*FieldRef* 或 *FieldDef*），应引用一个静态字段成员。`stsfld` 弹出堆栈上的值并用该值更新静态字段。
+
+存储到保存小于 4 字节值的字段中，会在值从堆栈移动到局部变量时截断该值。浮点值从其本地大小（类型 `F`）四舍五入到与参数关联的大小。
+
+`stsfld` 指令可以有 `volatile.` 前缀。
+
+> *异常*：
+
+如果 _field_ 不可访问，将抛出 `System.FieldAccessException` 异常。
+
+如果在元数据中找不到 _field_，将抛出 `System.MissingFieldException` 异常。这通常在 CIL-to-native-code 时检查，而不是在运行时。
+
+> *正确性*：
+
+正确的 CIL 确保 _field_ 是一个有效的引用静态字段的标记，且 _value_ 将始终具有适合执行的赋值的类型，受到隐式转换的约束。
+
+> *可验证性*：
+
+验证检查 _val_ 的类型是否是 *验证可赋值给* 字段的类型。
+
+在类初始化器的主体之外使用 `stsfld` 更改静态的、只读字段的值可能会导致不可预测的行为。然而，它不能破坏内存完整性或类型安全，因此它不是由验证来测试的。
+
+>---
+### throw ：抛出异常
+
+| Format | Assembly Format | Description |
+| :----- | :-------------- | :---------- |
+| 7A     | `throw`         | 抛出异常。  |
+
+> *堆栈转换*：
+
+&hellip;, _object_ &rarr; &hellip;,
+
+> *描述*：
+
+`throw` 指令抛出堆栈上的异常 _object_（类型 `O`）并清空堆栈。虽然 CLI 允许抛出任何对象，但 CLS 描述了一个特定的异常类，应用于语言互操作性。
+
+> *异常*：
+
+如果 _obj_ 为 `null`，则抛出 `System.NullReferenceException` 异常。
+
+> *正确性*：
+
+正确的 CIL 确保 _object_ 始终是 `null` 或对象引用（即，类型为 `O`）。
+
+>---
+### unbox ：将装箱的值类型转换为其原始形式
+<a id="unbox"></a>
+
+ | Format     | Assembly Format     | Description                                 |
+ | :--------- | :------------------ | :------------------------------------------ |
+ | 79 _\<T\>_ | `unbox` _valuetype_ | 从 _obj_ 中提取值类型，这是其装箱表示形式。 |
+
+> *堆栈转换*：
+
+&hellip;, _obj_ &rarr; &hellip;, _valueTypePtr_
+
+> *描述*：
+
+在 CLI 中，值类型有两种不同的表示形式：
+ * 当值类型嵌入在另一个对象中时使用的 “原始” 形式。
+ * “装箱”形式，其中值类型中的数据被包装（装箱）到一个对象中，因此它可以作为一个独立的实体存在。
+
+`unbox` 指令将 _obj_（类型为 `O`），值类型的装箱表示形式，转换为 _valueTypePtr_（可控易变托管指针），类型 `&`），其未装箱形式。_valuetype_ 是一个元数据 *token*（*TypeRef*，*TypeDef* 或 *TypeSpec*）。_obj_ 中包含的 _valuetype_ 的类型必须是 *验证可赋值给* _valuetype_。
+
+与 `box` 不同，`box` 需要复制值类型以在对象中使用，`unbox` 不需要从对象中复制值类型。通常，它只是计算已经存在于装箱对象内部的值类型的地址。
+
+通常，`unbox` 只是计算已经存在于装箱对象内部的值类型的地址。当拆箱可空值类型时，这种方法是不可能的。因为 `Nullable<T>` 值在 `box` 操作期间转换为装箱的 `T`，因此实现通常必须在堆上制造一个新的 `Nullable<T>` 并计算到新分配的对象的地址。
+
+> *异常*：
+
+如果 _obj_ 不是装箱的值类型，_valuetype_ 是 `Nullable<T>` 并且 _obj_ 不是装箱的 `T`，或者 _obj_ 中包含的值的类型不是 *验证可赋值给* _valuetype_，则抛出 `System.InvalidCastException` 异常。
+
+如果 _obj_ 为 null 并且 _valuetype_ 是非可空值类型，则抛出 `System.NullReferenceException` 异常。
+
+如果找不到类，则抛出 `System.TypeLoadException` 异常。这通常在 CIL-to-native-code 时检测，而不是在运行时。）
+
+> *正确性*：
+
+正确的 CIL 确保 _valueType_ 是某个可装箱值类型的 *TypeRef*，*TypeDef* 或 *TypeSpec* 元数据 *token*，且 _obj_ 始终是对象引用（即，类型为 `O`）。如果 _valuetype_ 是类型 `Nullable<T>`，则装箱实例应为类型 `T`。
+
+> *可验证性*：
+
+验证要求 _obj_ 中包含的 _valuetype_ 的类型必须是 *验证可赋值给* _valuetype_
+
+>---
+### unbox.any ：将装箱类型转换为值
+
+| Format     | Assembly Format       | Description                               |
+| :--------- | :-------------------- | :---------------------------------------- |
+| A5 _\<T\>_ | `unbox.any` _typeTok_ | 从 _obj_ 中提取值类型，这是其装箱表示形式 |
+
+> *堆栈转换*：
+
+&hellip;, _obj_ &rarr; &hellip;, _value_ 或 _obj_
+
+> *描述*：
+
+当应用于值类型的装箱形式时，`unbox.any` 指令提取 _obj_（类型为 `O`）中包含的值。（它等同于 `unbox` 后跟 `ldobj`。）当应用于引用类型时，`unbox.any` 指令与 `castclass` _typeTok_ 具有相同的效果。
+
+如果 _typeTok_ 是 _GenericParam_，则运行时行为由该参数的实际实例化确定。
+
+> *异常*：
+
+如果 _obj_ 不是装箱的值类型或引用类型，_typeTok_ 是 `Nullable<T>` 并且 _obj_ 不是装箱的 `T`，或者 _obj_ 中包含的值的类型不是 *验证可赋值给* _typeTok_，则抛出 `System.InvalidCastException` 异常。
+
+如果 _obj_ 为 `null` 并且 _typeTok_ 是非可空值类型，则抛出 `System.NullReferenceException` 异常。
+
+> *正确性*：
+
+_obj_ 应为引用类型，_typeTok_ 应为可装箱类型。
+
+> *可验证性*：
+
+验证跟踪 _value_ 或 _obj_ 的类型作为 _typeTok_ 的中间类型。
+
+> *理由*:
+
+有两个原因需要同时具有 `unbox.any` 和 `unbox` 指令：
+ 1. 与 `unbox` 指令不同，对于值类型，`unbox.any` 在堆栈上留下一个值，而不是值的地址。
+ 2. `unbox` 的类型操作数有一个限制：它只能表示值类型和泛型值类型的实例化。
+
+---
+##
+
+
 
 
 
