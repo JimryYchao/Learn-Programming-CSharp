@@ -1,6 +1,6 @@
 .assembly extern mscorlib {auto}
 .assembly HelloCIL { }
-.module HelloCIL.exe
+// .module HelloCIL.exe
 .namespace HelloCIL
  {
     .class public Program extends [mscorlib]System.Object
