@@ -1,14 +1,18 @@
-using var defer = Defer.New(() => Console.WriteLine(1));
-defer.Do(() => Console.WriteLine(2));
-Console.WriteLine("Hello");
-defer.Do(() => Console.WriteLine(3));
-using (defer.Do(() => Console.WriteLine(4)))
+using System.Console;
+void test()
 {
-    // ...
-} // >> 提前 defer
-defer.Do(() => Console.WriteLine(5));
-Console.WriteLine("World");
-// Hello, 4,3,2,1, World ,5
+    using var defer = Defer.New(() => Console.WriteLine(1));
+    defer.Do(() => Console.WriteLine(2));
+    Console.WriteLine("Hello");
+    defer.Do(() => Console.WriteLine(3));
+    using (defer.Do(() => Console.WriteLine(4)))
+    {
+        // ...
+    } // >> 提前 defer
+    defer.Do(() => Console.WriteLine(5));
+    Console.WriteLine("World");
+    // Hello, 4,3,2,1, World ,5
+}
 
 /// <summary>
 /// defer.Do(action) like a go defer.
@@ -52,13 +56,18 @@ public sealed class Defer : IDisposable
     }
     void IDisposable.Dispose()
     {
-        for (int i = 0; i < deferStack.Count;)
+        // 异常时跳过并继续
+        if (this.deferStack.Count > 0)
         {
-            try
+            using (this)
             {
-                this.deferStack.Pop().Invoke();
+                try
+                {
+                    for (int i = 0; i < deferStack.Count;)
+                        this.deferStack.Pop().Invoke();
+                }
+                catch { }
             }
-            catch { }
         }
         lock (deferPool)
             Defer.deferPool.Push(this);
